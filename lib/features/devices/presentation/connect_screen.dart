@@ -6,6 +6,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/ad_side_layout.dart';
 import '../../../core/widgets/buttons.dart';
 import '../../../core/widgets/soft_card.dart';
 import '../../../core/widgets/state_views.dart';
@@ -46,7 +47,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     final ok = await ref.read(connectionProvider.notifier).connect(device);
     if (!mounted) return;
     if (ok) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Connected to ${device.name}')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.connectedTo(device.name))));
       if (widget.standalone && context.canPop()) {
         // Let the connected pulse play before returning.
         await Future<void>.delayed(const Duration(milliseconds: 700));
@@ -65,6 +66,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 
     final failed = conn.status == ConnectionStatus.failed && conn.device != null;
     final blocked = failed || discovery.networkRequired;
+    final showHotspotHelp = !discovery.scanning && !discovery.hotspot && !conn.isConnected;
     final showEmpty =
         !blocked && !discovery.scanning && discovery.devices.isEmpty && discovery.error == null && !discovery.hotspot;
     final status = discovery.devices.isNotEmpty
@@ -73,115 +75,122 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 
     return Scaffold(
       appBar: CastAppBar(
-        title: widget.standalone ? 'Choose a device' : 'Devices',
+        title: widget.standalone ? context.l10n.chooseADevice : context.l10n.devices,
         actions: [
           SoftIconButton(
             icon: Iconsax.message_question_copy,
-            tooltip: 'Connection guide',
+            tooltip: context.l10n.connectionGuide,
             size: 44,
             onPressed: () => showConnectionGuide(context),
           ),
         ],
       ),
-      body: CustomScrollView(
-        slivers: [
-          if (widget.reason != null) SliverToBoxAdapter(child: _ReasonBanner(widget.reason!)),
-          if (failed)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.xl, AppSpace.page, AppSpace.xl),
-                child: ConnectFailedCard(onRetry: () => _connect(conn.device!), onScanAgain: notifier.scan),
-              ),
-            )
-          else if (discovery.networkRequired)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(AppSpace.page, AppSpace.xl, AppSpace.page, AppSpace.xl),
-                child: NetworkRequiredCard(),
-              ),
-            ),
-          if (!showEmpty && !blocked) ...[
-            if (discovery.hotspot)
-              SliverToBoxAdapter(
-                child: Center(
-                  child: Chip(
-                    avatar: Icon(Iconsax.mobile_copy, size: 16, color: context.palette.primary),
-                    label: Text(l.usingHotspot),
-                  ),
-                ),
-              ),
-            SliverToBoxAdapter(
-              child: _Radar(scanning: discovery.scanning, devices: discovery.devices, connectedId: conn.device?.id),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, AppSpace.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        if (discovery.scanning) ...[
-                          SizedBox.square(
-                            dimension: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: context.palette.primary),
-                          ),
-                          const SizedBox(width: AppSpace.sm),
-                        ],
-                        Expanded(child: Text(status, style: context.text.titleSmall)),
-                        TintedButton(label: l.retry, icon: Iconsax.refresh_copy, compact: true, onPressed: notifier.scan),
-                      ],
+      // No TV found: everything on one screen in portrait, no scrolling.
+      body: showEmpty && !isLandscape(context)
+          ? _EmptyOneScreen(reason: widget.reason, onRetry: notifier.scan)
+          : CustomScrollView(
+              slivers: [
+                if (widget.reason != null) SliverToBoxAdapter(child: _ReasonBanner(widget.reason!)),
+                if (failed)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.xl, AppSpace.page, AppSpace.xl),
+                      child: ConnectFailedCard(onRetry: () => _connect(conn.device!), onScanAgain: notifier.scan),
                     ),
-                    if (!discovery.hotspot) ...[
-                      const SizedBox(height: AppSpace.sm),
-                      TintedButton(
-                        label: l.useMobileHotspot,
-                        icon: Iconsax.mobile_copy,
-                        expand: true,
-                        onPressed: () => showHotspotGuide(context),
+                  )
+                else if (discovery.networkRequired)
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(AppSpace.page, AppSpace.xl, AppSpace.page, AppSpace.xl),
+                      child: NetworkRequiredCard(),
+                    ),
+                  ),
+                if (!showEmpty && !blocked) ...[
+                  if (discovery.hotspot)
+                    SliverToBoxAdapter(
+                      child: Center(
+                        child: Chip(
+                          avatar: Icon(Iconsax.mobile_copy, size: 16, color: context.palette.primary),
+                          label: Text(l.usingHotspot),
+                        ),
                       ),
-                    ],
-                    if (discovery.isolationSuspected) ...[
-                      const SizedBox(height: AppSpace.md),
-                      const IsolationHint(),
-                    ],
-                  ],
-                ),
-              ),
+                    ),
+                  SliverToBoxAdapter(
+                    child: _Radar(
+                      scanning: discovery.scanning,
+                      devices: discovery.devices,
+                      connectedId: conn.device?.id,
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, AppSpace.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              if (discovery.scanning) ...[
+                                SizedBox.square(
+                                  dimension: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: context.palette.primary),
+                                ),
+                                const SizedBox(width: AppSpace.sm),
+                              ],
+                              Expanded(child: Text(status, style: context.text.titleSmall)),
+                              TintedButton(
+                                label: l.retry,
+                                icon: Iconsax.refresh_copy,
+                                compact: true,
+                                onPressed: notifier.scan,
+                              ),
+                            ],
+                          ),
+                          if (discovery.isolationSuspected) ...[
+                            const SizedBox(height: AppSpace.md),
+                            const IsolationHint(),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+                if (blocked)
+                  const SliverToBoxAdapter(child: SizedBox.shrink())
+                else if (discovery.error != null)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: ErrorState(message: discovery.error, onRetry: notifier.scan),
+                  )
+                else if (showEmpty)
+                  SliverPadding(
+                    padding: EdgeInsets.only(bottom: navBottomPadding(context)),
+                    sliver: SliverToBoxAdapter(child: NoDevicesFound(onRetry: notifier.scan)),
+                  )
+                else
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, navBottomPadding(context)),
+                    sliver: SliverList.separated(
+                      // While scanning: a skeleton row. After the search: hotspot
+                      // help at the bottom (unless already on the hotspot/connected).
+                      itemCount: discovery.devices.length + (discovery.scanning || showHotspotHelp ? 1 : 0),
+                      separatorBuilder: (_, _) => const SizedBox(height: AppSpace.md),
+                      itemBuilder: (context, i) {
+                        if (i >= discovery.devices.length) {
+                          return discovery.scanning ? const _DeviceSkeleton() : const StillCantFindCard();
+                        }
+                        final d = discovery.devices[i];
+                        return _DeviceTile(
+                          device: d,
+                          connection: conn,
+                          onConnect: () => _connect(d),
+                          onDisconnect: () => ref.read(connectionProvider.notifier).disconnect(),
+                        ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.15, end: 0, curve: Curves.easeOutCubic);
+                      },
+                    ),
+                  ),
+              ],
             ),
-          ],
-          if (blocked)
-            const SliverToBoxAdapter(child: SizedBox.shrink())
-          else if (discovery.error != null)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: ErrorState(message: discovery.error, onRetry: notifier.scan),
-            )
-          else if (showEmpty)
-            SliverPadding(
-              padding: EdgeInsets.only(bottom: navBottomPadding(context)),
-              sliver: SliverToBoxAdapter(child: NoDevicesFound(onRetry: notifier.scan)),
-            )
-          else
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, navBottomPadding(context)),
-              sliver: SliverList.separated(
-                itemCount: discovery.devices.length + (discovery.scanning ? 1 : 0),
-                separatorBuilder: (_, _) => const SizedBox(height: AppSpace.md),
-                itemBuilder: (context, i) {
-                  if (i >= discovery.devices.length) return const _DeviceSkeleton();
-                  final d = discovery.devices[i];
-                  return _DeviceTile(
-                    device: d,
-                    connection: conn,
-                    onConnect: () => _connect(d),
-                    onDisconnect: () => ref.read(connectionProvider.notifier).disconnect(),
-                  ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.15, end: 0, curve: Curves.easeOutCubic);
-                },
-              ),
-            ),
-        ],
-      ),
     );
   }
 }
@@ -207,8 +216,8 @@ class _Radar extends StatelessWidget {
             duration: AppDurations.medium,
             child: Text(
               scanning
-                  ? (found == 0 ? 'Looking for TVs on your Wi-Fi' : '$found found so far')
-                  : '$found device${found == 1 ? '' : 's'} found',
+                  ? (found == 0 ? context.l10n.lookingForTvsOn : context.l10n.foundSoFar(found))
+                  : context.l10n.deviceFound(found, found == 1 ? '' : 's'),
               key: ValueKey('$scanning$found'),
               style: context.text.bodyMedium?.copyWith(color: p.textSecondary),
             ),
@@ -242,11 +251,11 @@ class _DeviceTile extends StatelessWidget {
 
     Widget action;
     if (connected) {
-      action = TintedButton(label: 'Disconnect', compact: true, color: p.error, onPressed: onDisconnect);
+      action = TintedButton(label: context.l10n.disconnect, compact: true, color: p.error, onPressed: onDisconnect);
     } else if (connecting) {
       action = const _ConnectingLink();
     } else {
-      action = GradientButton(label: 'Connect', compact: true, onPressed: busyElsewhere ? null : onConnect);
+      action = GradientButton(label: context.l10n.connect, compact: true, onPressed: busyElsewhere ? null : onConnect);
     }
 
     final bubble = IconBubble(icon: device.type.icon, size: 52, color: connected ? p.success : null);
@@ -284,7 +293,10 @@ class _DeviceTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpace.sm),
-          AnimatedSwitcher(duration: AppDurations.medium, child: KeyedSubtree(key: ValueKey('$connected$connecting'), child: action)),
+          AnimatedSwitcher(
+            duration: AppDurations.medium,
+            child: KeyedSubtree(key: ValueKey('$connected$connecting'), child: action),
+          ),
           _ForgetMenu(device: device),
         ],
       ),
@@ -301,7 +313,7 @@ class _SignalBars extends StatelessWidget {
     final p = context.palette;
     final level = (signal * 4).ceil();
     return Semantics(
-      label: 'Signal $level of 4',
+      label: context.l10n.signalOf4(level),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -336,11 +348,7 @@ class _DeviceSkeleton extends StatelessWidget {
             const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ShimmerBox(height: 14, width: 140),
-                  SizedBox(height: 8),
-                  ShimmerBox(height: 10, width: 80),
-                ],
+                children: [ShimmerBox(height: 14, width: 140), SizedBox(height: 8), ShimmerBox(height: 10, width: 80)],
               ),
             ),
             ShimmerBox(width: 88, height: 40, radius: AppRadius.pill),
@@ -360,7 +368,7 @@ class _ConnectingLink extends StatelessWidget {
     final p = context.palette;
     final reduce = MediaQuery.disableAnimationsOf(context);
     return Semantics(
-      label: 'Connecting',
+      label: context.l10n.connecting2,
       liveRegion: true,
       child: SizedBox(
         width: 96,
@@ -372,12 +380,20 @@ class _ConnectingLink extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 3),
                 child: reduce
-                    ? Container(width: 5, height: 5, decoration: BoxDecoration(color: p.primary, shape: BoxShape.circle))
-                    : Container(width: 5, height: 5, decoration: BoxDecoration(color: p.primary, shape: BoxShape.circle))
-                        .animate(onPlay: (c) => c.repeat(), delay: (150 * i).ms)
-                        .fade(begin: 0.2, end: 1, duration: 450.ms)
-                        .then()
-                        .fade(begin: 1, end: 0.2, duration: 450.ms),
+                    ? Container(
+                        width: 5,
+                        height: 5,
+                        decoration: BoxDecoration(color: p.primary, shape: BoxShape.circle),
+                      )
+                    : Container(
+                            width: 5,
+                            height: 5,
+                            decoration: BoxDecoration(color: p.primary, shape: BoxShape.circle),
+                          )
+                          .animate(onPlay: (c) => c.repeat(), delay: (150 * i).ms)
+                          .fade(begin: 0.2, end: 1, duration: 450.ms)
+                          .then()
+                          .fade(begin: 1, end: 0.2, duration: 450.ms),
               ),
             Icon(Iconsax.monitor_copy, size: 18, color: p.primary),
           ],
@@ -394,8 +410,8 @@ class _ReasonBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = switch (reason) {
-      'remote' => 'The TV remote needs a connected TV. Pick one below.',
-      _ => 'Connect to a TV to continue.',
+      'remote' => context.l10n.theTvRemoteNeeds,
+      _ => context.l10n.connectToATv,
     };
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, 0),
@@ -406,7 +422,9 @@ class _ReasonBanner extends StatelessWidget {
           children: [
             Icon(Iconsax.info_circle_copy, color: context.palette.primary),
             const SizedBox(width: AppSpace.md),
-            Expanded(child: Text(text, style: context.text.bodyMedium?.copyWith(color: context.palette.textPrimary))),
+            Expanded(
+              child: Text(text, style: context.text.bodyMedium?.copyWith(color: context.palette.textPrimary)),
+            ),
           ],
         ),
       ),
@@ -443,6 +461,41 @@ class _ForgetMenu extends ConsumerWidget {
         if (ok == true) await ref.read(connectionProvider.notifier).forget(device);
       },
       itemBuilder: (_) => [PopupMenuItem(value: 0, child: Text(l.forgetDevice))],
+    );
+  }
+}
+
+/// "No TV found" laid out to fit the screen: the content scales down a little
+/// on small phones instead of scrolling.
+class _EmptyOneScreen extends StatelessWidget {
+  const _EmptyOneScreen({required this.reason, required this.onRetry});
+  final String? reason;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (reason != null) _ReasonBanner(reason!),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: navBottomPadding(context)),
+            child: LayoutBuilder(
+              builder: (context, c) => Align(
+                alignment: Alignment.topCenter,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.topCenter,
+                  child: SizedBox(
+                    width: c.maxWidth,
+                    child: NoDevicesFound(onRetry: onRetry),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

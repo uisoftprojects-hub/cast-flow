@@ -8,8 +8,9 @@ class HiveSavedDevicesRepository implements SavedDevicesRepository {
   final Box<Map> _box;
 
   @override
-  List<CastDevice> all() => _box.values.map(CastDevice.fromMap).toList()
-    ..sort((a, b) => (b.lastSeen ?? DateTime(0)).compareTo(a.lastSeen ?? DateTime(0)));
+  List<CastDevice> all() =>
+      _box.values.map(CastDevice.fromMap).toList()
+        ..sort((a, b) => (b.lastSeen ?? DateTime(0)).compareTo(a.lastSeen ?? DateTime(0)));
 
   @override
   CastDevice? findById(String id) {

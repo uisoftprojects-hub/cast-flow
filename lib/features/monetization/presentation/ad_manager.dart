@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/analytics.dart';
+import '../../../core/analytics/analytics_events.dart';
 import '../../../core/app_providers.dart';
 import '../../../core/navigation.dart';
 import '../../../core/theme/app_theme.dart';
@@ -16,6 +18,8 @@ import '../domain/ad_adapter.dart';
 import '../domain/ad_config.dart';
 import '../domain/ad_models.dart';
 import 'ad_route_observer.dart';
+
+import '../../../core/l10n.dart';
 
 final adAdapterProvider = Provider<AdAdapter>(
   (ref) => createAdAdapter(rootNavigatorKey, () => ref.read(previewModeProvider)),
@@ -52,7 +56,12 @@ class AdManager extends Notifier<AdDiagnostics> {
   @override
   AdDiagnostics build() {
     _adapter = ref.watch(adAdapterProvider);
-    _routes = ref.watch(adRouteObserverProvider)..onEligiblePush = (_) => registerEligibleClick();
+    _routes = ref.watch(adRouteObserverProvider)
+      ..onEligiblePush = (_) => Future.microtask(() {
+        // Route pushes are reported while the navigator builds; providers
+        // can't change then, so count the click right after.
+        if (ref.mounted) registerEligibleClick();
+      });
     _now = ref.watch(adClockProvider);
     ref.onDispose(() => _interstitial?.dispose());
 
@@ -75,12 +84,12 @@ class AdManager extends Notifier<AdDiagnostics> {
 
   /// Gathers consent and initializes the SDK once.
   Future<void> ensureInitialized() => _init ??= () async {
-        try {
-          await _adapter.initialize();
-        } catch (_) {}
-        final ok = await _adapter.canRequestAds().catchError((_) => false);
-        state = state.copyWith(consentAllowsAds: ok);
-      }();
+    try {
+      await _adapter.initialize();
+    } catch (_) {}
+    final ok = await _adapter.canRequestAds().catchError((_) => false);
+    state = state.copyWith(consentAllowsAds: ok);
+  }();
 
   // ---------------------------------------------------------------- native
 
@@ -93,11 +102,10 @@ class AdManager extends Notifier<AdDiagnostics> {
     if (ps.inCooldown(_now())) return _skip(placement, 'cooldown');
     if (ps.requestState == AdRequestState.loading) return _skip(placement, 'request already in flight');
 
-    _setPlacement(placement, (s) => s.copyWith(
-          requestState: AdRequestState.loading,
-          requestCount: s.requestCount + 1,
-          lastRequestAt: _now(),
-        ));
+    _setPlacement(
+      placement,
+      (s) => s.copyWith(requestState: AdRequestState.loading, requestCount: s.requestCount + 1, lastRequestAt: _now()),
+    );
     _log(placement, AdEventType.request);
     try {
       final ad = await _adapter.loadNative(
@@ -143,11 +151,10 @@ class AdManager extends Notifier<AdDiagnostics> {
   Future<void> _loadInterstitial(int cycle) async {
     const p = AdPlacement.interstitial;
     _interstitialLoading = true;
-    _setPlacement(p, (s) => s.copyWith(
-          requestState: AdRequestState.loading,
-          requestCount: s.requestCount + 1,
-          lastRequestAt: _now(),
-        ));
+    _setPlacement(
+      p,
+      (s) => s.copyWith(requestState: AdRequestState.loading, requestCount: s.requestCount + 1, lastRequestAt: _now()),
+    );
     _log(p, AdEventType.request, 'click ${AdConfig.loadAtClick}');
     try {
       final ad = await _adapter.loadInterstitial();
@@ -243,11 +250,10 @@ class AdManager extends Notifier<AdDiagnostics> {
     if (!_canShowFullScreen()) return;
 
     _setOverlay(true);
-    _setPlacement(p, (s) => s.copyWith(
-          requestState: AdRequestState.loading,
-          requestCount: s.requestCount + 1,
-          lastRequestAt: _now(),
-        ));
+    _setPlacement(
+      p,
+      (s) => s.copyWith(requestState: AdRequestState.loading, requestCount: s.requestCount + 1, lastRequestAt: _now()),
+    );
     _log(p, AdEventType.request, 'resume');
     LoadedFullScreenAd ad;
     try {
@@ -305,11 +311,14 @@ class AdManager extends Notifier<AdDiagnostics> {
   }
 
   void _fail(AdPlacement p, Object e, Duration cooldown) {
-    _setPlacement(p, (s) => s.copyWith(
-          requestState: AdRequestState.idle,
-          lastFailure: e.toString(),
-          cooldownUntil: cooldown == Duration.zero ? null : _now().add(cooldown),
-        ));
+    _setPlacement(
+      p,
+      (s) => s.copyWith(
+        requestState: AdRequestState.idle,
+        lastFailure: e.toString(),
+        cooldownUntil: cooldown == Duration.zero ? null : _now().add(cooldown),
+      ),
+    );
     _log(p, AdEventType.failed, e.toString());
   }
 
@@ -332,6 +341,43 @@ class AdManager extends Notifier<AdDiagnostics> {
   void _log(AdPlacement p, AdEventType type, [String? detail]) {
     final events = [AdEvent(p, type, _now(), detail), ...state.events];
     state = state.copyWith(events: events.take(AdConfig.maxLoggedEvents).toList());
+    _track(p, type, detail);
+  }
+
+  final _requestedAt = <AdPlacement, DateTime>{};
+
+  /// Mirrors the local ad log to analytics, one event per lifecycle step.
+  void _track(AdPlacement p, AdEventType type, String? detail) {
+    final base = <String, Object?>{
+      AnalyticsParam.adName: p.analyticsName,
+      AnalyticsParam.adFormat: p.format,
+      AnalyticsParam.adUnit: AdConfig.unitId(p).split('/').last,
+    };
+    final analytics = ref.read(analyticsProvider);
+    switch (type) {
+      case AdEventType.request:
+        _requestedAt[p] = _now();
+        analytics.log(AnalyticsEvent.adRequest, {...base, AnalyticsParam.source: detail});
+      case AdEventType.loaded:
+        final at = _requestedAt[p];
+        analytics.log(AnalyticsEvent.adLoadSuccess, {
+          ...base,
+          AnalyticsParam.loadMs: at == null ? null : _now().difference(at).inMilliseconds,
+        });
+      case AdEventType.failed:
+        final message = detail ?? '';
+        final noFill = message.toLowerCase().contains('no fill');
+        analytics.log(noFill ? AnalyticsEvent.adNoFill : AnalyticsEvent.adLoadFail, {
+          ...base,
+          AnalyticsParam.errorMessage: message,
+        });
+      case AdEventType.impression:
+        analytics.log(AnalyticsEvent.adImpression, base);
+      case AdEventType.clicked:
+        analytics.log(AnalyticsEvent.adClick, base);
+      case AdEventType.dismissed || AdEventType.discarded || AdEventType.skipped:
+        break; // local log only
+    }
   }
 }
 
@@ -344,15 +390,20 @@ class _AdLoadingOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
+      // Full-screen see-through scrim with the loader and its "Ad is loading"
+      // text together in the middle. No card or white background.
       child: Material(
-        color: context.palette.background,
+        color: Colors.black.withValues(alpha: 0.35),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox.square(dimension: 32, child: CircularProgressIndicator(strokeWidth: 3)),
-              const SizedBox(height: 16),
-              Text('Ad is loading', style: context.text.titleMedium),
+              const SizedBox.square(
+                dimension: 40,
+                child: CircularProgressIndicator(strokeWidth: 3.5, color: Colors.white),
+              ),
+              const SizedBox(height: 14),
+              Text(context.l10n.adIsLoading, style: context.text.titleSmall?.copyWith(color: Colors.white)),
             ],
           ),
         ),

@@ -9,6 +9,8 @@ import '../theme/app_tokens.dart';
 import 'buttons.dart';
 import 'soft_card.dart';
 
+import '../l10n.dart';
+
 /// Friendly empty state with an icon bubble, message and optional action.
 class EmptyState extends StatelessWidget {
   const EmptyState({
@@ -28,8 +30,9 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Scrolls instead of overflowing when space is short (landscape).
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpace.xxxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -60,24 +63,25 @@ class ErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
+    // Scrolls instead of overflowing when space is short (landscape).
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpace.xxxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconBubble(icon: Iconsax.danger_copy, size: 88, color: p.error),
             const SizedBox(height: AppSpace.xl),
-            Text('Something went wrong', textAlign: TextAlign.center, style: context.text.headlineSmall),
+            Text(context.l10n.somethingWentWrong, textAlign: TextAlign.center, style: context.text.headlineSmall),
             const SizedBox(height: AppSpace.sm),
             Text(
-              message ?? 'We couldn’t load this right now. Please try again.',
+              message ?? context.l10n.weCouldntLoadThis,
               textAlign: TextAlign.center,
               style: context.text.bodyMedium,
             ),
             if (onRetry != null) ...[
               const SizedBox(height: AppSpace.xxl),
-              TintedButton(label: 'Try again', icon: Iconsax.refresh_copy, onPressed: onRetry),
+              TintedButton(label: context.l10n.tryAgain, icon: Iconsax.refresh_copy, onPressed: onRetry),
             ],
           ],
         ).animate().fadeIn(duration: AppDurations.slow),
@@ -116,10 +120,7 @@ class ShimmerBox extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      decoration: BoxDecoration(
-        color: context.palette.surfaceHigh,
-        borderRadius: BorderRadius.circular(radius),
-      ),
+      decoration: BoxDecoration(color: context.palette.surfaceHigh, borderRadius: BorderRadius.circular(radius)),
     );
   }
 }
@@ -213,7 +214,10 @@ class AsyncView<T> extends StatelessWidget {
       child: value.when(
         skipLoadingOnRefresh: false,
         loading: () => KeyedSubtree(key: const ValueKey('loading'), child: loading ?? const ShimmerList()),
-        error: (e, _) => KeyedSubtree(key: const ValueKey('error'), child: ErrorState(onRetry: onRetry)),
+        error: (e, _) => KeyedSubtree(
+          key: const ValueKey('error'),
+          child: ErrorState(onRetry: onRetry),
+        ),
         data: (d) {
           if (empty != null && (isEmpty?.call(d) ?? false)) {
             return KeyedSubtree(key: const ValueKey('empty'), child: empty!);

@@ -31,7 +31,11 @@ class AdDiagnosticsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _kv(context, 'Consent allows ads', d.consentAllowsAds ? 'yes' : 'no'),
-                _kv(context, 'Click counter', '${d.clickCount} / ${AdConfig.showAtClick} (load at ${AdConfig.loadAtClick})'),
+                _kv(
+                  context,
+                  'Click counter',
+                  '${d.clickCount} / ${AdConfig.showAtClick} (load at ${AdConfig.loadAtClick})',
+                ),
                 _kv(context, 'App Open overlay', d.appOpenOverlay ? 'showing' : 'hidden'),
               ],
             ),
@@ -78,13 +82,13 @@ class AdDiagnosticsScreen extends ConsumerWidget {
   }
 
   Widget _kv(BuildContext context, String k, String v) => Padding(
-        padding: const EdgeInsets.only(bottom: 4),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(width: 140, child: Text(k, style: context.text.bodySmall)),
-            Expanded(child: Text(v, style: context.text.bodyLarge)),
-          ],
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(width: 140, child: Text(k, style: context.text.bodySmall)),
+        Expanded(child: Text(v, style: context.text.bodyLarge)),
+      ],
+    ),
+  );
 }

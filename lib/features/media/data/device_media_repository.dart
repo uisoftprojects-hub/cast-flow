@@ -55,34 +55,33 @@ class DeviceMediaRepository implements MediaRepository {
     final count = await path.assetCountAsync;
     final assets = await path.getAssetListRange(start: 0, end: math.min(count, _maxItems));
     return [
-      for (final a in assets)
-        PhotoItem(id: a.id, albumId: path.id, seed: a.id.hashCode, takenAt: a.createDateTime),
+      for (final a in assets) PhotoItem(id: a.id, albumId: path.id, seed: a.id.hashCode, takenAt: a.createDateTime),
     ];
   }
 
   @override
   Future<List<VideoItem>> videos() async => [
-        for (final a in await _all(RequestType.video))
-          VideoItem(
-            id: a.id,
-            title: a.title?.isNotEmpty == true ? a.title! : 'Video',
-            duration: a.videoDuration,
-            sizeBytes: 0,
-            resolution: a.height > 0 ? '${math.min(a.width, a.height)}p' : '',
-            seed: a.id.hashCode,
-          ),
-      ];
+    for (final a in await _all(RequestType.video))
+      VideoItem(
+        id: a.id,
+        title: a.title?.isNotEmpty == true ? a.title! : 'Video',
+        duration: a.videoDuration,
+        sizeBytes: 0,
+        resolution: a.height > 0 ? '${math.min(a.width, a.height)}p' : '',
+        seed: a.id.hashCode,
+      ),
+  ];
 
   @override
   Future<List<SongItem>> songs() async => [
-        for (final a in await _all(RequestType.audio))
-          SongItem(
-            id: a.id,
-            title: (a.title ?? 'Track').replaceAll(RegExp(r'\.[a-z0-9]{2,4}$', caseSensitive: false), ''),
-            artist: a.relativePath?.split('/').where((s) => s.isNotEmpty).lastOrNull ?? 'Music',
-            album: '',
-            duration: a.videoDuration,
-            seed: a.id.hashCode,
-          ),
-      ];
+    for (final a in await _all(RequestType.audio))
+      SongItem(
+        id: a.id,
+        title: (a.title ?? 'Track').replaceAll(RegExp(r'\.[a-z0-9]{2,4}$', caseSensitive: false), ''),
+        artist: a.relativePath?.split('/').where((s) => s.isNotEmpty).lastOrNull ?? 'Music',
+        album: '',
+        duration: a.videoDuration,
+        seed: a.id.hashCode,
+      ),
+  ];
 }

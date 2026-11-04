@@ -1,14 +1,20 @@
 import 'package:flutter/widgets.dart';
 
 enum AdPlacement {
-  languageFirstRun('Language (first run)'),
-  languageSettings('Language (Settings)'),
-  onboarding('Onboarding'),
-  interstitial('5-click interstitial'),
-  appOpen('App Open');
+  languageFirstRun('Language (first run)', 'native_language_first_open', 'native'),
+  languageSettings('Language (Settings)', 'native_language_settings', 'native'),
+  onboarding('Onboarding', 'native_onboarding', 'native'),
+  interstitial('5-click interstitial', 'inter_5_click', 'interstitial'),
+  appOpen('App Open', 'app_open_resume', 'app_open');
 
-  const AdPlacement(this.label);
+  const AdPlacement(this.label, this.analyticsName, this.format);
   final String label;
+
+  /// Ad name sent with every ad event: format, screen, then context.
+  final String analyticsName;
+
+  /// native | interstitial | app_open
+  final String format;
 }
 
 enum AdRequestState { idle, loading, ready, showing }
@@ -70,10 +76,10 @@ class PlacementState {
   }
 
   Map<String, Object?> toJson() => {
-        'lastRequestAt': lastRequestAt?.millisecondsSinceEpoch,
-        'lastImpressionAt': lastImpressionAt?.millisecondsSinceEpoch,
-        'cooldownUntil': cooldownUntil?.millisecondsSinceEpoch,
-      };
+    'lastRequestAt': lastRequestAt?.millisecondsSinceEpoch,
+    'lastImpressionAt': lastImpressionAt?.millisecondsSinceEpoch,
+    'cooldownUntil': cooldownUntil?.millisecondsSinceEpoch,
+  };
 
   factory PlacementState.fromJson(Map<String, dynamic> j) {
     DateTime? t(String k) => j[k] == null ? null : DateTime.fromMillisecondsSinceEpoch(j[k] as int);

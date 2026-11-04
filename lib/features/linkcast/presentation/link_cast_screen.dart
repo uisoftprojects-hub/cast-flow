@@ -12,6 +12,8 @@ import '../../devices/presentation/widgets/connection_chip.dart';
 import '../../player/domain/cast_media.dart';
 import '../../player/presentation/player_controller.dart';
 
+import '../../../core/l10n.dart';
+
 class LinkCastScreen extends ConsumerStatefulWidget {
   const LinkCastScreen({super.key});
 
@@ -37,7 +39,7 @@ class _LinkCastScreenState extends ConsumerState<LinkCastScreen> {
   void _castLink() {
     final uri = Uri.tryParse(_ctrl.text.trim());
     if (uri == null || !(uri.isScheme('http') || uri.isScheme('https') || uri.isScheme('rtsp')) || uri.host.isEmpty) {
-      setState(() => _error = 'Enter a valid http(s) or rtsp link, e.g. an .m3u8 or .mp4 URL.');
+      setState(() => _error = context.l10n.enterAValidHttp);
       return;
     }
     setState(() => _error = null);
@@ -50,7 +52,7 @@ class _LinkCastScreenState extends ConsumerState<LinkCastScreen> {
       CastMedia(
         id: url,
         title: title,
-        subtitle: 'Link stream',
+        subtitle: context.l10n.linkStream,
         kind: CastKind.link,
         seed: url.hashCode,
         duration: const Duration(hours: 1),
@@ -64,7 +66,7 @@ class _LinkCastScreenState extends ConsumerState<LinkCastScreen> {
     final p = context.palette;
 
     return Scaffold(
-      appBar: const CastAppBar(title: 'IPTV / Link Cast'),
+      appBar: CastAppBar(title: context.l10n.iptvLinkCast),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, AppSpace.xxxl),
         children: [
@@ -72,9 +74,9 @@ class _LinkCastScreenState extends ConsumerState<LinkCastScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Cast a link', style: context.text.titleLarge),
+                Text(context.l10n.castALink, style: context.text.titleLarge),
                 const SizedBox(height: 4),
-                Text('Paste a direct video, M3U8 or IPTV stream URL.', style: context.text.bodySmall),
+                Text(context.l10n.pasteADirectVideo, style: context.text.bodySmall),
                 const SizedBox(height: AppSpace.lg),
                 TextField(
                   controller: _ctrl,
@@ -86,7 +88,7 @@ class _LinkCastScreenState extends ConsumerState<LinkCastScreen> {
                     hintText: 'https://…/stream.m3u8',
                     prefixIcon: Icon(Iconsax.link_2_copy, color: p.textSecondary, size: 20),
                     suffixIcon: IconButton(
-                      tooltip: 'Paste',
+                      tooltip: context.l10n.paste,
                       onPressed: _paste,
                       icon: Icon(Iconsax.document_copy, color: p.primary, size: 20),
                     ),
@@ -94,10 +96,18 @@ class _LinkCastScreenState extends ConsumerState<LinkCastScreen> {
                 ),
                 if (_error != null) ...[
                   const SizedBox(height: AppSpace.sm),
-                  Text(_error!, style: context.text.bodySmall?.copyWith(color: p.error)).animate().fadeIn().shakeX(hz: 3, amount: 3),
+                  Text(
+                    _error!,
+                    style: context.text.bodySmall?.copyWith(color: p.error),
+                  ).animate().fadeIn().shakeX(hz: 3, amount: 3),
                 ],
                 const SizedBox(height: AppSpace.lg),
-                GradientButton(label: 'Cast link', icon: Iconsax.screenmirroring_copy, expand: true, onPressed: _castLink),
+                GradientButton(
+                  label: context.l10n.castLink,
+                  icon: Iconsax.screenmirroring_copy,
+                  expand: true,
+                  onPressed: _castLink,
+                ),
               ],
             ),
           ),

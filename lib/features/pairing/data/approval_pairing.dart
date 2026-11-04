@@ -57,7 +57,8 @@ abstract class _WsSession implements PairingSession {
 class SamsungPairing implements PairingProtocol {
   @override
   bool handles(CastDevice d) =>
-      d.type == DeviceType.smartTv && (d.port == 8001 || d.port == 8002 || (d.model ?? '').toLowerCase().contains('samsung'));
+      d.type == DeviceType.smartTv &&
+      (d.port == 8001 || d.port == 8002 || (d.model ?? '').toLowerCase().contains('samsung'));
 
   @override
   PairingSession start(CastDevice device, {String? saved}) => _SamsungSession(device, saved);
@@ -104,7 +105,8 @@ class _SamsungSession extends _WsSession {
 class LgPairing implements PairingProtocol {
   @override
   bool handles(CastDevice d) =>
-      d.type == DeviceType.smartTv && (d.port == 3000 || d.port == 3001 || (d.model ?? '').toLowerCase().startsWith('lg'));
+      d.type == DeviceType.smartTv &&
+      (d.port == 3000 || d.port == 3001 || (d.model ?? '').toLowerCase().startsWith('lg'));
 
   @override
   PairingSession start(CastDevice device, {String? saved}) => _LgSession(device, saved);
@@ -160,9 +162,11 @@ class _LgSession extends _WsSession {
         emit(PairingDone((payload?['client-key'] as String?) ?? ''));
       case 'error':
         final err = '${msg['error']}'.toLowerCase();
-        emit(err.contains('denied') || err.contains('reject') || err.contains('cancel')
-            ? const PairingRejected()
-            : PairingFailed(err));
+        emit(
+          err.contains('denied') || err.contains('reject') || err.contains('cancel')
+              ? const PairingRejected()
+              : PairingFailed(err),
+        );
     }
   }
 }

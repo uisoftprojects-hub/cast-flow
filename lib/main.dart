@@ -4,6 +4,8 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/app.dart';
+import 'core/analytics/analytics.dart';
+import 'core/analytics/firebase_analytics_sink.dart';
 import 'core/app_providers.dart';
 import 'core/storage/local_store.dart';
 
@@ -12,6 +14,7 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   await Hive.initFlutter();
   final store = await LocalStore.open();
+  final firebase = await FirebaseAnalyticsSink.tryCreate();
   await purgeDemoDevices(
     store,
     lastDeviceId: prefs.getString('last_device_id'),
@@ -25,6 +28,7 @@ Future<void> main() async {
       overrides: [
         sharedPrefsProvider.overrideWithValue(prefs),
         localStoreProvider.overrideWithValue(store),
+        if (firebase != null) analyticsSinkProvider.overrideWithValue(firebase),
       ],
       child: const CastFlowApp(),
     ),

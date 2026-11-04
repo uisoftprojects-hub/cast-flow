@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
+import '../core/l10n.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/app_tokens.dart';
@@ -93,7 +94,7 @@ class _FloatingNavBar extends StatelessWidget {
                 for (final (i, (icon, label)) in _tabs.indexed)
                   Expanded(
                     flex: i == index ? 5 : 3,
-                    child: _NavItem(icon: icon, label: label, selected: i == index, onTap: () => onTap(i)),
+                    child: _NavItem(icon: icon, label: context.tr(label), selected: i == index, onTap: () => onTap(i)),
                   ),
               ],
             ),

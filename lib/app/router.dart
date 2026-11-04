@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/analytics/analytics.dart';
 import '../core/navigation.dart';
 import '../features/apps/presentation/apps_screen.dart';
 import '../features/devices/presentation/connect_screen.dart';
@@ -50,16 +51,16 @@ CustomTransitionPage<T> _soft<T>(GoRouterState state, String name, Widget child,
 }
 
 GoRoute _page(String path, Widget Function(GoRouterState s) build, {bool fromBottom = false}) => GoRoute(
-      path: path,
-      parentNavigatorKey: rootNavigatorKey,
-      pageBuilder: (context, state) => _soft(state, path, build(state), fromBottom: fromBottom),
-    );
+  path: path,
+  parentNavigatorKey: rootNavigatorKey,
+  pageBuilder: (context, state) => _soft(state, path, build(state), fromBottom: fromBottom),
+);
 
 /// Startup-journey routes; everything else requires a completed first run.
 const _flowRoutes = {'/splash', '/paywall', '/language', '/onboarding'};
 
 final routerProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
+  final router = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     observers: [ref.read(adRouteObserverProvider)],
@@ -77,10 +78,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => AppShell(navigationShell: shell),
         branches: [
-          StatefulShellBranch(routes: [GoRoute(path: '/home', builder: (_, _) => const HomeScreen())]),
-          StatefulShellBranch(routes: [GoRoute(path: '/devices', builder: (_, _) => const ConnectScreen())]),
-          StatefulShellBranch(routes: [GoRoute(path: '/history', builder: (_, _) => const HistoryScreen())]),
-          StatefulShellBranch(routes: [GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen())]),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/home', builder: (_, _) => const HomeScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/devices', builder: (_, _) => const ConnectScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/history', builder: (_, _) => const HistoryScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen())],
+          ),
         ],
       ),
       _page(
@@ -98,11 +107,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       _page('/apps/facebook', (_) => const WebCastScreen(initialUrl: 'https://m.facebook.com/watch')),
       _page('/link', (_) => const LinkCastScreen()),
       _page('/apps', (_) => const AppsScreen()),
-      _page('/premium', (_) => const PaywallScreen(), fromBottom: true),
+      _page('/premium', (s) => PaywallScreen(from: s.uri.queryParameters['from']), fromBottom: true),
       _page('/settings/language', (_) => const LanguageScreen(fromSettings: true)),
       _page('/faq', (_) => const FaqScreen()),
-      _page('/guide', (_) => const GuideScreen()),
+      _page('/guide', (s) => GuideScreen(topic: s.uri.queryParameters['topic'])),
       _page('/ad-diagnostics', (_) => const AdDiagnosticsScreen()),
     ],
   );
+  trackScreens(
+    router.routerDelegate,
+    () => router.routerDelegate.currentConfiguration.uri.path,
+    () => ref.read(analyticsProvider),
+  );
+  return router;
 });

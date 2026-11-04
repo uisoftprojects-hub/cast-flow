@@ -14,6 +14,8 @@ import '../../devices/presentation/widgets/connection_chip.dart';
 import '../domain/history_entry.dart';
 import 'history_controller.dart';
 
+import '../../../core/l10n.dart';
+
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
 
@@ -21,13 +23,13 @@ class HistoryScreen extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear history?'),
-        content: const Text('This removes everything you’ve cast from this list.'),
+        title: Text(context.l10n.clearHistory),
+        content: Text(context.l10n.thisRemovesEverythingYouve),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l10n.cancel)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Clear', style: TextStyle(color: context.palette.error)),
+            child: Text(context.l10n.clear, style: TextStyle(color: context.palette.error)),
           ),
         ],
       ),
@@ -42,12 +44,12 @@ class HistoryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: CastAppBar(
-        title: 'History',
+        title: context.l10n.history,
         actions: [
           if (hasItems)
             SoftIconButton(
               icon: Iconsax.trash_copy,
-              tooltip: 'Clear history',
+              tooltip: context.l10n.clearHistory2,
               size: 44,
               onPressed: () => _confirmClear(context, ref),
             ),
@@ -57,10 +59,10 @@ class HistoryScreen extends ConsumerWidget {
         value: history,
         onRetry: () => ref.read(historyProvider.notifier).refresh(),
         isEmpty: (h) => h.isEmpty,
-        empty: const EmptyState(
+        empty: EmptyState(
           icon: Iconsax.clock_copy,
-          title: 'No history yet',
-          message: 'Everything you cast will be listed here so you can find it again.',
+          title: context.l10n.noHistoryYet,
+          message: context.l10n.everythingYouCastWill,
         ),
         data: (items) {
           final groups = <DayBucket, List<HistoryEntry>>{};
@@ -76,19 +78,16 @@ class HistoryScreen extends ConsumerWidget {
                   if (groups[bucket] case final entries?) ...[
                     Padding(
                       padding: const EdgeInsets.only(top: AppSpace.md, bottom: AppSpace.sm),
-                      child: Text(
-                        switch (bucket) {
-                          DayBucket.today => 'Today',
-                          DayBucket.yesterday => 'Yesterday',
-                          DayBucket.earlier => 'Earlier',
-                        },
-                        style: context.text.labelMedium?.copyWith(color: context.palette.textSecondary),
-                      ),
+                      child: Text(switch (bucket) {
+                        DayBucket.today => context.l10n.today,
+                        DayBucket.yesterday => context.l10n.yesterday,
+                        DayBucket.earlier => context.l10n.earlier,
+                      }, style: context.text.labelMedium?.copyWith(color: context.palette.textSecondary)),
                     ),
                     for (final e in entries) _HistoryTile(entry: e),
                   ],
                 const SizedBox(height: AppSpace.sm),
-                Center(child: Text('Swipe an item to remove it', style: context.text.bodySmall)),
+                Center(child: Text(context.l10n.swipeAnItemTo, style: context.text.bodySmall)),
               ],
             ),
           );
@@ -120,7 +119,7 @@ class _HistoryTile extends ConsumerWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Delete', style: context.text.labelMedium?.copyWith(color: p.error)),
+              Text(context.l10n.delete, style: context.text.labelMedium?.copyWith(color: p.error)),
               const SizedBox(width: 8),
               Icon(Iconsax.trash_copy, color: p.error),
             ],
@@ -128,15 +127,16 @@ class _HistoryTile extends ConsumerWidget {
         ),
         onDismissed: (_) async {
           final messenger = ScaffoldMessenger.of(context);
+          final l = context.l10n;
           final removed = await ref.read(historyProvider.notifier).remove(entry.id);
           if (removed == null) return;
           messenger
             ..hideCurrentSnackBar()
             ..showSnackBar(
               SnackBar(
-                content: Text('Removed “${removed.title}”'),
+                content: Text(l.removed(removed.title)),
                 action: SnackBarAction(
-                  label: 'Undo',
+                  label: l.undo,
                   onPressed: () => ref.read(historyProvider.notifier).restore(removed),
                 ),
               ),
@@ -155,10 +155,15 @@ class _HistoryTile extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(entry.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.titleSmall),
+                    Text(
+                      context.tr(entry.title),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.text.titleSmall,
+                    ),
                     const SizedBox(height: 2),
                     Text(
-                      '${entry.kind.label} · ${entry.deviceName}',
+                      '${context.tr(entry.kind.label)} · ${entry.deviceName}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: context.text.bodySmall,
@@ -170,7 +175,9 @@ class _HistoryTile extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsetsDirectional.only(end: AppSpace.sm),
                 child: Text(
-                  dayBucket(entry.castAt) == DayBucket.earlier ? formatShortDate(entry.castAt) : formatTime(entry.castAt),
+                  dayBucket(entry.castAt) == DayBucket.earlier
+                      ? formatShortDate(entry.castAt)
+                      : formatTime(entry.castAt),
                   style: context.text.bodySmall,
                 ),
               ),

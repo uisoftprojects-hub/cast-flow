@@ -4,9 +4,7 @@ import '../../../core/app_providers.dart';
 import '../data/device_media_repository.dart';
 import '../domain/media_models.dart';
 
-final mediaRepositoryProvider = Provider<MediaRepository>(
-  (ref) => DeviceMediaRepository(),
-);
+final mediaRepositoryProvider = Provider<MediaRepository>((ref) => DeviceMediaRepository());
 
 // Each provider watches the preview mode so switching it refetches.
 final albumsProvider = FutureProvider<List<PhotoAlbum>>((ref) {

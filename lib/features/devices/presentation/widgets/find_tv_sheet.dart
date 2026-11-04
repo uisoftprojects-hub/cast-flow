@@ -90,7 +90,9 @@ class _FindTvSheetState extends ConsumerState<FindTvSheet> {
                 label: Text(l.usingHotspot),
               ),
             ),
-          Center(child: TvRadar(scanning: discovery.scanning, devices: discovery.devices, size: 210)),
+          Center(
+            child: TvRadar(scanning: discovery.scanning, devices: discovery.devices, size: 210),
+          ),
           const SizedBox(height: AppSpace.md),
           AnimatedSwitcher(
             duration: AppDurations.medium,
@@ -99,17 +101,17 @@ class _FindTvSheetState extends ConsumerState<FindTvSheet> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (discovery.scanning) ...[
-                  SizedBox.square(dimension: 14, child: CircularProgressIndicator(strokeWidth: 2, color: context.palette.primary)),
+                  SizedBox.square(
+                    dimension: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: context.palette.primary),
+                  ),
                   const SizedBox(width: 8),
                 ],
                 Flexible(child: Text(status, style: context.text.bodyMedium)),
               ],
             ),
           ),
-          if (discovery.isolationSuspected) ...[
-            const SizedBox(height: AppSpace.md),
-            const IsolationHint(),
-          ],
+          if (discovery.isolationSuspected) ...[const SizedBox(height: AppSpace.md), const IsolationHint()],
           const SizedBox(height: AppSpace.lg),
           for (final d in discovery.devices)
             Padding(
@@ -117,21 +119,12 @@ class _FindTvSheetState extends ConsumerState<FindTvSheet> {
               child: _DeviceRow(device: d, connection: conn, onConnect: () => _connect(d)),
             ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.15, end: 0),
           const SizedBox(height: AppSpace.sm),
-          Row(
-            children: [
-              Expanded(child: TintedButton(label: l.retry, icon: Iconsax.refresh_copy, onPressed: scan)),
-              if (!discovery.hotspot) ...[
-                const SizedBox(width: AppSpace.sm),
-                Expanded(
-                  child: TintedButton(
-                    label: l.useMobileHotspot,
-                    icon: Iconsax.mobile_copy,
-                    onPressed: () => showHotspotGuide(context),
-                  ),
-                ),
-              ],
-            ],
-          ),
+          TintedButton(label: l.retry, icon: Iconsax.refresh_copy, onPressed: scan),
+          // Once the search is done, hotspot help sits at the bottom.
+          if (!discovery.scanning && !discovery.hotspot) ...[
+            const SizedBox(height: AppSpace.lg),
+            const StillCantFindCard(),
+          ],
         ],
       );
     }
@@ -144,12 +137,15 @@ class _FindTvSheetState extends ConsumerState<FindTvSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(conn.isConnected ? 'Your TV' : 'Find your TV', style: context.text.headlineMedium),
+            Text(conn.isConnected ? context.l10n.yourTv : context.l10n.findYourTv, style: context.text.headlineMedium),
             const SizedBox(height: AppSpace.md),
             AnimatedSize(
               duration: AppDurations.medium,
               curve: Curves.easeOutCubic,
-              child: AnimatedSwitcher(duration: AppDurations.medium, child: KeyedSubtree(key: ValueKey(body.runtimeType), child: body)),
+              child: AnimatedSwitcher(
+                duration: AppDurations.medium,
+                child: KeyedSubtree(key: ValueKey(body.runtimeType), child: body),
+              ),
             ),
           ],
         ),
@@ -173,7 +169,7 @@ class _DeviceRow extends StatelessWidget {
     return SoftCard(
       padding: const EdgeInsets.all(AppSpace.md),
       onTap: connecting || busy ? null : onConnect,
-      semanticLabel: 'Connect to ${device.name}',
+      semanticLabel: context.l10n.connectTo(device.name),
       child: Row(
         children: [
           IconBubble(icon: device.type.icon, size: 44),
@@ -183,7 +179,7 @@ class _DeviceRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(device.name, style: context.text.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text('${device.type.label} · ${device.address}', style: context.text.bodySmall),
+                Text('${context.tr(device.type.label)} · ${device.address}', style: context.text.bodySmall),
               ],
             ),
           ),
@@ -193,11 +189,11 @@ class _DeviceRow extends StatelessWidget {
               children: [
                 SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2, color: p.primary)),
                 const SizedBox(width: 8),
-                Text('Connecting', style: context.text.labelMedium?.copyWith(color: p.primary)),
+                Text(context.l10n.connecting2, style: context.text.labelMedium?.copyWith(color: p.primary)),
               ],
             )
           else
-            GradientButton(label: 'Connect', compact: true, onPressed: busy ? null : onConnect),
+            GradientButton(label: context.l10n.connect, compact: true, onPressed: busy ? null : onConnect),
         ],
       ),
     );
@@ -227,14 +223,18 @@ class _Connected extends ConsumerWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 8, height: 8, decoration: BoxDecoration(color: p.success, shape: BoxShape.circle)),
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: p.success, shape: BoxShape.circle),
+            ),
             const SizedBox(width: 6),
-            Text('Connected · ${device.type.label}', style: context.text.bodyMedium),
+            Text(context.l10n.connected2(device.type.label), style: context.text.bodyMedium),
           ],
         ),
         const SizedBox(height: AppSpace.xl),
         GradientButton(
-          label: 'Open TV remote',
+          label: context.l10n.openTvRemote,
           icon: Iconsax.mobile_copy,
           expand: true,
           onPressed: () {
@@ -244,7 +244,7 @@ class _Connected extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpace.sm),
         TintedButton(
-          label: 'Disconnect',
+          label: context.l10n.disconnect,
           icon: Iconsax.logout_copy,
           color: p.error,
           expand: true,

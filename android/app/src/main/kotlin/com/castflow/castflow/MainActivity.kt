@@ -3,6 +3,8 @@ package com.castflow.castflow
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.hardware.display.DisplayManager
+import android.view.Display
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
@@ -64,8 +66,17 @@ class MainActivity : FlutterActivity() {
                             "hotspot" to (ap != null),
                             "hotspotInterface" to ap?.first,
                             "hotspotIp" to ap?.second,
+                            "vpn" to isVpnActive(),
                         )
                     )
+                }
+                // Smart View / Cast screen mirroring adds a presentation display
+                // while it runs; its name is the TV.
+                "mirroringStatus" -> {
+                    val dm = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+                    val display = dm.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION)
+                        .firstOrNull { it.displayId != Display.DEFAULT_DISPLAY }
+                    result.success(mapOf("active" to (display != null), "name" to display?.name))
                 }
                 "openWifiSettings" -> result.success(launch(Intent(Settings.ACTION_WIFI_SETTINGS)))
                 // Hotspot can't be enabled programmatically on modern Android, so
@@ -96,6 +107,13 @@ class MainActivity : FlutterActivity() {
             caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) &&
                 caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED)
         }
+    }
+
+    /** A VPN hides LAN devices (TVs) from the phone. */
+    private fun isVpnActive(): Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        @Suppress("DEPRECATION")
+        return cm.allNetworks.any { cm.getNetworkCapabilities(it)?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true }
     }
 
     /** The active access-point interface (name, IPv4) when our hotspot is on. */

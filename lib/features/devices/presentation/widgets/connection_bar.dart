@@ -10,9 +10,11 @@ import '../../../../core/widgets/tap_scale.dart';
 import '../../domain/cast_device.dart';
 import '../../../../core/l10n.dart';
 import '../device_providers.dart';
+import 'network_widgets.dart';
 import 'find_tv_sheet.dart';
 
-/// Slim connection bar at the top of Home. "Not connected" → tap to find a
+/// Slim connection bar on Home: TV on the left, its status (Not connected /
+/// Connecting / Connected) on the right. Tap to find a
 /// TV (radar sheet) → shows the TV name with "Connected" on the right.
 class ConnectionBar extends ConsumerWidget {
   const ConnectionBar({super.key});
@@ -32,37 +34,62 @@ class ConnectionBar extends ConsumerWidget {
     };
 
     final (Color tone, String title, String subtitle) = switch (state) {
-      _BarState.connected => (p.success, conn.device!.name, conn.device!.type.label),
-      _BarState.connecting => (p.warning, 'Connecting…', conn.device?.name ?? ''),
-      _BarState.searching => (p.primary, 'Finding TVs…', 'Make sure your TV is on'),
-      _BarState.failed => conn.error == ConnectionController.networkLost
-          ? (p.error, context.l10n.networkLostTitle, context.l10n.tapToReconnect)
-          : (p.error, context.l10n.connectionFailed, context.l10n.tapToReconnect),
-      _BarState.disconnected => (p.textSecondary, 'Not connected', 'Tap to find your TV'),
+      _BarState.connected => (p.success, conn.device!.name, context.tr(conn.device!.type.label)),
+      _BarState.connecting => (p.warning, conn.device?.name ?? context.l10n.yourTv, context.l10n.connecting),
+      _BarState.searching => (p.primary, context.l10n.yourTv, context.l10n.makeSureYourTv),
+      _BarState.failed =>
+        conn.error == ConnectionController.networkLost
+            ? (p.error, conn.device?.name ?? context.l10n.yourTv, context.l10n.networkLostTitle)
+            : (p.error, conn.device?.name ?? context.l10n.yourTv, context.l10n.connectionFailed),
+      _BarState.disconnected => (p.textSecondary, context.l10n.yourTv, context.l10n.tapToFindYour),
     };
 
+    // Status always sits on the right edge of the bar.
     final Widget trailing = switch (state) {
       _BarState.connected => _Pill(
-          color: p.success,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(width: 7, height: 7, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle))
-                  .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
-                  .fade(begin: 1, end: 0.4, duration: 900.ms),
-              const SizedBox(width: 6),
-              Text('Connected', style: context.text.labelMedium?.copyWith(color: Colors.white)),
-            ],
+        color: p.success,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 7,
+              height: 7,
+              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+            ).animate(onPlay: (c) => context.loopMotion(c, reverse: true)).fade(begin: 1, end: 0.4, duration: 900.ms),
+            const SizedBox(width: 6),
+            Text(context.l10n.connected, style: context.text.labelMedium?.copyWith(color: Colors.white)),
+          ],
+        ),
+      ),
+      _BarState.connecting || _BarState.searching => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox.square(dimension: 14, child: CircularProgressIndicator(strokeWidth: 2, color: tone)),
+          const SizedBox(width: 6),
+          Text(
+            state == _BarState.connecting ? context.l10n.connecting : context.l10n.findingTvs,
+            style: context.text.labelMedium?.copyWith(color: tone),
           ),
-        ),
-      _BarState.connecting || _BarState.searching => SizedBox.square(
-          dimension: 18,
-          child: CircularProgressIndicator(strokeWidth: 2.2, color: tone),
-        ),
+        ],
+      ),
       _ => _Pill(
-          color: p.primaryTint,
-          child: Text('Connect', style: context.text.labelMedium?.copyWith(color: p.primary)),
+        color: tone.withValues(alpha: 0.14),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(color: tone, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              state == _BarState.failed ? context.l10n.connectionFailed : context.l10n.notConnected,
+              style: context.text.labelMedium?.copyWith(color: tone),
+            ),
+          ],
         ),
+      ),
     };
 
     return Semantics(
@@ -71,7 +98,9 @@ class ConnectionBar extends ConsumerWidget {
       label: '$title. $subtitle',
       excludeSemantics: true,
       child: TapScale(
-        onTap: () => showFindTvSheet(context),
+        onTap: () async {
+          if (await requireNetwork(context, source: 'connection_bar') && context.mounted) showFindTvSheet(context);
+        },
         child: AnimatedContainer(
           duration: AppDurations.medium,
           constraints: const BoxConstraints(minHeight: 56),
@@ -98,7 +127,9 @@ class ConnectionBar extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
-                    state == _BarState.searching ? Iconsax.radar_2_copy : (conn.device?.type.icon ?? Iconsax.monitor_copy),
+                    state == _BarState.searching
+                        ? Iconsax.radar_2_copy
+                        : (conn.device?.type.icon ?? Iconsax.monitor_copy),
                     size: 17,
                     color: state == _BarState.connected ? Colors.white : tone,
                   ),
@@ -120,7 +151,10 @@ class ConnectionBar extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: AppSpace.sm),
-              AnimatedSwitcher(duration: AppDurations.medium, child: KeyedSubtree(key: ValueKey(state), child: trailing)),
+              AnimatedSwitcher(
+                duration: AppDurations.medium,
+                child: KeyedSubtree(key: ValueKey(state), child: trailing),
+              ),
             ],
           ),
         ),
@@ -138,8 +172,8 @@ class _Pill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(AppRadius.pill)),
-        child: child,
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(AppRadius.pill)),
+    child: child,
+  );
 }

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
+import '../../../core/analytics/analytics.dart';
+import '../../../core/analytics/analytics_events.dart';
 import '../../../core/config/app_links.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
@@ -15,6 +17,8 @@ import '../../app_flow/domain/flow_config.dart';
 import '../../app_flow/presentation/app_flow_controller.dart';
 import '../domain/billing.dart';
 import 'billing_controller.dart';
+
+import '../../../core/l10n.dart';
 
 const _benefits = [
   (Iconsax.screenmirroring_copy, 'Wireless screen mirroring'),
@@ -29,9 +33,12 @@ const _benefits = [
 /// With [slot] it is a startup step (close continues the flow, back is
 /// blocked); without it, it is a normal pushed screen.
 class PaywallScreen extends ConsumerStatefulWidget {
-  const PaywallScreen({super.key, this.slot});
+  const PaywallScreen({super.key, this.slot, this.from});
 
   final String? slot;
+
+  /// Where a pushed paywall was opened from (analytics source).
+  final String? from;
 
   @override
   ConsumerState<PaywallScreen> createState() => _PaywallScreenState();
@@ -40,15 +47,33 @@ class PaywallScreen extends ConsumerStatefulWidget {
 class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   String? _selectedId;
   bool _buying = false;
-  bool _restoring = false;
+  final _openedAt = DateTime.now();
+
+  String get _source => switch (widget.slot) {
+    'first' => 'first_open',
+    'returning' => 'returning',
+    _ => widget.from ?? 'other',
+  };
+
+  Analytics get _analytics => ref.read(analyticsProvider);
+
+  @override
+  void initState() {
+    super.initState();
+    _analytics.log(AnalyticsEvent.paywallView, {AnalyticsParam.source: _source});
+  }
 
   FlowStep? get _step => switch (widget.slot) {
-        'first' => FlowStep.paywall,
-        'returning' => FlowStep.paywallReturning,
-        _ => null,
-      };
+    'first' => FlowStep.paywall,
+    'returning' => FlowStep.paywallReturning,
+    _ => null,
+  };
 
   void _close() {
+    _analytics.log(AnalyticsEvent.paywallClose, {
+      AnalyticsParam.source: _source,
+      AnalyticsParam.elapsedMs: DateTime.now().difference(_openedAt).inMilliseconds,
+    });
     final step = _step;
     if (step == null) {
       if (context.canPop()) context.pop();
@@ -63,34 +88,21 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   Future<void> _purchase(StoreProduct product) async {
     if (_buying) return;
     setState(() => _buying = true);
-    final outcome = await ref.read(entitlementProvider.notifier).buy(product);
+    final outcome = await ref.read(entitlementProvider.notifier).buy(product, source: _source);
     if (!mounted) return;
     setState(() => _buying = false);
     switch (outcome) {
       case PurchaseOutcome.success:
-        _snack('Welcome to CastFlow Pro!');
+        _snack(context.l10n.welcomeToCastflowPro);
         _close();
       case PurchaseOutcome.cancelled:
-        _snack('Purchase cancelled.');
+        _snack(context.l10n.purchaseCancelled);
       case PurchaseOutcome.pending:
-        _snack('Purchase pending. Pro unlocks as soon as the store confirms it.');
+        _snack(context.l10n.purchasePendingProUnlocks);
       case PurchaseOutcome.failed:
-        _snack('Purchase failed. Please try again.');
+        _snack(context.l10n.purchaseFailedPleaseTry);
       case PurchaseOutcome.unavailable:
-        _snack('The store isn’t available right now.');
-    }
-  }
-
-  Future<void> _restore() async {
-    setState(() => _restoring = true);
-    final found = await ref.read(entitlementProvider.notifier).restore();
-    if (!mounted) return;
-    setState(() => _restoring = false);
-    if (found) {
-      _snack('Purchases restored.');
-      _close();
-    } else {
-      _snack('No previous purchases found for this store account.');
+        _snack(context.l10n.theStoreIsntAvailable);
     }
   }
 
@@ -98,110 +110,132 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   Widget build(BuildContext context) {
     final products = ref.watch(storeProductsProvider);
     final list = products.value ?? const <StoreProduct>[];
-    final selected = list.where((x) => x.id == _selectedId).firstOrNull ??
+    final selected =
+        list.where((x) => x.id == _selectedId).firstOrNull ??
         list.where((x) => x.id == BillingConfig.yearly).firstOrNull ??
         list.firstOrNull;
 
     // Always white, whatever the app theme.
     return Theme(
       data: AppTheme.light,
-      child: Builder(builder: (context) {
-        final p = context.palette;
-        return PopScope(
-          canPop: _step == null,
-          child: Scaffold(
-            backgroundColor: Colors.white,
-            body: SafeArea(
-              child: LayoutBuilder(
-                builder: (context, c) => SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpace.xxl),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: c.maxHeight),
-                    child: IntrinsicHeight(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: IconButton(
-                              tooltip: 'Close',
-                              onPressed: _close,
-                              icon: Icon(Icons.close_rounded, color: p.textPrimary),
+      child: Builder(
+        builder: (context) {
+          final p = context.palette;
+          return PopScope(
+            canPop: _step == null,
+            child: Scaffold(
+              backgroundColor: Colors.white,
+              body: SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, c) => SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpace.xxl),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: c.maxHeight),
+                      child: IntrinsicHeight(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: IconButton(
+                                tooltip: context.l10n.close,
+                                onPressed: _close,
+                                icon: Icon(Icons.close_rounded, color: p.textPrimary),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: AppSpace.sm),
-                          Center(
-                            child: Icon(Iconsax.award_copy, size: 44, color: p.primary)
-                                .animate()
-                                .scale(begin: const Offset(0.6, 0.6), curve: Curves.easeOutBack, duration: 500.ms),
-                          ),
-                          const SizedBox(height: AppSpace.md),
-                          Text(
-                            'GO PRO WITH CASTFLOW',
-                            textAlign: TextAlign.center,
-                            style: context.text.headlineMedium?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 0.5),
-                          ),
-                          const SizedBox(height: 4),
-                          Text('Unlock every feature', textAlign: TextAlign.center, style: context.text.bodyMedium),
-                          const SizedBox(height: AppSpace.xxl),
-                          for (final (i, (icon, label)) in _benefits.indexed)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
+                            const SizedBox(height: AppSpace.sm),
+                            Center(
+                              child: Icon(Iconsax.award_copy, size: 44, color: p.primary).animate().scale(
+                                begin: const Offset(0.6, 0.6),
+                                curve: Curves.easeOutBack,
+                                duration: 500.ms,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpace.md),
+                            Text(
+                              context.l10n.goProWithCastflow,
+                              textAlign: TextAlign.center,
+                              style: context.text.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              context.l10n.unlockEveryFeature,
+                              textAlign: TextAlign.center,
+                              style: context.text.bodyMedium,
+                            ),
+                            const SizedBox(height: AppSpace.xxl),
+                            for (final (i, (icon, label)) in _benefits.indexed)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                child: Row(
+                                  children: [
+                                    Icon(icon, size: 20, color: p.primary),
+                                    const SizedBox(width: AppSpace.lg),
+                                    Expanded(child: Text(context.tr(label), style: context.text.bodyLarge)),
+                                    const Icon(Icons.check_circle_rounded, size: 22, color: Color(0xFF22A55B)),
+                                  ],
+                                ),
+                              ).animate(delay: (50 * i).ms).fadeIn(duration: 250.ms),
+                            const Spacer(),
+                            const SizedBox(height: AppSpace.xl),
+                            _Plans(
+                              products: products,
+                              selectedId: selected?.id,
+                              onSelect: (id) => setState(() => _selectedId = id),
+                              onRetry: () => ref.invalidate(storeProductsProvider),
+                            ),
+                            const SizedBox(height: AppSpace.md),
+                            if (selected != null)
+                              Text(
+                                selected.isSubscription
+                                    ? context.l10n.renewsAutomaticallyUntilCancelled
+                                    : context.l10n.oneTimePurchaseNo,
+                                textAlign: TextAlign.center,
+                                style: context.text.bodySmall,
+                              ),
+                            const SizedBox(height: AppSpace.sm),
+                            GradientButton(
+                              label: context.l10n.continueAction,
+                              expand: true,
+                              loading: _buying,
+                              onPressed: selected == null ? null : () => _purchase(selected),
+                            ),
+                            const SizedBox(height: AppSpace.xs),
+                            // One line always: it scales down instead of wrapping.
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
                               child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(icon, size: 20, color: p.primary),
-                                  const SizedBox(width: AppSpace.lg),
-                                  Expanded(child: Text(label, style: context.text.bodyLarge)),
-                                  const Icon(Icons.check_circle_rounded, size: 22, color: Color(0xFF22A55B)),
+                                  _FooterLink(
+                                    context.l10n.privacyPolicy,
+                                    () => openExternal(context, AppLinks.privacyPolicy),
+                                  ),
+                                  Text('|', style: context.text.bodySmall),
+                                  _FooterLink(
+                                    context.l10n.termsAndConditions,
+                                    () => openExternal(context, AppLinks.terms),
+                                  ),
+                                  Text('|', style: context.text.bodySmall),
+                                  _FooterLink(context.l10n.cancelAnytime, null),
                                 ],
                               ),
-                            ).animate(delay: (50 * i).ms).fadeIn(duration: 250.ms),
-                          const Spacer(),
-                          const SizedBox(height: AppSpace.xl),
-                          _Plans(
-                            products: products,
-                            selectedId: selected?.id,
-                            onSelect: (id) => setState(() => _selectedId = id),
-                            onRetry: () => ref.invalidate(storeProductsProvider),
-                          ),
-                          const SizedBox(height: AppSpace.md),
-                          if (selected != null)
-                            Text(
-                              selected.isSubscription
-                                  ? 'Cancel anytime. Renews automatically.'
-                                  : 'One-time purchase. No subscription.',
-                              textAlign: TextAlign.center,
-                              style: context.text.bodySmall,
                             ),
-                          const SizedBox(height: AppSpace.sm),
-                          GradientButton(
-                            label: 'Continue',
-                            expand: true,
-                            loading: _buying,
-                            onPressed: selected == null || _restoring ? null : () => _purchase(selected),
-                          ),
-                          const SizedBox(height: AppSpace.xs),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _FooterLink('Privacy Policy', () => openExternal(context, AppLinks.privacyPolicy)),
-                              Text('|', style: context.text.bodySmall),
-                              _FooterLink('Terms and Conditions', () => openExternal(context, AppLinks.terms)),
-                              Text('|', style: context.text.bodySmall),
-                              _FooterLink(_restoring ? 'Restoring…' : 'Restore', _restoring || _buying ? null : _restore),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpace.sm),
-                        ],
+                            const SizedBox(height: AppSpace.sm),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        );
-      }),
+          );
+        },
+      ),
     );
   }
 }
@@ -218,12 +252,12 @@ class _Plans extends StatelessWidget {
   Widget build(BuildContext context) {
     return products.when(
       skipLoadingOnRefresh: false,
-      loading: () => Center(child: Text('Loading price…', style: context.text.bodySmall)),
+      loading: () => Center(child: Text(context.l10n.loadingPrice, style: context.text.bodySmall)),
       error: (_, _) => Center(
-        child: TextButton(onPressed: onRetry, child: const Text('Prices unavailable · Tap to retry')),
+        child: TextButton(onPressed: onRetry, child: Text(context.l10n.pricesUnavailableTapTo)),
       ),
       data: (items) => items.isEmpty
-          ? Center(child: Text('No plans available right now.', style: context.text.bodySmall))
+          ? Center(child: Text(context.l10n.noPlansAvailableRight, style: context.text.bodySmall))
           : Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -254,9 +288,9 @@ class _PlanOption extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.palette;
     final name = switch (product.period) {
-      PlanPeriod.weekly => 'Weekly',
-      PlanPeriod.yearly => 'Yearly',
-      PlanPeriod.lifetime => 'Lifetime',
+      PlanPeriod.weekly => context.l10n.weekly,
+      PlanPeriod.yearly => context.l10n.yearly,
+      PlanPeriod.lifetime => context.l10n.lifetime,
     };
     final best = product.period == PlanPeriod.yearly;
     return Semantics(
@@ -283,7 +317,7 @@ class _PlanOption extends StatelessWidget {
                   Text(name, style: context.text.labelMedium),
                   const SizedBox(height: 4),
                   FittedBox(child: Text(product.price, style: context.text.titleLarge)),
-                  Text(product.period.note, style: context.text.labelSmall),
+                  Text(context.tr(product.period.note), style: context.text.labelSmall),
                 ],
               ),
             ),
@@ -296,7 +330,7 @@ class _PlanOption extends StatelessWidget {
                     gradient: AppColors.mainGradient,
                     borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
-                  child: Text('Best value', style: context.text.labelSmall?.copyWith(color: Colors.white)),
+                  child: Text(context.l10n.bestValue, style: context.text.labelSmall?.copyWith(color: Colors.white)),
                 ),
               ),
           ],
@@ -313,13 +347,13 @@ class _FooterLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => TextButton(
-        onPressed: onTap,
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          minimumSize: const Size(0, kMinTap),
-          foregroundColor: context.palette.textSecondary,
-          textStyle: context.text.bodySmall,
-        ),
-        child: Text(label),
-      );
+    onPressed: onTap,
+    style: TextButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      minimumSize: const Size(0, kMinTap),
+      foregroundColor: context.palette.textSecondary,
+      textStyle: context.text.bodySmall,
+    ),
+    child: Text(label),
+  );
 }

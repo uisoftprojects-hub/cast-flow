@@ -11,10 +11,13 @@ import '../../../core/utils/launch.dart';
 import '../../devices/presentation/device_providers.dart';
 import 'settings_controller.dart';
 
+import '../../../core/l10n.dart';
+
 /// Opens the mail app with diagnostics pre-filled. The user reviews and
 /// sends it; nothing is transmitted silently.
 Future<void> sendFeedback(BuildContext context, WidgetRef ref, {int? rating}) async {
   final messenger = ScaffoldMessenger.of(context);
+  final noEmailApp = context.l10n.noEmailAppFound;
   final info = await PackageInfo.fromPlatform();
   var os = defaultTargetPlatform.name;
   var model = 'unknown';
@@ -30,10 +33,12 @@ Future<void> sendFeedback(BuildContext context, WidgetRef ref, {int? rating}) as
       model = i.utsname.machine;
     }
   } catch (_) {}
-  final receiver = ref.read(connectionProvider).device?.type.label ??
+  final receiver =
+      ref.read(connectionProvider).device?.type.label ??
       ref.read(savedDevicesProvider).all().firstOrNull?.type.label ??
       'none';
-  final body = '\n\n---\n${rating == null ? '' : 'Rating: $rating/5\n'}'
+  final body =
+      '\n\n---\n${rating == null ? '' : 'Rating: $rating/5\n'}'
       'App: ${info.version} (${info.buildNumber})\nOS: $os\nPhone: $model\nReceiver: $receiver';
   final uri = Uri(
     scheme: 'mailto',
@@ -41,7 +46,7 @@ Future<void> sendFeedback(BuildContext context, WidgetRef ref, {int? rating}) as
     query: 'subject=${Uri.encodeComponent('CastFlow feedback')}&body=${Uri.encodeComponent(body)}',
   );
   final ok = await launchUrl(uri).catchError((_) => false);
-  if (!ok) messenger.showSnackBar(const SnackBar(content: Text('No email app found.')));
+  if (!ok) messenger.showSnackBar(SnackBar(content: Text(noEmailApp)));
 }
 
 /// Official store review flow, falling back to the store page.

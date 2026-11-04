@@ -19,6 +19,8 @@ import '../domain/media_models.dart';
 import 'asset_thumbnail.dart';
 import 'media_providers.dart';
 
+import '../../../core/l10n.dart';
+
 class PhotosScreen extends ConsumerStatefulWidget {
   const PhotosScreen({super.key});
 
@@ -33,21 +35,21 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> {
   final Set<String> _selected = {};
 
   List<CastMedia> _toMedia(List<PhotoItem> photos) => [
-        for (final p in photos)
-          CastMedia(
-            id: p.id,
-            title: 'Photo · ${formatShortDate(p.takenAt)}',
-            subtitle: 'Photo',
-            kind: CastKind.photo,
-            seed: p.seed,
-            url: 'asset:${p.id}',
-          ),
-      ];
+    for (final p in photos)
+      CastMedia(
+        id: p.id,
+        title: context.l10n.photo(formatShortDate(p.takenAt)),
+        subtitle: context.l10n.photo2,
+        kind: CastKind.photo,
+        seed: p.seed,
+        url: 'asset:${p.id}',
+      ),
+  ];
 
   void _toggle(String id) => setState(() {
-        _selected.contains(id) ? _selected.remove(id) : _selected.add(id);
-        if (_selected.isEmpty) _selecting = false;
-      });
+    _selected.contains(id) ? _selected.remove(id) : _selected.add(id);
+    if (_selected.isEmpty) _selecting = false;
+  });
 
   Future<void> _castSelected(List<PhotoItem> all, {Duration? interval}) async {
     final picked = all.where((p) => _selected.contains(p.id)).toList();
@@ -70,7 +72,7 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> {
 
     return Scaffold(
       appBar: CastAppBar(
-        title: 'Cast Photos',
+        title: context.l10n.castPhotos,
         actions: [
           TextButton(
             onPressed: () => setState(() {
@@ -78,8 +80,10 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> {
               _selected.clear();
             }),
             style: TextButton.styleFrom(minimumSize: const Size(kMinTap, kMinTap)),
-            child: Text(_selecting ? 'Cancel' : 'Select',
-                style: context.text.labelMedium?.copyWith(color: context.palette.primary)),
+            child: Text(
+              _selecting ? context.l10n.cancel : context.l10n.select,
+              style: context.text.labelMedium?.copyWith(color: context.palette.primary),
+            ),
           ),
         ],
       ),
@@ -120,10 +124,10 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> {
               loading: const ShimmerGrid(),
               onRetry: () => ref.invalidate(photosProvider(_album)),
               isEmpty: (d) => d.isEmpty,
-              empty: const EmptyState(
+              empty: EmptyState(
                 icon: Iconsax.gallery_add_copy,
-                title: 'No photos here',
-                message: 'Photos you take or save will show up in this album.',
+                title: context.l10n.noPhotosHere,
+                message: context.l10n.photosYouTakeOr,
               ),
               data: (items) => Stack(
                 children: [
@@ -139,21 +143,24 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> {
                       final photo = items[i];
                       final selected = _selected.contains(photo.id);
                       return _PhotoTile(
-                        photo: photo,
-                        selecting: _selecting,
-                        selected: selected,
-                        onTap: () {
-                          if (_selecting) {
-                            _toggle(photo.id);
-                          } else {
-                            castAndOpenRemote(context, ref, _toMedia(items), index: i);
-                          }
-                        },
-                        onLongPress: () => setState(() {
-                          _selecting = true;
-                          _selected.add(photo.id);
-                        }),
-                      ).animate(delay: (_stagger(i) * 20).ms).fadeIn(duration: 300.ms).scale(begin: const Offset(0.94, 0.94));
+                            photo: photo,
+                            selecting: _selecting,
+                            selected: selected,
+                            onTap: () {
+                              if (_selecting) {
+                                _toggle(photo.id);
+                              } else {
+                                castAndOpenRemote(context, ref, _toMedia(items), index: i);
+                              }
+                            },
+                            onLongPress: () => setState(() {
+                              _selecting = true;
+                              _selected.add(photo.id);
+                            }),
+                          )
+                          .animate(delay: (_stagger(i) * 20).ms)
+                          .fadeIn(duration: 300.ms)
+                          .scale(begin: const Offset(0.94, 0.94));
                     },
                   ),
                   PositionedDirectional(
@@ -195,7 +202,7 @@ class _AlbumPill extends StatelessWidget {
       selected: selected,
       child: TapScale(
         onTap: onTap,
-        semanticLabel: '${album.name}, ${album.count} photos',
+        semanticLabel: context.l10n.photos2(album.name, album.count),
         child: AnimatedContainer(
           duration: AppDurations.medium,
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -236,7 +243,7 @@ class _PhotoTile extends StatelessWidget {
     final p = context.palette;
     return Semantics(
       selected: selected,
-      label: 'Photo from ${formatShortDate(photo.takenAt)}',
+      label: context.l10n.photoFrom(formatShortDate(photo.takenAt)),
       child: TapScale(
         onTap: onTap,
         onLongPress: onLongPress,
@@ -285,15 +292,25 @@ class _ActionBar extends StatelessWidget {
           const SizedBox(width: AppSpace.md),
           Expanded(
             child: Text(
-              count == 0 ? 'All photos' : '$count selected',
+              count == 0 ? context.l10n.allPhotos : '$count selected',
               style: context.text.labelLarge,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          TintedButton(label: 'Slideshow', icon: Iconsax.play_circle_copy, compact: true, onPressed: onSlideshow),
+          TintedButton(
+            label: context.l10n.slideshow,
+            icon: Iconsax.play_circle_copy,
+            compact: true,
+            onPressed: onSlideshow,
+          ),
           const SizedBox(width: AppSpace.sm),
-          GradientButton(label: 'Cast', icon: Iconsax.screenmirroring_copy, compact: true, onPressed: onCast),
+          GradientButton(
+            label: context.l10n.castAction,
+            icon: Iconsax.screenmirroring_copy,
+            compact: true,
+            onPressed: onCast,
+          ),
         ],
       ),
     );
@@ -321,9 +338,9 @@ class _SlideshowSheetState extends State<_SlideshowSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Slideshow', style: context.text.headlineMedium),
+          Text(context.l10n.slideshow, style: context.text.headlineMedium),
           const SizedBox(height: AppSpace.xl),
-          Text('Interval', style: context.text.titleSmall),
+          Text(context.l10n.interval, style: context.text.titleSmall),
           const SizedBox(height: AppSpace.sm),
           SegmentedPills<int>(
             values: const [3, 5, 10, 15],
@@ -332,21 +349,21 @@ class _SlideshowSheetState extends State<_SlideshowSheet> {
             onChanged: (s) => setState(() => _seconds = s),
           ),
           const SizedBox(height: AppSpace.xl),
-          Text('Transition', style: context.text.titleSmall),
+          Text(context.l10n.transition, style: context.text.titleSmall),
           const SizedBox(height: AppSpace.sm),
           SegmentedPills<_Transition>(
             values: _Transition.values,
             selected: _transition,
             labelOf: (t) => switch (t) {
-              _Transition.fade => 'Fade',
-              _Transition.slide => 'Slide',
-              _Transition.zoom => 'Zoom',
+              _Transition.fade => context.l10n.fade,
+              _Transition.slide => context.l10n.slide,
+              _Transition.zoom => context.l10n.zoom,
             },
             onChanged: (t) => setState(() => _transition = t),
           ),
           const SizedBox(height: AppSpace.xxl),
           GradientButton(
-            label: 'Start slideshow',
+            label: context.l10n.startSlideshow,
             icon: Iconsax.play_copy,
             expand: true,
             onPressed: () => Navigator.of(context).pop(Duration(seconds: _seconds)),

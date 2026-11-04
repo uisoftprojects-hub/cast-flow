@@ -15,7 +15,13 @@
   "waitingForTvOnHotspot": "Waiting for your TV to join your hotspot…",
   "usingHotspot": "Using your mobile hotspot",
   "devicesFound": "{count, plural, =1{1 device found} other{{count} devices found}}",
-  "@devicesFound": {"placeholders": {"count": {"type": "int"}}},
+  "@devicesFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "retry": "Retry",
   "scanAgain": "Scan again",
   "isolationTitle": "TV not responding",
@@ -29,7 +35,13 @@
   "networkLostMessage": "Reconnect to Wi-Fi or your hotspot, then reconnect to your TV.",
   "reconnect": "Reconnect",
   "reconnectTo": "Reconnect to {name}",
-  "@reconnectTo": {"placeholders": {"name": {"type": "String"}}},
+  "@reconnectTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "tapToReconnect": "Tap to reconnect",
   "pairingRequired": "Pairing required",
   "pairingEnterCode": "Enter the code shown on your TV.",
@@ -41,36 +53,81 @@
   "tryAgain": "Try again",
   "pairingDeclined": "The TV declined the connection",
   "pairingTooManyAttempts": "Too many wrong codes. Wait {seconds} s, then request a new code.",
-  "@pairingTooManyAttempts": {"placeholders": {"seconds": {"type": "int"}}},
+  "@pairingTooManyAttempts": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "pairingCooldownOver": "You can request a new code now.",
   "pairingRequestNewCode": "Request new code",
   "pairingNetworkLost": "The network was lost during pairing. Reconnect to Wi-Fi and try again.",
   "pairingFailed": "Couldn't pair with the TV.",
   "pairingCodeField": "Pairing code, {length} characters",
-  "@pairingCodeField": {"placeholders": {"length": {"type": "int"}}},
+  "@pairingCodeField": {
+    "placeholders": {
+      "length": {
+        "type": "int"
+      }
+    }
+  },
   "pairingCodeBox": "Code box {index} of {total}",
-  "@pairingCodeBox": {"placeholders": {"index": {"type": "int"}, "total": {"type": "int"}}},
+  "@pairingCodeBox": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "pairingEmptyBox": "empty",
   "pairingPaired": "Paired",
   "forgetDevice": "Forget device",
   "forgetDeviceMessage": "{name} will need to be paired again next time.",
-  "@forgetDeviceMessage": {"placeholders": {"name": {"type": "String"}}},
+  "@forgetDeviceMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "forget": "Forget",
   "castVideo": "Cast video",
   "castVideoCount": "{count, plural, =1{1 video found. Cast video} other{{count} videos found. Cast video}}",
-  "@castVideoCount": {"placeholders": {"count": {"type": "int"}}},
+  "@castVideoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "noVideoYet": "No video found on this page yet.",
   "videoFound": "Video found",
   "videoFoundMessage": "Play it on your TV.",
   "castAction": "Cast",
   "dismiss": "Dismiss",
   "videosFound": "Videos found ({count})",
-  "@videosFound": {"placeholders": {"count": {"type": "int"}}},
+  "@videosFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "castToTv": "Cast to TV",
   "protectedVideo": "Protected, can't be cast",
   "videoThumbnail": "Video thumbnail",
   "castingTo": "Casting to {device}",
-  "@castingTo": {"placeholders": {"device": {"type": "String"}}},
+  "@castingTo": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "stopCasting": "Stop casting",
   "play": "Play",
   "pause": "Pause",
@@ -80,12 +137,619 @@
   "hideControls": "Hide controls",
   "formatUnsupportedTitle": "Format not supported",
   "formatUnsupported": "{device} can't play {format} videos. Try another video on this page, or use screen mirroring.",
-  "@formatUnsupported": {"placeholders": {"device": {"type": "String"}, "format": {"type": "String"}}},
+  "@formatUnsupported": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "format": {
+        "type": "String"
+      }
+    }
+  },
   "videoExpired": "This video link expired. Reload the page and try again.",
   "refreshingVideo": "Getting a fresh video link…",
   "browserBack": "Back",
   "browserForward": "Forward",
   "browserStartPage": "Start page",
   "browserReload": "Reload",
-  "ok": "OK"
+  "ok": "OK",
+  "home": "Home",
+  "devices": "Devices",
+  "history": "History",
+  "settings": "Settings",
+  "goodMorning": "Good morning",
+  "goodAfternoon": "Good afternoon",
+  "goodEvening": "Good evening",
+  "couldntOpenTheLink": "Couldn’t open the link.",
+  "castflowLogo": "CastFlow logo",
+  "somethingWentWrong": "Something went wrong",
+  "weCouldntLoadThis": "We couldn’t load this right now. Please try again.",
+  "apps": "Apps",
+  "open": "Open {name}",
+  "@open": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "smartTv": "Smart TV",
+  "chromecast": "Chromecast",
+  "fireTv": "Fire TV",
+  "roku": "Roku",
+  "dlnaRenderer": "DLNA renderer",
+  "miracast": "Miracast",
+  "up": "Up",
+  "down": "Down",
+  "left": "Left",
+  "right": "Right",
+  "menu": "Menu",
+  "input": "Input",
+  "playPause": "Play / Pause",
+  "previous": "Previous",
+  "next": "Next",
+  "rewind": "Rewind",
+  "volumeUp": "Volume up",
+  "volumeDown": "Volume down",
+  "mute": "Mute",
+  "connectedTo": "Connected to {name}",
+  "@connectedTo": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "chooseADevice": "Choose a device",
+  "connectionGuide": "Connection guide",
+  "lookingForTvsOn": "Looking for TVs on your Wi-Fi",
+  "foundSoFar": "{found} found so far",
+  "@foundSoFar": {
+    "placeholders": {
+      "found": {}
+    }
+  },
+  "deviceFound": "{found} device{value} found",
+  "@deviceFound": {
+    "placeholders": {
+      "found": {},
+      "value": {}
+    }
+  },
+  "disconnect": "Disconnect",
+  "signalOf4": "Signal {level} of 4",
+  "@signalOf4": {
+    "placeholders": {
+      "level": {}
+    }
+  },
+  "connecting2": "Connecting",
+  "theTvRemoteNeeds": "The TV remote needs a connected TV. Pick one below.",
+  "connectToATv": "Connect to a TV to continue.",
+  "findingTvs": "Finding TVs…",
+  "makeSureYourTv": "Make sure your TV is on",
+  "notConnected": "Not connected",
+  "tapToFindYour": "Tap to find your TV",
+  "connectionFailed2": "Connection failed",
+  "tapToManageDevices": "{label}. Tap to manage devices",
+  "@tapToManageDevices": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "joinTheSameWi": "Join the same Wi-Fi",
+  "connectYourPhoneAnd": "Connect your phone and your TV to the same Wi-Fi network.",
+  "turnOnCastingOn": "Turn on casting on your TV",
+  "enableScreenMirroringMiracast": "Enable Screen Mirroring, Miracast or Google Cast in the TV settings.",
+  "scanForDevices": "Scan for devices",
+  "openDevicesInCastflow": "Open Devices in CastFlow and wait a few seconds for your TV to appear.",
+  "tapConnect": "Tap Connect",
+  "acceptThePromptOn": "Accept the prompt on your TV if one appears. That’s it!",
+  "howToConnect": "How to connect",
+  "fourQuickStepsTo": "Four quick steps to get on the big screen.",
+  "gotIt": "Got it",
+  "step": "Step {number}. {title}. {body}",
+  "@step": {
+    "placeholders": {
+      "number": {},
+      "title": {},
+      "body": {}
+    }
+  },
+  "homeWiFi": "Home Wi-Fi",
+  "router": "Router",
+  "settingsConnection": "Settings › Connection",
+  "inputHdmi1": "Input: HDMI 1",
+  "screenMirroring": "Screen Mirroring",
+  "networkHomeWiFi": "Network: Home Wi-Fi",
+  "livingRoomTv": "Living Room TV",
+  "allowCastflowToConnect": "Allow CastFlow to connect?",
+  "deny": "Deny",
+  "allow": "Allow",
+  "yourTv": "Your TV",
+  "findYourTv": "Find your TV",
+  "connectTo": "Connect to {name}",
+  "@connectTo": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "connected2": "Connected · {label}",
+  "@connected2": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "openTvRemote": "Open TV remote",
+  "sameWiFiNetwork": "Same Wi-Fi network",
+  "yourPhoneAndTv": "Your phone and TV must be connected to the same Wi-Fi.",
+  "tvIsOnAnd": "TV is on and ready",
+  "turnOnScreenMirroring": "Turn on Screen Mirroring, Cast or Miracast on the TV.",
+  "noVpnOrGuest": "No VPN or guest network",
+  "vpnsAndGuestIsolated": "VPNs and guest / isolated Wi-Fi hide devices from each other.",
+  "localNetworkAccess": "Local network access",
+  "allowCastflowToFind": "Allow CastFlow to find devices on your network when asked.",
+  "noTvFound": "No TV found",
+  "checkThatYourPhone": "Check that your phone and TV are connected to the same Wi-Fi, then scan again.",
+  "noWiFiRouter": "No Wi-Fi router? Use your hotspot",
+  "searchingForTvsFound": "Searching for TVs. {length} found.",
+  "@searchingForTvsFound": {
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "tvsFound": "{length} TVs found",
+  "@tvsFound": {
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "connectToYourTv": "Connect to your TV",
+  "connectYourPhoneAndTv": "Connect your phone and TV to the same Wi-Fi network.",
+  "turnOnTheTv": "Turn on the TV and open its Screen Mirroring / Cast input.",
+  "tapTheConnectionBar": "Tap the connection bar on Home to find your TV.",
+  "tapConnectAndAccept": "Tap Connect and accept the prompt on the TV if one appears.",
+  "mirrorYourScreen": "Mirror your screen",
+  "connectToYourTvFirst": "Connect to your TV first.",
+  "openScreenMirroringFrom": "Open Screen Mirroring from Home.",
+  "pickAQualityAnd": "Pick a quality and tap Start.",
+  "allowScreenCaptureWhen": "Allow screen capture when Android asks.",
+  "castPhotosVideosMusic": "Cast photos, videos & music",
+  "openPhotosVideosOr": "Open Photos, Videos or Music on Home.",
+  "pickWhatYouWant": "Pick what you want to show.",
+  "itPlaysOnThe": "It plays on the TV; control it from your phone or the notification.",
+  "useTheTvRemote": "Use the TV remote",
+  "openTvRemoteOn": "Open TV Remote on Home.",
+  "useTheDPad": "Use the D-pad or swipe on the touchpad to move, tap OK to select.",
+  "buttonsATvDoesnt": "Buttons a TV doesn’t support are greyed out.",
+  "castFromTheWeb": "Cast from the web & apps",
+  "tapTheBrowserBar": "Tap the browser bar or an app on Home.",
+  "playAVideoOn": "Play a video on the site.",
+  "tapCastThisVideo": "Tap “Cast this video” to send it to your TV.",
+  "screenMirroringHelp": "Screen mirroring help",
+  "connectYourPhoneTo": "Connect your phone to Wi-Fi.",
+  "onTheTvOpen": "On the TV, open Settings → Network and join the same Wi-Fi.",
+  "guestOrOfficeNetworks": "Guest or office networks often block mirroring; use your home Wi-Fi or your phone’s hotspot.",
+  "turnOffVpn": "Turn off VPN",
+  "aVpnHidesYour": "A VPN hides your TV from your phone.",
+  "pauseOrDisconnectYour": "Pause or disconnect your VPN app before you start.",
+  "youCanTurnIt": "You can turn it back on when you’re done.",
+  "turnOnMirroringOn": "Turn on mirroring on the TV",
+  "samsungLgAndMost": "Samsung, LG and most Android TVs accept mirroring automatically.",
+  "otherTvsOpenInput": "Other TVs: open Input / Source and pick Screen Mirroring or Miracast.",
+  "keepTheTvOn": "Keep the TV on that screen while your phone connects.",
+  "tapStartAndPick": "Tap Start and pick your TV",
+  "tapStartOnThe": "Tap Start on the Screen Mirroring screen.",
+  "androidOpensSmartView": "Android opens Smart View / Cast. Tap your TV in the list.",
+  "ifTheTvAsks": "If the TV asks, choose Allow or enter the PIN shown on screen.",
+  "youreMirroring": "You’re mirroring",
+  "everythingOnYourPhone": "Everything on your phone now shows on the TV.",
+  "turnThePhoneSideways": "Turn the phone sideways for full-screen videos and games.",
+  "toStopTapStop": "To stop, tap Stop or use the cast notification.",
+  "vpn": "VPN",
+  "off": "Off",
+  "hdmi1": "HDMI 1",
+  "hdmi2": "HDMI 2",
+  "smartView": "Smart View",
+  "bedroomTv": "Bedroom TV",
+  "officeDisplay": "Office display",
+  "clearHistory": "Clear history?",
+  "thisRemovesEverythingYouve": "This removes everything you’ve cast from this list.",
+  "clear": "Clear",
+  "clearHistory2": "Clear history",
+  "noHistoryYet": "No history yet",
+  "everythingYouCastWill": "Everything you cast will be listed here so you can find it again.",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "earlier": "Earlier",
+  "swipeAnItemTo": "Swipe an item to remove it",
+  "delete": "Delete",
+  "removed": "Removed “{title}”",
+  "@removed": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "undo": "Undo",
+  "photos": "Photos",
+  "albums": "Albums",
+  "videos": "Videos",
+  "gallery": "Gallery",
+  "music": "Music",
+  "songs": "Songs",
+  "media": "Media",
+  "browseTheWeb": "Browse the web",
+  "goPro": "Go Pro",
+  "cast": "Cast {title}",
+  "@cast": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "screenMirroringStartMirroring": "Screen Mirroring. Start mirroring",
+  "readyToMirrorTo": "Ready to mirror to {device}",
+  "@readyToMirrorTo": {
+    "placeholders": {
+      "device": {}
+    }
+  },
+  "showYourPhoneOn": "Show your phone on the TV in real time.",
+  "startMirroring": "Start Mirroring",
+  "tvRemote": "TV Remote",
+  "controlYourTv": "Control your TV",
+  "youtubeMore": "YouTube & more",
+  "openTheBrowser": "Open the browser",
+  "searchOrTypeA": "Search or type a website",
+  "howToConnectOpen": "How to connect. Open the visual guide",
+  "visualGuideForEvery": "Visual guide for every feature",
+  "language": "Language",
+  "done": "Done",
+  "enterAValidHttp": "Enter a valid http(s) or rtsp link, e.g. an .m3u8 or .mp4 URL.",
+  "linkStream": "Link stream",
+  "iptvLinkCast": "IPTV / Link Cast",
+  "castALink": "Cast a link",
+  "pasteADirectVideo": "Paste a direct video, M3U8 or IPTV stream URL.",
+  "paste": "Paste",
+  "castLink": "Cast link",
+  "allowAccessToYour": "Allow access to your media to cast it. You can change this in Settings.",
+  "video": "Video",
+  "castMusic": "Cast Music",
+  "noMusicFound": "No music found",
+  "addSongsToYour": "Add songs to your phone and they’ll show up here.",
+  "shuffle": "Shuffle",
+  "playAll": "Play all",
+  "photo": "Photo · {formatShortDate}",
+  "@photo": {
+    "placeholders": {
+      "formatShortDate": {}
+    }
+  },
+  "photo2": "Photo",
+  "castPhotos": "Cast Photos",
+  "select": "Select",
+  "noPhotosHere": "No photos here",
+  "photosYouTakeOr": "Photos you take or save will show up in this album.",
+  "photos2": "{name}, {count} photos",
+  "@photos2": {
+    "placeholders": {
+      "name": {},
+      "count": {}
+    }
+  },
+  "photoFrom": "Photo from {formatShortDate}",
+  "@photoFrom": {
+    "placeholders": {
+      "formatShortDate": {}
+    }
+  },
+  "allPhotos": "All photos",
+  "slideshow": "Slideshow",
+  "interval": "Interval",
+  "transition": "Transition",
+  "fade": "Fade",
+  "slide": "Slide",
+  "zoom": "Zoom",
+  "startSlideshow": "Start slideshow",
+  "castVideos": "Cast Videos",
+  "noVideosYet": "No videos yet",
+  "videosYouRecordOr": "Videos you record or download will appear here, ready to cast.",
+  "video2": "Video · {resolution}",
+  "@video2": {
+    "placeholders": {
+      "resolution": {}
+    }
+  },
+  "cast2": "{title}, {formatDuration}. Cast",
+  "@cast2": {
+    "placeholders": {
+      "title": {},
+      "formatDuration": {}
+    }
+  },
+  "tv": "TV",
+  "screenMirroringSession": "Screen mirroring session",
+  "mirroringDidntStartTap": "Mirroring didn’t start. Tap Start again and pick your TV in the list.",
+  "openSmartViewOr": "Open Smart View or Cast from your phone’s quick settings to mirror.",
+  "quality": "Quality",
+  "adjustsToYourWi": "Adjusts to your Wi-Fi for the smoothest picture.",
+  "upToLowerIt": "Up to {label}. Lower it if the picture stutters.",
+  "@upToLowerIt": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "stillNeedHelp": "Still need help?",
+  "startingScreenMirroring": "Starting screen mirroring…",
+  "mirroringTo": "Mirroring to {value}",
+  "@mirroringTo": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "stopping": "Stopping…",
+  "readyToMirror": "Ready to mirror",
+  "beforeYouStart": "Before you start",
+  "phoneAndTvAre": "Phone and TV are on the same Wi-Fi",
+  "noVpnIsConnected": "No VPN is connected on your phone",
+  "tvIsOnWith": "TV is on with Screen Mirroring enabled",
+  "phoneIsCloseTo": "Phone is close to the TV",
+  "stopMirroring": "Stop mirroring",
+  "startMirroring2": "Start mirroring",
+  "stop": "Stop",
+  "start": "Start",
+  "duration": "Duration",
+  "adIsLoading": "Ad is loading",
+  "ad": "Ad",
+  "mirrorYourScreenTo": "Mirror your screen to any TV",
+  "showYourPhoneOnThe": "Show your phone on the big screen in one tap — no cables, no fuss.",
+  "shareMemoriesWithThe": "Share memories with the whole room and keep control from your phone.",
+  "castFromWebApps": "Cast from web & apps",
+  "sendVideosFromYoutube": "Send videos from YouTube, Facebook and any website straight to your TV.",
+  "pageOf": "Page {value} of {length}",
+  "@pageOf": {
+    "placeholders": {
+      "value": {},
+      "length": {}
+    }
+  },
+  "getStarted": "Get started",
+  "localNetwork": "Local Network",
+  "findTvsAndStreaming": "Find TVs and streaming devices on your Wi-Fi.",
+  "notifications": "Notifications",
+  "showCastingControlsWhile": "Show casting controls while you use other apps.",
+  "photosVideosMusic": "Photos, Videos & Music",
+  "pickWhatYouWantTo": "Pick what you want to cast from your gallery and library.",
+  "screenCapture": "Screen Capture",
+  "mirrorYourScreenYoull": "Mirror your screen. You’ll confirm each session.",
+  "webVideo": "Web video",
+  "link": "Link",
+  "screenMirroring2": "Screen mirroring",
+  "nowCastingOpenRemote": "Now casting {title}. Open remote",
+  "@nowCastingOpenRemote": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "castingTo2": "Casting to {value}",
+  "@castingTo2": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "nowCasting": "Now casting",
+  "nothingIsCasting": "Nothing is casting",
+  "pickAPhotoVideo": "Pick a photo, video, song or web video to send it to your TV.",
+  "backToHome": "Back to home",
+  "slide2": "Slide {formatDuration}",
+  "@slide2": {
+    "placeholders": {
+      "formatDuration": {}
+    }
+  },
+  "back10Seconds": "Back 10 seconds",
+  "forward10Seconds": "Forward 10 seconds",
+  "tvVolume": "TV volume",
+  "tvVolumePercent": "TV volume {round} percent",
+  "@tvVolumePercent": {
+    "placeholders": {
+      "round": {}
+    }
+  },
+  "upNext": "Up next",
+  "addPhotos": "Add photos",
+  "addVideos": "Add videos",
+  "nothingElseInThe": "Nothing else in the queue.",
+  "play2": "Play {title}",
+  "@play2": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "unknownDevice": "Unknown device",
+  "perWeek": "per week",
+  "perYear": "per year",
+  "payOnce": "pay once",
+  "wirelessScreenMirroring": "Wireless screen mirroring",
+  "castVideosPhotosMusic": "Cast videos, photos & music",
+  "fullTvRemoteControl": "Full TV remote control",
+  "worksWithAllMajor": "Works with all major TVs",
+  "smoothLagFreeStreaming": "Smooth, lag-free streaming",
+  "noAds": "No ads",
+  "welcomeToCastflowPro": "Welcome to CastFlow Pro!",
+  "purchaseCancelled": "Purchase cancelled.",
+  "purchasePendingProUnlocks": "Purchase pending. Pro unlocks as soon as the store confirms it.",
+  "purchaseFailedPleaseTry": "Purchase failed. Please try again.",
+  "theStoreIsntAvailable": "The store isn’t available right now.",
+  "close": "Close",
+  "goProWithCastflow": "GO PRO WITH CASTFLOW",
+  "unlockEveryFeature": "Unlock every feature",
+  "renewsAutomaticallyUntilCancelled": "Renews automatically until cancelled.",
+  "oneTimePurchaseNo": "One-time purchase. No subscription.",
+  "continueAction": "Continue",
+  "privacyPolicy": "Privacy Policy",
+  "termsAndConditions": "Terms and Conditions",
+  "cancelAnytime": "Cancel anytime",
+  "loadingPrice": "Loading price…",
+  "pricesUnavailableTapTo": "Prices unavailable · Tap to retry",
+  "noPlansAvailableRight": "No plans available right now.",
+  "weekly": "Weekly",
+  "yearly": "Yearly",
+  "lifetime": "Lifetime",
+  "bestValue": "Best value",
+  "disconnectFromTv": "Disconnect from TV?",
+  "thisStopsWhatIs": "This stops what is currently playing or being mirrored.",
+  "useTouchpad": "Use touchpad",
+  "useDPad": "Use D-pad",
+  "receiversDontAcceptRemote": "{label} receivers don’t accept remote commands.",
+  "@receiversDontAcceptRemote": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "someButtonsAreUnavailable": "Some buttons are unavailable on {label}.",
+  "@someButtonsAreUnavailable": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "idle": "IDLE",
+  "playing": "PLAYING",
+  "paused": "PAUSED",
+  "noTvConnected": "No TV connected",
+  "mute2": "MUTE",
+  "vol": "VOL {volume}",
+  "@vol": {
+    "placeholders": {
+      "volume": {}
+    }
+  },
+  "noTvConnectedTap": "No TV connected. Tap to choose a device",
+  "tapToChooseA": "Tap to choose a device",
+  "isntSupportedBy": "{label} isn’t supported by {label2}",
+  "@isntSupportedBy": {
+    "placeholders": {
+      "label": {},
+      "label2": {}
+    }
+  },
+  "touchpadSwipeToMove": "Touchpad. Swipe to move, tap to select.",
+  "swipeToMoveTap": "Swipe to move · Tap to select",
+  "navigationIsntSupportedBy": "Navigation isn’t supported by this TV",
+  "vol2": "VOL",
+  "auto": "Auto",
+  "automatic": "Automatic",
+  "googleCastFirst": "Google Cast first",
+  "dlnaUpnpFirst": "DLNA / UPnP first",
+  "miracastFirst": "Miracast first",
+  "tvOnly": "TV only",
+  "phoneAndTv": "Phone and TV",
+  "phoneOnly": "Phone only",
+  "touchpad": "Touchpad",
+  "doMyPhoneAnd": "Do my phone and TV need the same Wi-Fi?",
+  "yesDiscoveryAndCasting": "Yes. Discovery and casting stay on your local network, so both must be on the same Wi-Fi (same band names can still be different networks).",
+  "myRouterHasAp": "My router has “AP / client isolation”",
+  "isolationBlocksDevicesFrom": "Isolation blocks devices from seeing each other. Turn it off in the router settings, or use a non-guest network.",
+  "findingYourTv": "Finding your TV",
+  "myTvDoesntAppear": "My TV doesn’t appear in the list",
+  "turnOnCastingScreen": "Turn on casting / screen mirroring on the TV, wake it from standby, then tap Rescan. Allow the Local Network permission if asked.",
+  "onlySomeDevicesShow": "Only some devices show up",
+  "olderTvsMayNeed": "Older TVs may need a firmware update. Miracast TVs only appear while their “Screen Mirroring” input is open.",
+  "connectionFailsOrTimes": "Connection fails or times out",
+  "restartTheTvApp": "Restart the TV app or the TV, move closer to the router, and accept any prompt shown on the TV screen.",
+  "itKeepsReconnectingTo": "It keeps reconnecting to an old TV",
+  "turnOffAutoConnect": "Turn off “Auto-connect to last TV” in Settings → Casting.",
+  "mirroringIsLaggy": "Mirroring is laggy",
+  "chooseALowerQuality": "Choose a lower quality (720p or 480p), close heavy apps and use a 5 GHz Wi-Fi network.",
+  "thePictureIsRotated": "The picture is rotated or cropped",
+  "toggleAutoRotateOn": "Toggle Auto-rotate on the Screen Mirroring screen.",
+  "sound": "Sound",
+  "thereIsNoSound": "There is no sound on the TV",
+  "makeSureAudioIs": "Make sure Audio is on in Screen Mirroring and check Settings → Casting → Audio output. Some receivers don’t support phone audio.",
+  "tvRemote2": "TV remote",
+  "someRemoteButtonsAre": "Some remote buttons are greyed out",
+  "eachReceiverSupportsDifferent": "Each receiver supports different commands. Chromecast and DLNA only support playback and volume; Miracast has no remote channel.",
+  "canCastflowTurnMy": "Can CastFlow turn my TV on or change inputs?",
+  "onlyOnTvsThat": "Only on TVs that expose those commands over the network. Unsupported buttons are disabled instead of pretending to work.",
+  "helpFaq": "Help & FAQ",
+  "stepByStepConnection": "Step-by-step connection guide",
+  "androidSdk": "Android {release} (SDK {sdkInt})",
+  "@androidSdk": {
+    "placeholders": {
+      "release": {},
+      "sdkInt": {}
+    }
+  },
+  "noEmailAppFound": "No email app found.",
+  "enjoyingCastflow": "Enjoying CastFlow?",
+  "sorryToHearThat": "Sorry to hear that",
+  "thanksHowCanWe": "Thanks! How can we improve?",
+  "wereGladYouLike": "We’re glad you like it!",
+  "youMadeOurDay": "You made our day!",
+  "tapToExit": "Tap to exit",
+  "selectARating": "Select a rating",
+  "sendFeedback": "Send feedback",
+  "rateUs": "Rate us",
+  "rateYourExperienceBefore": "Rate your experience before you go.",
+  "tapAStarTo": "Tap a star to rate CastFlow.",
+  "general": "General",
+  "english": "English",
+  "defaultQuality": "Default quality",
+  "autoConnectToLast": "Auto-connect to last TV",
+  "hapticFeedback": "Haptic feedback",
+  "clearCastingHistory": "Clear casting history",
+  "clearCastingHistory2": "Clear casting history?",
+  "onlyCastflowsListIs": "Only CastFlow’s list is cleared. Media on your phone is never deleted.",
+  "appearance": "Appearance",
+  "light": "Light",
+  "dark": "Dark",
+  "system": "System",
+  "aboutSupport": "About & support",
+  "rateApp": "Rate app",
+  "feedback": "Feedback",
+  "termsConditions": "Terms & Conditions",
+  "version": "Version",
+  "castflowProIsActive": "CastFlow Pro is active",
+  "upgradeToPremium": "Upgrade to Premium",
+  "castflowPremium": "CastFlow Premium",
+  "thanksForYourSupport": "Thanks for your support. Enjoy ad-free casting.",
+  "noAds1080pMirroring": "No ads, 1080p mirroring & unlimited casting",
+  "upgrade": "Upgrade",
+  "mirrorCastBeautifullySimple": "Mirror & cast, beautifully simple",
+  "thisActionMayContain": "This action may contain ads",
+  "webCast": "Web Cast",
+  "castThisVideo": "Cast this video",
+  "searchOrTypeAWeb": "Search or type a web address",
+  "removeBookmark": "Remove bookmark",
+  "bookmark": "Bookmark",
+  "quickAccess": "Quick access",
+  "open2": "Open {title}",
+  "@open2": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "bookmarks": "Bookmarks",
+  "noBookmarks": "No bookmarks",
+  "tapTheBookmarkIcon": "Tap the bookmark icon in the address bar to save a page.",
+  "noHistory": "No history",
+  "pagesYouVisitShow": "Pages you visit show up here.",
+  "remove": "Remove",
+  "resultOn": "Result {value} on {host}",
+  "@resultOn": {
+    "placeholders": {
+      "value": {},
+      "host": {}
+    }
+  },
+  "aSimulatedPageResult": "A simulated page result",
+  "videosOnThisPage": "Videos on this page",
+  "pickOneToSend": "Pick one to send to your TV.",
+  "onboardHotspotTitle": "No Wi-Fi? Use your hotspot",
+  "onboardHotspotBody": "Turn on your phone’s hotspot and connect your TV to it. Casting works just like on Wi-Fi.",
+  "stillCantFindTitle": "Still can’t find your TV?",
+  "stillCantFindBody": "Connect your TV to your phone’s hotspot instead:",
+  "hotspotStep4": "Tap Retry and pick your TV from the list",
+  "castOverHotspot": "No Wi-Fi? Cast over your phone’s hotspot:",
+  "queue": "Queue",
+  "addMusic": "Add music",
+  "connectWithWifi": "Connect with Wi-Fi",
+  "continueWithHotspot": "Continue with hotspot",
+  "noWifiAlertMessage": "You’re on mobile data. Connect your phone and TV to the same Wi-Fi, or turn on your phone’s hotspot and join it from the TV."
 }

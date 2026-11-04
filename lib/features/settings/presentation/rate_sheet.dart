@@ -3,12 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 
+import '../../../core/analytics/analytics.dart';
+import '../../../core/analytics/analytics_events.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/buttons.dart';
 import 'feedback.dart';
+
+import '../../../core/l10n.dart';
 
 /// 5-star rating sheet. In [exit] mode (back on Home) its button reads
 /// "Tap to exit" until a star is filled, and goes back to it when all stars
@@ -17,7 +20,40 @@ Future<void> showRateSheet(BuildContext context, {bool exit = false}) {
   return showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
-    builder: (_) => SafeArea(top: false, child: _RateSheet(exit: exit)),
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (_) => SafeArea(
+      top: false,
+      child: SingleChildScrollView(child: _RateSheet(exit: exit)),
+    ),
+  );
+}
+
+/// Same rating panel as a centered popup (Settings → Rate app).
+Future<void> showRateDialog(BuildContext context) {
+  return showDialog<void>(
+    context: context,
+    builder: (context) => Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: AppSpace.xl),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xl)),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(top: AppSpace.xs),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: IconButton(
+                tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                onPressed: () => Navigator.of(context).pop(),
+                icon: Icon(Icons.close_rounded, color: context.palette.textSecondary),
+              ),
+            ),
+            const _RateSheet(exit: false),
+          ],
+        ),
+      ),
+    ),
   );
 }
 
@@ -68,10 +104,15 @@ class _RateSheetState extends ConsumerState<_RateSheet> {
 
   Future<void> _primary() async {
     final nav = Navigator.of(context);
+    final analytics = ref.read(analyticsProvider);
     if (_rating == 0) {
       if (widget.exit) SystemNavigator.pop();
       return;
     }
+    analytics.log(AnalyticsEvent.rateSubmit, {
+      AnalyticsParam.rating: _rating,
+      AnalyticsParam.source: widget.exit ? 'home_back' : 'settings',
+    });
     nav.pop();
     if (_rating <= 3) {
       await sendFeedback(context, ref, rating: _rating);
@@ -84,16 +125,18 @@ class _RateSheetState extends ConsumerState<_RateSheet> {
   Widget build(BuildContext context) {
     final p = context.palette;
     final lit = _intro > 0 ? _intro : _rating;
-    final (IconData face, Color tone, String title) = switch (_rating) {
-      0 => (Iconsax.heart_copy, p.primary, 'Enjoying CastFlow?'),
-      1 || 2 => (Iconsax.emoji_sad_copy, p.error, 'Sorry to hear that'),
-      3 => (Iconsax.emoji_normal_copy, p.warning, 'Thanks! How can we improve?'),
-      _ => (Iconsax.emoji_happy_copy, p.success, 'We’re glad you like it!'),
+    final (String face, Color tone, String title) = switch (_rating) {
+      0 => ('🤩', p.primary, context.l10n.enjoyingCastflow),
+      1 => ('😞', p.error, context.l10n.sorryToHearThat),
+      2 => ('🙁', p.error, context.l10n.sorryToHearThat),
+      3 => ('😐', p.warning, context.l10n.thanksHowCanWe),
+      4 => ('😊', p.success, context.l10n.wereGladYouLike),
+      _ => ('😍', p.success, context.l10n.youMadeOurDay),
     };
     final label = switch (_rating) {
-      0 => widget.exit ? 'Tap to exit' : 'Select a rating',
-      <= 3 => 'Send feedback',
-      _ => 'Rate us',
+      0 => widget.exit ? context.l10n.tapToExit : context.l10n.selectARating,
+      <= 3 => context.l10n.sendFeedback,
+      _ => context.l10n.rateUs,
     };
 
     return Padding(
@@ -103,20 +146,24 @@ class _RateSheetState extends ConsumerState<_RateSheet> {
         children: [
           AnimatedSwitcher(
             duration: AppDurations.medium,
-            transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
+            transitionBuilder: (c, a) => ScaleTransition(
+              scale: CurvedAnimation(parent: a, curve: Curves.easeOutBack),
+              child: c,
+            ),
             child: Container(
               key: ValueKey(face),
-              width: 72,
-              height: 72,
+              width: 84,
+              height: 84,
+              alignment: Alignment.center,
               decoration: BoxDecoration(color: tone.withValues(alpha: 0.14), shape: BoxShape.circle),
-              child: Icon(face, size: 36, color: tone),
+              child: ExcludeSemantics(child: Text(face, style: const TextStyle(fontSize: 46, height: 1.1))),
             ),
           ),
           const SizedBox(height: AppSpace.lg),
           Text(title, style: context.text.headlineSmall, textAlign: TextAlign.center),
           const SizedBox(height: 4),
           Text(
-            widget.exit ? 'Rate your experience before you go.' : 'Tap a star to rate CastFlow.',
+            widget.exit ? context.l10n.rateYourExperienceBefore : context.l10n.tapAStarTo,
             style: context.text.bodyMedium,
             textAlign: TextAlign.center,
           ),

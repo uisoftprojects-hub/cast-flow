@@ -54,7 +54,8 @@ class PairingUi {
 
   bool get isCode => phase != PairingPhase.approval && codeLength > 0;
 
-  PairingUi copyWith({PairingPhase? phase, int? codeLength, bool? hex, int? attempts, DateTime? cooldownUntil}) => PairingUi(
+  PairingUi copyWith({PairingPhase? phase, int? codeLength, bool? hex, int? attempts, DateTime? cooldownUntil}) =>
+      PairingUi(
         device: device,
         phase: phase ?? this.phase,
         codeLength: codeLength ?? this.codeLength,
@@ -142,7 +143,11 @@ class PairingController extends Notifier<PairingUi?> {
         if (attempts >= maxAttempts) {
           _timeout?.cancel();
           _closeSession();
-          state = ui.copyWith(phase: PairingPhase.cooldown, attempts: attempts, cooldownUntil: DateTime.now().add(cooldown));
+          state = ui.copyWith(
+            phase: PairingPhase.cooldown,
+            attempts: attempts,
+            cooldownUntil: DateTime.now().add(cooldown),
+          );
         } else {
           state = ui.copyWith(phase: PairingPhase.wrongCode, attempts: attempts);
         }
@@ -196,7 +201,12 @@ class PairingController extends Notifier<PairingUi?> {
     final s = state;
     if (s == null || _device == null) return;
     if (s.phase == PairingPhase.cooldown && (s.cooldownUntil?.isAfter(DateTime.now()) ?? false)) return;
-    state = PairingUi(device: s.device, phase: s.isCode ? PairingPhase.enterCode : PairingPhase.approval, codeLength: s.codeLength, hex: s.hex);
+    state = PairingUi(
+      device: s.device,
+      phase: s.isCode ? PairingPhase.enterCode : PairingPhase.approval,
+      codeLength: s.codeLength,
+      hex: s.hex,
+    );
     await _start(useSaved: false);
   }
 

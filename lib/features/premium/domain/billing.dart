@@ -18,10 +18,10 @@ abstract final class BillingConfig {
   static const ids = {weekly, yearly, lifetime};
 
   static PlanPeriod periodOf(String id) => switch (id) {
-        weekly => PlanPeriod.weekly,
-        yearly => PlanPeriod.yearly,
-        _ => PlanPeriod.lifetime,
-      };
+    weekly => PlanPeriod.weekly,
+    yearly => PlanPeriod.yearly,
+    _ => PlanPeriod.lifetime,
+  };
 }
 
 /// A product as reported by the store; [price] is the store's localized
@@ -50,11 +50,11 @@ class EntitlementState {
   final DateTime? lastCheckedAt;
 
   Map<String, Object?> toJson() => {
-        'productId': productId,
-        'active': active,
-        'expiry': expiry?.millisecondsSinceEpoch,
-        'lastCheckedAt': lastCheckedAt?.millisecondsSinceEpoch,
-      };
+    'productId': productId,
+    'active': active,
+    'expiry': expiry?.millisecondsSinceEpoch,
+    'lastCheckedAt': lastCheckedAt?.millisecondsSinceEpoch,
+  };
 
   factory EntitlementState.fromJson(Map<String, dynamic> j) {
     DateTime? t(String k) => j[k] == null ? null : DateTime.fromMillisecondsSinceEpoch(j[k] as int);

@@ -9,6 +9,10 @@ import '../../../core/widgets/buttons.dart';
 import '../../../core/widgets/effects.dart';
 import '../../../core/widgets/illustrations.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
+import '../../onboarding/presentation/onboarding_scene.dart';
+
+import '../../../core/l10n.dart';
+part 'mirroring_guide.dart';
 
 class _Guide {
   const _Guide(this.title, this.visual, this.steps);
@@ -19,7 +23,10 @@ class _Guide {
 
 /// Visual, step-by-step guide for every feature.
 class GuideScreen extends StatefulWidget {
-  const GuideScreen({super.key});
+  const GuideScreen({super.key, this.topic});
+
+  /// 'mirroring' shows the screen-mirroring walkthrough only.
+  final String? topic;
 
   @override
   State<GuideScreen> createState() => _GuideScreenState();
@@ -29,7 +36,9 @@ class _GuideScreenState extends State<GuideScreen> {
   final _pages = PageController();
   int _page = 0;
 
-  static final _guides = [
+  late final _guides = widget.topic == 'mirroring' ? mirroringGuides : _allGuides;
+
+  static final _allGuides = [
     _Guide('Connect to your TV', const _ConnectVisual(), const [
       'Connect your phone and TV to the same Wi-Fi network.',
       'Turn on the TV and open its Screen Mirroring / Cast input.',
@@ -70,7 +79,10 @@ class _GuideScreenState extends State<GuideScreen> {
     final p = context.palette;
     final last = _page == _guides.length - 1;
     return Scaffold(
-      appBar: const CastAppBar(title: 'How to connect', showChip: false),
+      appBar: CastAppBar(
+        title: widget.topic == 'mirroring' ? context.l10n.screenMirroringHelp : context.l10n.howToConnect,
+        showChip: false,
+      ),
       body: Column(
         children: [
           Expanded(
@@ -84,12 +96,12 @@ class _GuideScreenState extends State<GuideScreen> {
                   padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.md, AppSpace.page, AppSpace.lg),
                   child: Column(
                     children: [
-                      SizedBox(height: 220, child: Center(child: g.visual))
-                          .animate(key: ValueKey(i))
-                          .fadeIn(duration: 400.ms)
-                          .scale(begin: const Offset(0.92, 0.92)),
+                      SizedBox(
+                        height: 220,
+                        child: Center(child: g.visual),
+                      ).animate(key: ValueKey(i)).fadeIn(duration: 400.ms).scale(begin: const Offset(0.92, 0.92)),
                       const SizedBox(height: AppSpace.lg),
-                      Text(g.title, style: context.text.headlineMedium, textAlign: TextAlign.center),
+                      Text(context.tr(g.title), style: context.text.headlineMedium, textAlign: TextAlign.center),
                       const SizedBox(height: AppSpace.xl),
                       for (final (n, step) in g.steps.indexed)
                         Padding(
@@ -101,14 +113,17 @@ class _GuideScreenState extends State<GuideScreen> {
                                 width: 30,
                                 height: 30,
                                 alignment: Alignment.center,
-                                decoration: const BoxDecoration(gradient: AppColors.mainGradient, shape: BoxShape.circle),
+                                decoration: const BoxDecoration(
+                                  gradient: AppColors.mainGradient,
+                                  shape: BoxShape.circle,
+                                ),
                                 child: Text('${n + 1}', style: context.text.labelMedium?.copyWith(color: Colors.white)),
                               ),
                               const SizedBox(width: AppSpace.md),
                               Expanded(
                                 child: Padding(
                                   padding: const EdgeInsets.only(top: 4),
-                                  child: Text(step, style: context.text.bodyLarge),
+                                  child: Text(context.tr(step), style: context.text.bodyLarge),
                                 ),
                               ),
                             ],
@@ -140,7 +155,7 @@ class _GuideScreenState extends State<GuideScreen> {
                     ),
                   const Spacer(),
                   GradientButton(
-                    label: last ? 'Got it' : 'Next',
+                    label: last ? context.l10n.gotIt : context.l10n.next,
                     onPressed: () => last
                         ? Navigator.of(context).maybePop()
                         : _pages.nextPage(duration: AppDurations.slow, curve: Curves.easeOutCubic),
@@ -200,7 +215,11 @@ class _RemoteVisual extends StatelessWidget {
     return Container(
       width: 170,
       height: 170,
-      decoration: BoxDecoration(color: p.surface, shape: BoxShape.circle, border: Border.all(color: p.divider)),
+      decoration: BoxDecoration(
+        color: p.surface,
+        shape: BoxShape.circle,
+        border: Border.all(color: p.divider),
+      ),
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -210,14 +229,17 @@ class _RemoteVisual extends StatelessWidget {
             (Alignment.centerLeft, Icons.keyboard_arrow_left_rounded),
             (Alignment.centerRight, Icons.keyboard_arrow_right_rounded),
           ])
-            Align(alignment: a, child: Padding(padding: const EdgeInsets.all(10), child: Icon(icon, size: 30))),
+            Align(
+              alignment: a,
+              child: Padding(padding: const EdgeInsets.all(10), child: Icon(icon, size: 30)),
+            ),
           Container(
-            width: 64,
-            height: 64,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(gradient: AppColors.mainGradient, shape: BoxShape.circle),
-            child: Text('OK', style: context.text.titleMedium?.copyWith(color: Colors.white)),
-          )
+                width: 64,
+                height: 64,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(gradient: AppColors.mainGradient, shape: BoxShape.circle),
+                child: Text(context.l10n.ok, style: context.text.titleMedium?.copyWith(color: Colors.white)),
+              )
               .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
               .scale(begin: const Offset(1, 1), end: const Offset(0.9, 0.9), duration: 700.ms),
         ],

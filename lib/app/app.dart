@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 import '../l10n/app_localizations.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme/app_theme.dart';
@@ -44,7 +47,11 @@ class _CastFlowAppState extends ConsumerState<CastFlowApp> {
       supportedLocales: [for (final code in supportedLanguages.keys) Locale(code)],
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       routerConfig: router,
-      builder: (context, child) => AdLifecycleHost(child: PairingSheetHost(child: child ?? const SizedBox.shrink())),
+      // Status bar icons follow the theme on screens without an app bar.
+      builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+        value: context.isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+        child: AdLifecycleHost(child: PairingSheetHost(child: child ?? const SizedBox.shrink())),
+      ),
     );
   }
 }

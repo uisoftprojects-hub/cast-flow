@@ -3,7 +3,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/config/app_links.dart';
 import '../../../core/theme/app_colors.dart';
@@ -20,7 +19,8 @@ import 'feedback.dart';
 import 'rate_sheet.dart';
 import 'settings_controller.dart';
 
-final packageInfoProvider = FutureProvider<PackageInfo>((ref) => PackageInfo.fromPlatform());
+import '../../../core/l10n.dart';
+
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -32,7 +32,7 @@ class SettingsScreen extends ConsumerWidget {
         title: Text(title),
         content: Text(body),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l10n.cancel)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(action, style: TextStyle(color: context.palette.error)),
@@ -47,55 +47,58 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(settingsProvider);
     final ctrl = ref.read(settingsProvider.notifier);
-    final version = ref.watch(packageInfoProvider).value;
 
     return Scaffold(
-      appBar: const CastAppBar(title: 'Settings'),
+      appBar: CastAppBar(title: context.l10n.settings),
       body: ListView(
         padding: EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, navBottomPadding(context)),
         children: [
           _PremiumCard(active: s.isPremium),
           const SizedBox(height: AppSpace.xxl),
-          const _GroupTitle('General'),
+          _GroupTitle(context.l10n.general),
           _Group(
             children: [
               _Tile(
                 icon: Iconsax.language_square_copy,
-                title: 'Language',
-                trailing: _Value(supportedLanguages[s.languageCode]?.$1 ?? 'English'),
+                title: context.l10n.language,
+                trailing: _Value(supportedLanguages[s.languageCode]?.$1 ?? context.l10n.english),
                 onTap: () => context.push('/settings/language'),
               ),
               _Tile(
                 icon: Iconsax.video_horizontal_copy,
-                title: 'Default quality',
-                trailing: _Value(s.defaultQuality.label),
+                title: context.l10n.defaultQuality,
+                trailing: _Value(context.tr(s.defaultQuality.label)),
                 onTap: () => _pick<MirrorQuality>(
                   context,
-                  title: 'Default quality',
+                  title: context.l10n.defaultQuality,
                   values: MirrorQuality.values,
                   selected: s.defaultQuality,
-                  labelOf: (q) => q.label,
+                  labelOf: (q) => context.tr(q.label),
                   onSelected: ctrl.setDefaultQuality,
                 ),
               ),
               _Tile(
                 icon: Iconsax.refresh_copy,
-                title: 'Auto-connect to last TV',
+                title: context.l10n.autoConnectToLast,
                 trailing: Switch(value: s.autoConnect, onChanged: ctrl.setAutoConnect),
                 onTap: () => ctrl.setAutoConnect(!s.autoConnect),
               ),
               _Tile(
                 icon: Iconsax.mobile_copy,
-                title: 'Haptic feedback',
+                title: context.l10n.hapticFeedback,
                 trailing: Switch(value: s.hapticsEnabled, onChanged: ctrl.setHaptics),
                 onTap: () => ctrl.setHaptics(!s.hapticsEnabled),
               ),
               _Tile(
                 icon: Iconsax.clock_copy,
-                title: 'Clear casting history',
+                title: context.l10n.clearCastingHistory,
                 onTap: () async {
-                  if (await _confirm(context, 'Clear casting history?',
-                      'Only CastFlow’s list is cleared. Media on your phone is never deleted.', 'Clear')) {
+                  if (await _confirm(
+                    context,
+                    context.l10n.clearCastingHistory2,
+                    context.l10n.onlyCastflowsListIs,
+                    context.l10n.clear,
+                  )) {
                     await ref.read(historyProvider.notifier).clear();
                   }
                 },
@@ -103,43 +106,41 @@ class SettingsScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: AppSpace.xxl),
-          const _GroupTitle('Appearance'),
+          _GroupTitle(context.l10n.appearance),
           SegmentedPills<ThemeMode>(
             values: const [ThemeMode.system, ThemeMode.light, ThemeMode.dark],
             selected: s.themeMode,
             labelOf: (m) => switch (m) {
-              ThemeMode.light => 'Light',
-              ThemeMode.dark => 'Dark',
-              ThemeMode.system => 'System',
+              ThemeMode.light => context.l10n.light,
+              ThemeMode.dark => context.l10n.dark,
+              ThemeMode.system => context.l10n.system,
             },
             onChanged: ctrl.setThemeMode,
           ),
           const SizedBox(height: AppSpace.xxl),
-          const _GroupTitle('About & support'),
+          _GroupTitle(context.l10n.aboutSupport),
           _Group(
             children: [
-              _Tile(icon: Iconsax.message_question_copy, title: 'How to connect', onTap: () => context.push('/guide')),
-              _Tile(icon: Iconsax.star_1_copy, title: 'Rate app', onTap: () => showRateSheet(context)),
+              _Tile(
+                icon: Iconsax.message_question_copy,
+                title: context.l10n.howToConnect,
+                onTap: () => context.push('/guide'),
+              ),
+              _Tile(icon: Iconsax.star_1_copy, title: context.l10n.rateApp, onTap: () => showRateDialog(context)),
               _Tile(
                 icon: Iconsax.message_edit_copy,
-                title: 'Feedback',
+                title: context.l10n.feedback,
                 onTap: () => sendFeedback(context, ref),
               ),
               _Tile(
                 icon: Iconsax.shield_tick_copy,
-                title: 'Privacy Policy',
+                title: context.l10n.privacyPolicy,
                 onTap: () => openExternal(context, AppLinks.privacyPolicy),
               ),
               _Tile(
                 icon: Iconsax.document_text_copy,
-                title: 'Terms & Conditions',
+                title: context.l10n.termsConditions,
                 onTap: () => openExternal(context, AppLinks.terms),
-              ),
-              _Tile(
-                icon: Iconsax.info_circle_copy,
-                title: 'Version',
-                trailing: _Value(version == null ? '…' : '${version.version} (${version.buildNumber})'),
-                onTap: () => openExternal(context, storeListingUrl),
               ),
             ],
           ),
@@ -159,29 +160,32 @@ class SettingsScreen extends ConsumerWidget {
     final picked = await showModalBottomSheet<T>(
       context: context,
       useSafeArea: true,
-      builder: (context) => SafeArea(top: false, child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(AppSpace.xl, 0, AppSpace.xl, AppSpace.xxl),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpace.sm),
-              child: Text(title, style: context.text.headlineMedium),
-            ),
-            const SizedBox(height: AppSpace.md),
-            for (final v in values)
-              ListTile(
-                minTileHeight: kMinTap + 8,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
-                selected: v == selected,
-                selectedTileColor: context.palette.primaryTint,
-                title: Text(labelOf(v), style: context.text.bodyLarge),
-                trailing: v == selected ? Icon(Iconsax.tick_circle_copy, color: context.palette.primary) : null,
-                onTap: () => Navigator.pop(context, v),
+      builder: (context) => SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(AppSpace.xl, 0, AppSpace.xl, AppSpace.xxl),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpace.sm),
+                child: Text(title, style: context.text.headlineMedium),
               ),
-          ],
+              const SizedBox(height: AppSpace.md),
+              for (final v in values)
+                ListTile(
+                  minTileHeight: kMinTap + 8,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                  selected: v == selected,
+                  selectedTileColor: context.palette.primaryTint,
+                  title: Text(labelOf(v), style: context.text.bodyLarge),
+                  trailing: v == selected ? Icon(Iconsax.tick_circle_copy, color: context.palette.primary) : null,
+                  onTap: () => Navigator.pop(context, v),
+                ),
+            ],
+          ),
         ),
-      )),
+      ),
     );
     if (picked != null) onSelected(picked);
   }
@@ -196,8 +200,8 @@ class _PremiumCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TapScale(
-      onTap: active ? null : () => context.push('/premium'),
-      semanticLabel: active ? 'CastFlow Pro is active' : 'Upgrade to Premium',
+      onTap: active ? null : () => context.push('/premium?from=settings_banner'),
+      semanticLabel: active ? context.l10n.castflowProIsActive : context.l10n.upgradeToPremium,
       child: Container(
         padding: const EdgeInsets.all(AppSpace.xl),
         decoration: BoxDecoration(
@@ -208,11 +212,11 @@ class _PremiumCard extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.22), shape: BoxShape.circle),
-              child: const Icon(Iconsax.crown_1_copy, color: Colors.white, size: 28),
-            )
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.22), shape: BoxShape.circle),
+                  child: const Icon(Iconsax.crown_1_copy, color: Colors.white, size: 28),
+                )
                 .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
                 .rotate(begin: -0.02, end: 0.02, duration: 1400.ms),
             const SizedBox(width: AppSpace.lg),
@@ -220,15 +224,20 @@ class _PremiumCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(active ? 'CastFlow Pro is active' : 'CastFlow Premium', style: context.text.titleLarge?.copyWith(color: Colors.white)),
+                  Text(
+                    active ? context.l10n.castflowProIsActive : context.l10n.castflowPremium,
+                    style: context.text.titleLarge?.copyWith(color: Colors.white),
+                  ),
                   const SizedBox(height: 2),
-                  Text(active ? 'Thanks for your support. Enjoy ad-free casting.' : 'No ads, 1080p mirroring & unlimited casting',
-                      style: context.text.bodySmall?.copyWith(color: Colors.white.withValues(alpha: 0.9))),
+                  Text(
+                    active ? context.l10n.thanksForYourSupport : context.l10n.noAds1080pMirroring,
+                    style: context.text.bodySmall?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
+                  ),
                 ],
               ),
             ),
             const SizedBox(width: AppSpace.sm),
-            if (!active) const SoftBadge('Upgrade'),
+            if (!active) SoftBadge(context.l10n.upgrade),
           ],
         ),
       ),
@@ -242,9 +251,9 @@ class _GroupTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsetsDirectional.only(start: 4, bottom: AppSpace.sm),
-        child: Text(text, style: context.text.labelMedium?.copyWith(color: context.palette.textSecondary)),
-      );
+    padding: const EdgeInsetsDirectional.only(start: 4, bottom: AppSpace.sm),
+    child: Text(text, style: context.text.labelMedium?.copyWith(color: context.palette.textSecondary)),
+  );
 }
 
 class _Group extends StatelessWidget {
@@ -290,9 +299,7 @@ class _Tile extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: context.text.bodyLarge),
-                  ],
+                  children: [Text(title, style: context.text.bodyLarge)],
                 ),
               ),
               trailing ?? const ForwardChevron(),
@@ -310,10 +317,10 @@ class _Value extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(text, style: context.text.bodyMedium),
-          const ForwardChevron(),
-        ],
-      );
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(text, style: context.text.bodyMedium),
+      const ForwardChevron(),
+    ],
+  );
 }

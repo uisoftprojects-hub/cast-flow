@@ -16,6 +16,8 @@ import '../domain/media_models.dart';
 import 'asset_thumbnail.dart';
 import 'media_providers.dart';
 
+import '../../../core/l10n.dart';
+
 class VideosScreen extends ConsumerWidget {
   const VideosScreen({super.key});
 
@@ -23,16 +25,16 @@ class VideosScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final videos = ref.watch(videosProvider);
     return Scaffold(
-      appBar: const CastAppBar(title: 'Cast Videos'),
+      appBar: CastAppBar(title: context.l10n.castVideos),
       body: AsyncView<List<VideoItem>>(
         value: videos,
         loading: const ShimmerList(leadingSize: 96),
         onRetry: () => ref.invalidate(videosProvider),
         isEmpty: (v) => v.isEmpty,
-        empty: const EmptyState(
+        empty: EmptyState(
           icon: Iconsax.video_add_copy,
-          title: 'No videos yet',
-          message: 'Videos you record or download will appear here, ready to cast.',
+          title: context.l10n.noVideosYet,
+          message: context.l10n.videosYouRecordOr,
         ),
         data: (items) => RefreshIndicator(
           onRefresh: () => ref.refresh(videosProvider.future),
@@ -47,17 +49,17 @@ class VideosScreen extends ConsumerWidget {
                   CastMedia(
                     id: x.id,
                     title: x.title,
-                    subtitle: 'Video · ${x.resolution}',
+                    subtitle: context.l10n.video2(x.resolution),
                     kind: CastKind.video,
                     seed: x.seed,
                     duration: x.duration,
                     url: 'asset:${x.id}',
                   ),
               ];
-              return _VideoTile(video: v, onTap: () => castAndOpenRemote(context, ref, queue, index: i))
-                  .animate(delay: (50 * i).ms)
-                  .fadeIn(duration: 350.ms)
-                  .slideY(begin: 0.1, end: 0);
+              return _VideoTile(
+                video: v,
+                onTap: () => castAndOpenRemote(context, ref, queue, index: i),
+              ).animate(delay: (50 * i).ms).fadeIn(duration: 350.ms).slideY(begin: 0.1, end: 0);
             },
           ),
         ),
@@ -76,7 +78,7 @@ class _VideoTile extends StatelessWidget {
     return SoftCard(
       padding: const EdgeInsets.all(AppSpace.sm),
       onTap: onTap,
-      semanticLabel: '${video.title}, ${formatDuration(video.duration)}. Cast',
+      semanticLabel: context.l10n.cast2(video.title, formatDuration(video.duration)),
       child: Row(
         children: [
           SizedBox(
@@ -94,8 +96,10 @@ class _VideoTile extends StatelessWidget {
                     color: Colors.black.withValues(alpha: 0.35),
                     borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
-                  child: Text(formatDuration(video.duration),
-                      style: context.text.labelSmall?.copyWith(color: Colors.white)),
+                  child: Text(
+                    formatDuration(video.duration),
+                    style: context.text.labelSmall?.copyWith(color: Colors.white),
+                  ),
                 ),
               ),
             ),
@@ -113,7 +117,11 @@ class _VideoTile extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     if (video.resolution.isNotEmpty)
-                      SoftBadge(video.resolution, color: context.palette.primaryTint, textColor: context.palette.primary),
+                      SoftBadge(
+                        video.resolution,
+                        color: context.palette.primaryTint,
+                        textColor: context.palette.primary,
+                      ),
                     if (video.sizeBytes > 0) Text(formatBytes(video.sizeBytes), style: context.text.bodySmall),
                   ],
                 ),

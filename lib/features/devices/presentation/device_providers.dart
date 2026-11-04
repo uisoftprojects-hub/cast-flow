@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../../core/analytics/analytics.dart';
+import '../../../core/analytics/analytics_events.dart';
 import '../../../core/storage/local_store.dart';
 import '../../settings/presentation/settings_controller.dart';
 import '../data/hive_saved_devices_repository.dart';
@@ -13,21 +15,21 @@ import '../domain/network_status.dart';
 import '../../pairing/presentation/pairing_controller.dart';
 import 'network_controller.dart';
 
-final deviceRepositoryProvider = Provider<DeviceRepository>(
-  (ref) => NetworkDeviceRepository(),
-);
+final deviceRepositoryProvider = Provider<DeviceRepository>((ref) => NetworkDeviceRepository());
 
 final savedDevicesProvider = Provider<SavedDevicesRepository>(
   (ref) => HiveSavedDevicesRepository(ref.watch(localStoreProvider).devices),
 );
 
 /// Asks for Nearby Wi-Fi devices on Android 13+ (granted implicitly below).
-final nearbyPermissionProvider = Provider<Future<void> Function()>((ref) => () async {
-      if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
-      try {
-        await Permission.nearbyWifiDevices.request();
-      } catch (_) {}
-    });
+final nearbyPermissionProvider = Provider<Future<void> Function()>(
+  (ref) => () async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      await Permission.nearbyWifiDevices.request();
+    } catch (_) {}
+  },
+);
 
 /// Runs discovery as a background stream so scanning never blocks the UI.
 /// Checks the network first; on the phone's own hotspot it keeps rescanning
@@ -66,6 +68,7 @@ class DiscoveryController extends Notifier<DiscoveryState> {
     final network = await ref.read(networkProvider.notifier).refresh();
     if (run != _run) return;
     if (!network.ready) {
+      ref.read(analyticsProvider).log(AnalyticsEvent.networkNoWifi, {AnalyticsParam.source: 'device_scan'});
       state = const DiscoveryState(networkRequired: true);
       return;
     }
@@ -78,36 +81,52 @@ class DiscoveryController extends Notifier<DiscoveryState> {
     final hotspot = network.mode == NetworkMode.hotspot;
     final repo = ref.read(deviceRepositoryProvider);
     final previous = keep ? state.devices : const <CastDevice>[];
-    state = state.copyWith(scanning: true, hotspot: hotspot, networkRequired: false, clearError: true, devices: previous);
-    _sub = repo.discover(network: network).listen(
-      (found) {
-        if (run != _run) return;
-        // Merge with earlier rounds so the list only grows while live.
-        final byAddress = {for (final d in previous) d.address: d, for (final d in found) d.address: d};
-        state = state.copyWith(devices: List.unmodifiable(byAddress.values));
-      },
-      onError: (Object e) {
-        if (run == _run) state = state.copyWith(scanning: false, error: e.toString());
-      },
-      onDone: () {
-        if (run != _run) return;
-        state = state.copyWith(
-          scanning: hotspot, // the hotspot keeps searching
-          isolationSuspected: hotspot && state.devices.isEmpty && repo.unidentifiedClients > 0,
-        );
-        if (!hotspot) return;
-        _rescan = Timer(hotspotRescanDelay, () async {
-          if (run != _run || !ref.mounted) return;
-          final net = await ref.read(networkProvider.notifier).refresh();
-          if (run != _run) return;
-          if (!net.ready) {
-            state = DiscoveryState(devices: state.devices, networkRequired: true);
-            return;
-          }
-          _discover(net, run, keep: true);
-        });
-      },
+    state = state.copyWith(
+      scanning: true,
+      hotspot: hotspot,
+      networkRequired: false,
+      clearError: true,
+      devices: previous,
     );
+    _sub = repo
+        .discover(network: network)
+        .listen(
+          (found) {
+            if (run != _run) return;
+            // Merge with earlier rounds so the list only grows while live.
+            final byAddress = {for (final d in previous) d.address: d, for (final d in found) d.address: d};
+            state = state.copyWith(devices: List.unmodifiable(byAddress.values));
+          },
+          onError: (Object e) {
+            if (run == _run) state = state.copyWith(scanning: false, error: e.toString());
+          },
+          onDone: () {
+            if (run != _run) return;
+            if (!keep) {
+              final count = state.devices.length;
+              if (count == 0) {
+                ref.read(analyticsProvider).log(AnalyticsEvent.deviceNoneFound, {
+                  AnalyticsParam.networkMode: network.mode,
+                });
+              }
+            }
+            state = state.copyWith(
+              scanning: hotspot, // the hotspot keeps searching
+              isolationSuspected: hotspot && state.devices.isEmpty && repo.unidentifiedClients > 0,
+            );
+            if (!hotspot) return;
+            _rescan = Timer(hotspotRescanDelay, () async {
+              if (run != _run || !ref.mounted) return;
+              final net = await ref.read(networkProvider.notifier).refresh();
+              if (run != _run) return;
+              if (!net.ready) {
+                state = DiscoveryState(devices: state.devices, networkRequired: true);
+                return;
+              }
+              _discover(net, run, keep: true);
+            });
+          },
+        );
   }
 
   void stop() {
@@ -135,6 +154,13 @@ class ConnectionController extends Notifier<CastConnection> {
     return const CastConnection();
   }
 
+  Analytics get _analytics => ref.read(analyticsProvider);
+
+  void _connectFailed(CastDevice device, String reason) => _analytics.log(AnalyticsEvent.deviceConnectFail, {
+    AnalyticsParam.deviceType: device.type,
+    AnalyticsParam.reason: reason,
+  });
+
   Future<bool> connect(CastDevice device) async {
     // Ignore double taps / a second TV while one connection is in progress.
     if (state.isConnecting) return false;
@@ -142,6 +168,7 @@ class ConnectionController extends Notifier<CastConnection> {
     final network = await ref.read(networkProvider.notifier).refresh();
     if (!network.ready) {
       state = CastConnection(status: ConnectionStatus.failed, device: device, error: networkLost);
+      _connectFailed(device, networkLost);
       return false;
     }
     try {
@@ -150,14 +177,17 @@ class ConnectionController extends Notifier<CastConnection> {
       // credentials skip the sheet. Cancelled → back to not connected.
       if (!await ref.read(pairingProvider.notifier).pair(device)) {
         state = const CastConnection();
+        _connectFailed(device, 'pairing_cancelled');
         return false;
       }
       state = CastConnection(status: ConnectionStatus.connected, device: device);
+      _analytics.log(AnalyticsEvent.deviceConnectSuccess, {AnalyticsParam.deviceType: device.type});
       ref.read(settingsProvider.notifier).rememberDevice(device.id);
       await ref.read(savedDevicesProvider).save(device.seenNow());
       return true;
     } catch (e) {
       state = CastConnection(status: ConnectionStatus.failed, device: device, error: e.toString());
+      _connectFailed(device, e.toString());
       return false;
     }
   }
@@ -179,7 +209,8 @@ class ConnectionController extends Notifier<CastConnection> {
   Future<void> autoConnect() async {
     final s = ref.read(settingsProvider);
     if (!s.autoConnect || s.lastDeviceId == null || state.isConnected) return;
-    final device = ref.read(savedDevicesProvider).findById(s.lastDeviceId!) ??
+    final device =
+        ref.read(savedDevicesProvider).findById(s.lastDeviceId!) ??
         await ref.read(deviceRepositoryProvider).findById(s.lastDeviceId!);
     if (device == null) return;
     // A TV that is off or gone shouldn't show an error on launch.

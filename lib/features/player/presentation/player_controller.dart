@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/analytics.dart';
+import '../../../core/analytics/analytics_events.dart';
 import '../../devices/presentation/device_providers.dart';
-import '../../devices/presentation/network_controller.dart';
 import '../../devices/presentation/widgets/network_widgets.dart';
 import '../../history/domain/history_entry.dart';
 import '../../history/presentation/history_controller.dart';
@@ -28,6 +29,12 @@ class PlayerController extends Notifier<PlaybackState> {
 
   void play(List<CastMedia> queue, {int index = 0, Duration? slideshowInterval}) {
     if (queue.isEmpty) return;
+    ref.read(analyticsProvider).log(AnalyticsEvent.castStart, {
+      AnalyticsParam.mediaType: queue[index].kind,
+      AnalyticsParam.itemCount: queue.length,
+      AnalyticsParam.deviceType: ref.read(connectionProvider).device?.type,
+      AnalyticsParam.source: slideshowInterval == null ? null : 'slideshow',
+    });
     state = PlaybackState(
       queue: queue,
       index: index,
@@ -113,7 +120,9 @@ class PlayerController extends Notifier<PlaybackState> {
 
   void _record(CastMedia m) {
     final device = ref.read(connectionProvider).device;
-    ref.read(historyProvider.notifier).add(
+    ref
+        .read(historyProvider.notifier)
+        .add(
           HistoryEntry(
             id: '${m.id}-${DateTime.now().microsecondsSinceEpoch}',
             title: m.title,
@@ -133,11 +142,7 @@ final playerProvider = NotifierProvider<PlayerController, PlaybackState>(PlayerC
 Future<bool> ensureConnected(BuildContext context, WidgetRef ref, {String? reason}) async {
   if (ref.read(connectionProvider).isConnected) return true;
   // Pre-cast check: no Wi-Fi and no hotspot means no TV can be reached.
-  final network = await ref.read(networkProvider.notifier).refresh();
-  if (!network.ready) {
-    if (context.mounted) await showNetworkRequiredDialog(context);
-    return false;
-  }
+  if (!await requireNetwork(context, source: reason ?? 'cast')) return false;
   if (!context.mounted) return false;
   final ok = await context.push<bool>(reason == null ? '/connect' : '/connect?reason=$reason');
   return ok == true || ref.read(connectionProvider).isConnected;

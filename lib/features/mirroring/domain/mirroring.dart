@@ -14,6 +14,7 @@ class MirrorState {
     this.elapsed = Duration.zero,
     this.latencyMs = 0,
     this.error,
+    this.tvName,
   });
 
   final MirrorPhase phase;
@@ -23,6 +24,9 @@ class MirrorState {
   final Duration elapsed;
   final int latencyMs;
   final String? error;
+
+  /// Name of the display the screen is mirrored to (from the system).
+  final String? tvName;
 
   bool get isLive => phase == MirrorPhase.live;
   bool get isBusy => phase == MirrorPhase.starting || phase == MirrorPhase.stopping;
@@ -35,6 +39,7 @@ class MirrorState {
     Duration? elapsed,
     int? latencyMs,
     String? error,
+    String? tvName,
   }) {
     return MirrorState(
       phase: phase ?? this.phase,
@@ -44,6 +49,7 @@ class MirrorState {
       elapsed: elapsed ?? this.elapsed,
       latencyMs: latencyMs ?? this.latencyMs,
       error: error,
+      tvName: tvName ?? this.tvName,
     );
   }
 }

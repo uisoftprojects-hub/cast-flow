@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/widgets/ad_side_layout.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
-import '../../../core/widgets/buttons.dart';
 import '../../../core/widgets/tap_scale.dart';
 import '../../app_flow/domain/flow_config.dart';
 import '../../app_flow/presentation/app_flow_controller.dart';
@@ -14,6 +15,8 @@ import '../../monetization/domain/ad_models.dart';
 import '../../monetization/presentation/native_ad_slot.dart';
 import '../../settings/domain/app_settings.dart';
 import '../../settings/presentation/settings_controller.dart';
+
+import '../../../core/l10n.dart';
 
 /// Same screen for first-run setup and Settings → Language. The selection
 /// is applied only when the user taps the Done icon.
@@ -49,67 +52,65 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
       child: Scaffold(
         appBar: AppBar(
           toolbarHeight: 68,
+          clipBehavior: Clip.none,
           automaticallyImplyLeading: false,
           titleSpacing: canGoBack ? 0 : AppSpace.page,
           leading: canGoBack
               ? Padding(
                   padding: const EdgeInsetsDirectional.only(start: 12),
                   child: Center(
-                    child: SoftIconButton(
-                      icon: Directionality.of(context) == TextDirection.rtl
-                          ? Icons.arrow_forward_ios_rounded
-                          : Icons.arrow_back_ios_new_rounded,
-                      size: 44,
-                      tooltip: 'Back',
+                    child: IconButton(
+                      icon: Icon(
+                        Directionality.of(context) == TextDirection.rtl ? Iconsax.arrow_right_copy : Iconsax.arrow_left_copy,
+                        size: 26,
+                      ),
+                      tooltip: context.l10n.browserBack,
                       onPressed: () => context.pop(),
                     ),
                   ),
                 )
               : null,
           leadingWidth: canGoBack ? 68 : null,
-          title: const Text('Language'),
+          title: Text(context.l10n.language),
           actions: [
             Padding(
               padding: const EdgeInsetsDirectional.only(end: AppSpace.page),
-              child: SoftIconButton(
-                icon: Icons.check_rounded,
-                tooltip: 'Done',
-                filled: true,
-                size: 44,
+              child: IconButton(
+                icon: const Icon(Icons.check_rounded, size: 30),
+                tooltip: context.l10n.done,
+                color: context.palette.primary,
                 onPressed: _done,
               ),
             ),
           ],
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, AppSpace.lg),
-                itemCount: supportedLanguages.length,
-                separatorBuilder: (_, _) => const SizedBox(height: AppSpace.sm),
-                itemBuilder: (context, i) {
-                  final entry = supportedLanguages.entries.elementAt(i);
-                  return _LanguageRow(
-                    native: entry.value.$1,
-                    english: entry.value.$2,
-                    flag: entry.value.$3,
-                    selected: entry.key == _selected,
-                    onTap: () => setState(() => _selected = entry.key),
-                  ).animate(delay: ((i > 10 ? 10 : i) * 30).ms).fadeIn(duration: 250.ms);
-                },
+        body: AdSideLayout(
+          content: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, AppSpace.lg),
+            itemCount: supportedLanguages.length,
+            separatorBuilder: (_, _) => const SizedBox(height: AppSpace.sm),
+            itemBuilder: (context, i) {
+              final entry = supportedLanguages.entries.elementAt(i);
+              return _LanguageRow(
+                native: entry.value.$1,
+                english: entry.value.$2,
+                flag: entry.value.$3,
+                selected: entry.key == _selected,
+                onTap: () => setState(() => _selected = entry.key),
+              ).animate(delay: ((i > 10 ? 10 : i) * 30).ms).fadeIn(duration: 250.ms);
+            },
+          ),
+          ad: SafeArea(
+            top: false,
+            child: Padding(
+              padding: isLandscape(context)
+                  ? EdgeInsets.zero
+                  : const EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, AppSpace.md),
+              child: NativeAdSlot(
+                placement: widget.fromSettings ? AdPlacement.languageSettings : AdPlacement.languageFirstRun,
               ),
             ),
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, AppSpace.md),
-                child: NativeAdSlot(
-                  placement: widget.fromSettings ? AdPlacement.languageSettings : AdPlacement.languageFirstRun,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

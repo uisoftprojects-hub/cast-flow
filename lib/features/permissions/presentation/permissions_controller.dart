@@ -22,8 +22,8 @@ final permissionServiceProvider = Provider<PermissionService>(
 class PermissionsController extends Notifier<Map<AppPermission, PermissionStatus>> {
   @override
   Map<AppPermission, PermissionStatus> build() => {
-        for (final p in AppPermission.values) p: PermissionStatus.notRequested,
-      };
+    for (final p in AppPermission.values) p: PermissionStatus.notRequested,
+  };
 
   Future<void> request(AppPermission p) async {
     state = {...state, p: PermissionStatus.requesting};
@@ -38,5 +38,6 @@ class PermissionsController extends Notifier<Map<AppPermission, PermissionStatus
   }
 }
 
-final permissionsProvider =
-    NotifierProvider<PermissionsController, Map<AppPermission, PermissionStatus>>(PermissionsController.new);
+final permissionsProvider = NotifierProvider<PermissionsController, Map<AppPermission, PermissionStatus>>(
+  PermissionsController.new,
+);

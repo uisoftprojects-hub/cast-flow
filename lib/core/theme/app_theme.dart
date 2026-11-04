@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
@@ -75,6 +76,7 @@ ThemeData _build(Brightness brightness, AppPalette p) {
       centerTitle: false,
       foregroundColor: p.textPrimary,
       titleTextStyle: text.headlineSmall,
+      systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
     ),
     dividerTheme: DividerThemeData(color: p.divider, thickness: 1, space: 1),
     iconTheme: IconThemeData(color: p.textPrimary, size: 22),
@@ -83,9 +85,7 @@ ThemeData _build(Brightness brightness, AppPalette p) {
       surfaceTintColor: Colors.transparent,
       showDragHandle: true,
       dragHandleColor: p.divider,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl))),
     ),
     dialogTheme: DialogThemeData(
       backgroundColor: p.surface,
@@ -103,10 +103,7 @@ ThemeData _build(Brightness brightness, AppPalette p) {
       fillColor: p.surface,
       hintStyle: text.bodyMedium,
       contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        borderSide: BorderSide.none,
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.pill), borderSide: BorderSide.none),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.pill),
         borderSide: BorderSide.none,
@@ -128,9 +125,7 @@ ThemeData _build(Brightness brightness, AppPalette p) {
       thumbColor: WidgetStateProperty.resolveWith(
         (s) => s.contains(WidgetState.selected) ? Colors.white : p.textSecondary,
       ),
-      trackColor: WidgetStateProperty.resolveWith(
-        (s) => s.contains(WidgetState.selected) ? p.primary : p.primaryTint,
-      ),
+      trackColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? p.primary : p.primaryTint),
       trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
     ),
     tabBarTheme: TabBarThemeData(
@@ -140,10 +135,7 @@ ThemeData _build(Brightness brightness, AppPalette p) {
       unselectedLabelStyle: text.labelMedium,
       dividerColor: Colors.transparent,
       indicatorSize: TabBarIndicatorSize.tab,
-      indicator: BoxDecoration(
-        gradient: AppColors.mainGradient,
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-      ),
+      indicator: BoxDecoration(gradient: AppColors.mainGradient, borderRadius: BorderRadius.circular(AppRadius.pill)),
       overlayColor: const WidgetStatePropertyAll(Colors.transparent),
       splashFactory: NoSplash.splashFactory,
     ),

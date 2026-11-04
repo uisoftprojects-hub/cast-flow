@@ -48,14 +48,7 @@ class SoftCard extends StatelessWidget {
 
 /// An icon sitting in a tinted rounded square (solid when [filled]).
 class IconBubble extends StatelessWidget {
-  const IconBubble({
-    super.key,
-    required this.icon,
-    this.color,
-    this.size = 48,
-    this.iconSize,
-    this.filled = false,
-  });
+  const IconBubble({super.key, required this.icon, this.color, this.size = 48, this.iconSize, this.filled = false});
 
   final IconData icon;
   final Color? color;
@@ -79,7 +72,7 @@ class IconBubble extends StatelessWidget {
   }
 }
 
-/// "Go forward" chevron that mirrors itself in RTL layouts.
+/// "Go forward" chevron: points right in LTR and left in RTL.
 class ForwardChevron extends StatelessWidget {
   const ForwardChevron({super.key, this.size = 20});
 
@@ -87,10 +80,8 @@ class ForwardChevron extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Transform.flip(
-      flipX: Directionality.of(context) == TextDirection.rtl,
-      child: Icon(Icons.chevron_right_rounded, size: size + 4, color: context.palette.textSecondary),
-    );
+    // Icons.chevron_right already mirrors itself in RTL.
+    return Icon(Icons.chevron_right_rounded, size: size + 4, color: context.palette.textSecondary);
   }
 }
 

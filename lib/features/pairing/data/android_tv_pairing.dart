@@ -48,21 +48,21 @@ class _Identity {
 
 /// Generating a 2048-bit RSA key takes a few seconds; run off the UI isolate.
 Future<_Identity> _newIdentity() => compute((_) {
-      final pair = CryptoUtils.generateRSAKeyPair();
-      final priv = pair.privateKey as RSAPrivateKey;
-      final pub = pair.publicKey as RSAPublicKey;
-      final csr = X509Utils.generateRsaCsrPem({'CN': 'CastFlow'}, priv, pub);
-      final cert = X509Utils.generateSelfSignedCertificate(priv, csr, 3650);
-      return _Identity(cert, CryptoUtils.encodeRSAPrivateKeyToPemPkcs1(priv));
-    }, null);
+  final pair = CryptoUtils.generateRSAKeyPair();
+  final priv = pair.privateKey as RSAPrivateKey;
+  final pub = pair.publicKey as RSAPublicKey;
+  final csr = X509Utils.generateRsaCsrPem({'CN': 'CastFlow'}, priv, pub);
+  final cert = X509Utils.generateSelfSignedCertificate(priv, csr, 3650);
+  return _Identity(cert, CryptoUtils.encodeRSAPrivateKeyToPemPkcs1(priv));
+}, null);
 
 /// Extracts the RSA public key from a DER certificate's SubjectPublicKeyInfo.
 RSAPublicKey _publicKeyOfCertDer(Uint8List der) {
   final cert = ASN1Parser(der).nextObject() as ASN1Sequence;
   final tbs = cert.elements!.first as ASN1Sequence;
   final spki = tbs.elements!.whereType<ASN1Sequence>().firstWhere(
-        (e) => e.elements!.length == 2 && e.elements![0] is ASN1Sequence && e.elements![1] is ASN1BitString,
-      );
+    (e) => e.elements!.length == 2 && e.elements![0] is ASN1Sequence && e.elements![1] is ASN1BitString,
+  );
   return CryptoUtils.rsaPublicKeyFromDERBytes(spki.encode());
 }
 
@@ -141,10 +141,14 @@ class _AtvSession implements PairingSession {
         timeout: const Duration(seconds: 8),
       );
       _serverKey = _publicKeyOfCertDer(_socket!.peerCertificate!.der);
-      _socket!.listen(_onData, onError: (_) => _emit(const PairingFailed('connection')), onDone: () {
-        if (!_closed && !(_secretAck?.isCompleted ?? true)) _secretAck!.complete(-1);
-        if (!_closed) _emit(const PairingFailed('connection'));
-      });
+      _socket!.listen(
+        _onData,
+        onError: (_) => _emit(const PairingFailed('connection')),
+        onDone: () {
+          if (!_closed && !(_secretAck?.isCompleted ?? true)) _secretAck!.complete(-1);
+          if (!_closed) _emit(const PairingFailed('connection'));
+        },
+      );
       _socket!.add(_outer(10, [..._bytes(1, utf8.encode('atvremote')), ..._bytes(2, utf8.encode('CastFlow'))]));
     } catch (_) {
       _emit(const PairingFailed('connection'));
@@ -153,12 +157,19 @@ class _AtvSession implements PairingSession {
 
   Future<bool> _remoteAccepts(_Identity id) async {
     try {
-      final s = await SecureSocket.connect(_device.address, 6466,
-          context: id.context, onBadCertificate: (_) => true, timeout: const Duration(seconds: 6));
+      final s = await SecureSocket.connect(
+        _device.address,
+        6466,
+        context: id.context,
+        onBadCertificate: (_) => true,
+        timeout: const Duration(seconds: 6),
+      );
       final got = Completer<bool>();
-      s.listen((_) => got.isCompleted ? null : got.complete(true),
-          onError: (_) => got.isCompleted ? null : got.complete(false),
-          onDone: () => got.isCompleted ? null : got.complete(false));
+      s.listen(
+        (_) => got.isCompleted ? null : got.complete(true),
+        onError: (_) => got.isCompleted ? null : got.complete(false),
+        onDone: () => got.isCompleted ? null : got.complete(false),
+      );
       final ok = await got.future.timeout(const Duration(seconds: 4), onTimeout: () => false);
       s.destroy();
       return ok;

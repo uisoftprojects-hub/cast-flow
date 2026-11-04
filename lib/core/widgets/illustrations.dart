@@ -24,15 +24,15 @@ class CastIllustration extends StatelessWidget {
     final s = size;
 
     Widget bubble(IconData icon, Color color, double d) => Container(
-          width: d,
-          height: d,
-          decoration: BoxDecoration(
-            color: p.surface,
-            shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 18, offset: const Offset(0, 6))],
-          ),
-          child: Icon(icon, color: color, size: d * 0.45),
-        );
+      width: d,
+      height: d,
+      decoration: BoxDecoration(
+        color: p.surface,
+        shape: BoxShape.circle,
+        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 18, offset: const Offset(0, 6))],
+      ),
+      child: Icon(icon, color: color, size: d * 0.45),
+    );
 
     final tv = Container(
       width: s * 0.66,
@@ -91,22 +91,24 @@ class CastIllustration extends StatelessWidget {
         border: Border.all(color: Colors.white, width: 3),
         boxShadow: AppShadowsLite.of(p.shadow),
       ),
-      child: Center(child: Icon(Iconsax.screenmirroring_copy, color: Colors.white, size: s * 0.08)),
+      child: Center(
+        child: Icon(Iconsax.screenmirroring_copy, color: Colors.white, size: s * 0.08),
+      ),
     );
 
     final floaters = switch (kind) {
       IllustrationKind.mirror => <(Alignment, Widget)>[
-          (const Alignment(-0.15, -0.95), bubble(Iconsax.wifi_copy, AppColors.primary, s * 0.15)),
-        ],
+        (const Alignment(-0.15, -0.95), bubble(Iconsax.wifi_copy, AppColors.primary, s * 0.15)),
+      ],
       IllustrationKind.media => [
-          (const Alignment(-0.95, -0.85), bubble(Iconsax.gallery_copy, AppColors.primary, s * 0.16)),
-          (const Alignment(0.95, -0.95), bubble(Iconsax.music_copy, const Color(0xFF12B886), s * 0.15)),
-          (const Alignment(0.85, 0.75), bubble(Iconsax.video_copy, const Color(0xFFFF7A59), s * 0.15)),
-        ],
+        (const Alignment(-0.95, -0.85), bubble(Iconsax.gallery_copy, AppColors.primary, s * 0.16)),
+        (const Alignment(0.95, -0.95), bubble(Iconsax.music_copy, const Color(0xFF12B886), s * 0.15)),
+        (const Alignment(0.85, 0.75), bubble(Iconsax.video_copy, const Color(0xFFFF7A59), s * 0.15)),
+      ],
       IllustrationKind.web => [
-          (const Alignment(-0.95, -0.8), bubble(Iconsax.youtube_copy, const Color(0xFFFF7A59), s * 0.16)),
-          (const Alignment(0.95, -0.9), bubble(Iconsax.link_2_copy, AppColors.primary, s * 0.14)),
-        ],
+        (const Alignment(-0.95, -0.8), bubble(Iconsax.youtube_copy, const Color(0xFFFF7A59), s * 0.16)),
+        (const Alignment(0.95, -0.9), bubble(Iconsax.link_2_copy, AppColors.primary, s * 0.14)),
+      ],
     };
 
     return SizedBox.square(

@@ -99,15 +99,20 @@ class NetworkDeviceRepository implements DeviceRepository {
       final headers = _headers(utf8.decode(dg.data, allowMalformed: true));
       final location = headers['location'];
       if (location == null || !seen.add(location)) return;
-      lookups.add(_describe(location, headers).then((d) {
-        if (d != null) add(d);
-      }).catchError((_) {}));
+      lookups.add(
+        _describe(location, headers)
+            .then((d) {
+              if (d != null) add(d);
+            })
+            .catchError((_) {}),
+      );
     });
 
     final group = InternetAddress('239.255.255.250');
     for (var round = 0; round < 3; round++) {
       for (final st in _ssdpTargets) {
-        final msg = 'M-SEARCH * HTTP/1.1\r\n'
+        final msg =
+            'M-SEARCH * HTTP/1.1\r\n'
             'HOST: 239.255.255.250:1900\r\n'
             'MAN: "ssdp:discover"\r\n'
             'MX: 2\r\n'
@@ -154,8 +159,19 @@ class NetworkDeviceRepository implements DeviceRepository {
     } else if (m.contains('google') && st.contains('dial')) {
       type = DeviceType.chromecast;
     } else if (st.contains('dial') ||
-        ['samsung', 'lg ', 'lg electronics', 'sony', 'tcl', 'hisense', 'philips', 'vizio', 'panasonic', 'sharp', 'xiaomi']
-            .any(m.contains)) {
+        [
+          'samsung',
+          'lg ',
+          'lg electronics',
+          'sony',
+          'tcl',
+          'hisense',
+          'philips',
+          'vizio',
+          'panasonic',
+          'sharp',
+          'xiaomi',
+        ].any(m.contains)) {
       type = DeviceType.smartTv;
     } else if (deviceType.contains('MediaRenderer')) {
       type = DeviceType.dlna;
@@ -178,22 +194,30 @@ class NetworkDeviceRepository implements DeviceRepository {
   Future<void> _mdns(void Function(CastDevice) add, {String? interfaceIp}) async {
     final client = MDnsClient(
       // Android doesn't support SO_REUSEPORT on these sockets.
-      rawDatagramSocketFactory: (dynamic host, int port, {bool reuseAddress = true, bool reusePort = false, int ttl = 1}) =>
-          RawDatagramSocket.bind(host, port, reuseAddress: true, reusePort: false, ttl: ttl),
+      rawDatagramSocketFactory: (
+        dynamic host,
+        int port, {
+        bool reuseAddress = true,
+        bool reusePort = false,
+        int ttl = 1,
+      }) => RawDatagramSocket.bind(host, port, reuseAddress: true, reusePort: false, ttl: ttl),
     );
     await client.start(
       // On the hotspot, query only on the AP interface.
       interfacesFactory: interfaceIp == null
           ? null
-          : (type) async => (await NetworkInterface.list(type: InternetAddressType.IPv4))
-              .where((i) => i.addresses.any((a) => a.address == interfaceIp))
-              .toList(),
+          : (type) async =>
+                (await NetworkInterface.list(type: InternetAddressType.IPv4))
+                    .where((i) => i.addresses.any((a) => a.address == interfaceIp))
+                    .toList(),
     );
     try {
       for (final entry in _mdnsServices.entries) {
         final ptrs = await client
-            .lookup<PtrResourceRecord>(ResourceRecordQuery.serverPointer(entry.key),
-                timeout: Duration(milliseconds: scanTime.inMilliseconds ~/ 2))
+            .lookup<PtrResourceRecord>(
+              ResourceRecordQuery.serverPointer(entry.key),
+              timeout: Duration(milliseconds: scanTime.inMilliseconds ~/ 2),
+            )
             .toList();
         for (final ptr in ptrs) {
           final srv = await client
@@ -214,14 +238,16 @@ class NetworkDeviceRepository implements DeviceRepository {
                 if (line.contains('=')) line.substring(0, line.indexOf('=')): line.substring(line.indexOf('=') + 1),
           };
           final label = ptr.domainName.split('._').first;
-          add(CastDevice(
-            id: props['id'] ?? ptr.domainName,
-            name: props['fn'] ?? label,
-            type: entry.value,
-            address: ip.address.address,
-            port: srv.port,
-            model: props['md'],
-          ));
+          add(
+            CastDevice(
+              id: props['id'] ?? ptr.domainName,
+              name: props['fn'] ?? label,
+              type: entry.value,
+              address: ip.address.address,
+              port: srv.port,
+              model: props['md'],
+            ),
+          );
         }
       }
     } finally {
@@ -251,17 +277,19 @@ class NetworkDeviceRepository implements DeviceRepository {
   Future<void> _probeHost(String host, void Function(CastDevice) add) async {
     var alive = false;
     // All ports at once; the first in _tvPorts order that is open wins.
-    final results = await Future.wait(_tvPorts.map((port) async {
-      try {
-        final s = await Socket.connect(host, port, timeout: const Duration(milliseconds: 400));
-        s.destroy();
-        return true;
-      } on SocketException catch (e) {
-        // "Connection refused" means a device is there, just not on this port.
-        if (e.osError?.errorCode == 111 || e.osError?.errorCode == 10061) alive = true;
-        return false;
-      }
-    }));
+    final results = await Future.wait(
+      _tvPorts.map((port) async {
+        try {
+          final s = await Socket.connect(host, port, timeout: const Duration(milliseconds: 400));
+          s.destroy();
+          return true;
+        } on SocketException catch (e) {
+          // "Connection refused" means a device is there, just not on this port.
+          if (e.osError?.errorCode == 111 || e.osError?.errorCode == 10061) alive = true;
+          return false;
+        }
+      }),
+    );
     final i = results.indexOf(true);
     final open = i < 0 ? null : _tvPorts[i];
     if (open == null) {
@@ -284,7 +312,13 @@ class NetworkDeviceRepository implements DeviceRepository {
     switch (port) {
       case 8008:
         final name = xmlTag(await get('/ssdp/device-desc.xml').catchError((_) => null), 'friendlyName');
-        return CastDevice(id: 'cast-$host', name: name ?? 'Chromecast', type: DeviceType.chromecast, address: host, port: 8009);
+        return CastDevice(
+          id: 'cast-$host',
+          name: name ?? 'Chromecast',
+          type: DeviceType.chromecast,
+          address: host,
+          port: 8009,
+        );
       case 8060:
         final info = await get('/query/device-info').catchError((_) => null);
         final name = xmlTag(info, 'user-device-name') ?? xmlTag(info, 'friendly-device-name');
@@ -295,7 +329,13 @@ class NetworkDeviceRepository implements DeviceRepository {
         try {
           name = ((jsonDecode(body ?? '{}') as Map)['device'] as Map?)?['name'] as String?;
         } catch (_) {}
-        return CastDevice(id: 'samsung-$host', name: name ?? 'Samsung TV', type: DeviceType.smartTv, address: host, port: 8001);
+        return CastDevice(
+          id: 'samsung-$host',
+          name: name ?? 'Samsung TV',
+          type: DeviceType.smartTv,
+          address: host,
+          port: 8001,
+        );
       case 3000:
         return CastDevice(id: 'lg-$host', name: 'LG TV', type: DeviceType.smartTv, address: host, port: 3000);
       default:
@@ -311,7 +351,8 @@ class NetworkDeviceRepository implements DeviceRepository {
   /// Confirms the receiver is reachable on its control port.
   @override
   Future<void> connect(CastDevice device) async {
-    final port = device.port ??
+    final port =
+        device.port ??
         switch (device.type) {
           DeviceType.chromecast => 8009,
           DeviceType.roku => 8060,
@@ -332,7 +373,6 @@ class NetworkDeviceRepository implements DeviceRepository {
 extension on InternetAddress {
   bool get isPrivateLan {
     final b = rawAddress;
-    return b.length == 4 &&
-        (b[0] == 10 || (b[0] == 172 && b[1] >= 16 && b[1] <= 31) || (b[0] == 192 && b[1] == 168));
+    return b.length == 4 && (b[0] == 10 || (b[0] == 172 && b[1] >= 16 && b[1] <= 31) || (b[0] == 192 && b[1] == 168));
   }
 }

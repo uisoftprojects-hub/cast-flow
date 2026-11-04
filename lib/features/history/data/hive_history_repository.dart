@@ -15,10 +15,10 @@ class HiveHistoryRepository implements HistoryRepository {
 
   @override
   Future<List<HistoryEntry>> list() => simulateFetch(
-        _mode(),
-        () => _box.values.map(HistoryEntry.fromMap).toList()..sort((a, b) => b.castAt.compareTo(a.castAt)),
-        delay: const Duration(milliseconds: 250),
-      );
+    _mode(),
+    () => _box.values.map(HistoryEntry.fromMap).toList()..sort((a, b) => b.castAt.compareTo(a.castAt)),
+    delay: const Duration(milliseconds: 250),
+  );
 
   @override
   Future<void> add(HistoryEntry entry) async {

@@ -12,12 +12,15 @@ import '../../../core/widgets/tap_scale.dart';
 import '../../devices/domain/cast_device.dart';
 import '../../devices/domain/receiver_capabilities.dart';
 import '../../devices/presentation/device_providers.dart';
+import '../../devices/presentation/widgets/network_widgets.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
 import '../../mirroring/presentation/mirroring_controller.dart';
 import '../../player/presentation/player_controller.dart';
 import '../../settings/domain/app_settings.dart';
 import '../../settings/presentation/settings_controller.dart';
 import 'remote_controller.dart';
+
+import '../../../core/l10n.dart';
 
 /// Dedicated TV remote. Buttons follow the connected receiver's capability
 /// matrix; unsupported ones are disabled rather than pretending to work.
@@ -34,13 +37,13 @@ class RemoteScreen extends ConsumerWidget {
       final ok = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Disconnect from TV?'),
-          content: const Text('This stops what is currently playing or being mirrored.'),
+          title: Text(context.l10n.disconnectFromTv),
+          content: Text(context.l10n.thisStopsWhatIs),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l10n.cancel)),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: Text('Disconnect', style: TextStyle(color: context.palette.error)),
+              child: Text(context.l10n.disconnect, style: TextStyle(color: context.palette.error)),
             ),
           ],
         ),
@@ -63,8 +66,9 @@ class RemoteScreen extends ConsumerWidget {
     final connected = device != null;
     final shown = device ?? _noTv;
     final layout = ref.watch(settingsProvider.select((s) => s.remoteLayout));
-    final Future<void> Function(RemoteCommand) send =
-        connected ? ref.read(remoteProvider.notifier).send : (_) => context.push<bool>('/connect?reason=remote');
+    final Future<void> Function(RemoteCommand) send = connected
+        ? ref.read(remoteProvider.notifier).send
+        : (_) => _chooseDevice(context);
     final missing = RemoteCommand.values.length - shown.capabilities.length;
 
     final dpad = layout == RemoteLayout.dpad;
@@ -73,22 +77,21 @@ class RemoteScreen extends ConsumerWidget {
     // touchpad scales to whatever height is left.
     return Scaffold(
       appBar: CastAppBar(
-        title: 'TV Remote',
+        title: context.l10n.tvRemote,
         showChip: false,
         actions: [
           SoftIconButton(
             icon: dpad ? Iconsax.finger_scan_copy : Iconsax.element_3_copy,
-            tooltip: dpad ? 'Use touchpad' : 'Use D-pad',
+            tooltip: dpad ? context.l10n.useTouchpad : context.l10n.useDPad,
             size: 44,
-            onPressed: () => ref
-                .read(settingsProvider.notifier)
-                .setRemoteLayout(dpad ? RemoteLayout.touchpad : RemoteLayout.dpad),
+            onPressed: () =>
+                ref.read(settingsProvider.notifier).setRemoteLayout(dpad ? RemoteLayout.touchpad : RemoteLayout.dpad),
           ),
           if (connected) ...[
             const SizedBox(width: AppSpace.sm),
             SoftIconButton(
               icon: Iconsax.logout_copy,
-              tooltip: 'Disconnect',
+              tooltip: context.l10n.disconnect,
               size: 44,
               color: context.palette.error,
               onPressed: () => _disconnect(context, ref),
@@ -109,8 +112,8 @@ class RemoteScreen extends ConsumerWidget {
                   padding: const EdgeInsets.only(top: 6),
                   child: Text(
                     device.capabilities.isEmpty
-                        ? '${device.type.label} receivers don’t accept remote commands.'
-                        : 'Some buttons are unavailable on ${device.type.label}.',
+                        ? context.l10n.receiversDontAcceptRemote(device.type.label)
+                        : context.l10n.someButtonsAreUnavailable(device.type.label),
                     textAlign: TextAlign.center,
                     style: context.text.bodySmall,
                   ),
@@ -119,10 +122,24 @@ class RemoteScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _KeyButton(shown, RemoteCommand.back, Iconsax.arrow_left_copy, send, label: 'Back', size: 48),
-                  _KeyButton(shown, RemoteCommand.home, Iconsax.home_2_copy, send, label: 'Home', size: 48),
-                  _KeyButton(shown, RemoteCommand.menu, Iconsax.menu_copy, send, label: 'Menu', size: 48),
-                  _KeyButton(shown, RemoteCommand.input, Iconsax.import_1_copy, send, label: 'Input', size: 48),
+                  _KeyButton(
+                    shown,
+                    RemoteCommand.back,
+                    Iconsax.arrow_left_copy,
+                    send,
+                    label: context.l10n.browserBack,
+                    size: 48,
+                  ),
+                  _KeyButton(shown, RemoteCommand.home, Iconsax.home_2_copy, send, label: context.l10n.home, size: 48),
+                  _KeyButton(shown, RemoteCommand.menu, Iconsax.menu_copy, send, label: context.l10n.menu, size: 48),
+                  _KeyButton(
+                    shown,
+                    RemoteCommand.input,
+                    Iconsax.import_1_copy,
+                    send,
+                    label: context.l10n.input,
+                    size: 48,
+                  ),
                 ],
               ),
               const SizedBox(height: AppSpace.sm),
@@ -172,7 +189,10 @@ class _LcdPanel extends ConsumerWidget {
       letterSpacing: 1.2,
       fontFeatures: const [FontFeature.tabularFigures()],
     );
-    final status = player.media == null ? 'IDLE' : (player.playing ? 'PLAYING' : 'PAUSED');
+    if (!connected) return const _NoTvBar();
+    final status = player.media == null
+        ? context.l10n.idle
+        : (player.playing ? context.l10n.playing : context.l10n.paused);
     final showVolume = connected && device.supports(RemoteCommand.volumeUp);
 
     return Container(
@@ -193,14 +213,14 @@ class _LcdPanel extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  (connected ? (player.media?.title ?? device.name) : 'No TV connected').toUpperCase(),
+                  (connected ? (player.media?.title ?? device.name) : context.l10n.noTvConnected).toUpperCase(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: mono?.copyWith(fontSize: 15, color: Colors.white),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  remote.lastAction == null ? status : '$status · ${remote.lastAction!.toUpperCase()}',
+                  remote.lastAction == null ? status : '$status · ${context.tr(remote.lastAction!).toUpperCase()}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: mono,
@@ -230,11 +250,64 @@ class _LcdPanel extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text(remote.muted ? 'MUTE' : 'VOL ${remote.volume}', style: mono),
+                Text(remote.muted ? context.l10n.mute2 : context.l10n.vol(remote.volume), style: mono),
               ],
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Not connected: a tappable bar that opens "Choose a device".
+class _NoTvBar extends StatelessWidget {
+  const _NoTvBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return TapScale(
+      onTap: () => _chooseDevice(context),
+      semanticLabel: context.l10n.noTvConnectedTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpace.md, vertical: AppSpace.md),
+        decoration: BoxDecoration(
+          color: p.surface,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: p.warning.withValues(alpha: 0.5), width: 1.5),
+          boxShadow: AppShadows.soft(p),
+        ),
+        child: Row(
+          children: [
+            Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(color: p.warning.withValues(alpha: 0.16), shape: BoxShape.circle),
+                  child: const Icon(Iconsax.monitor_copy, color: Color(0xFFD97706), size: 22),
+                )
+                .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
+                .scale(begin: const Offset(1, 1), end: const Offset(1.08, 1.08), duration: 900.ms),
+            const SizedBox(width: AppSpace.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(context.l10n.noTvConnected, style: context.text.titleSmall),
+                  Text(context.l10n.tapToChooseA, style: context.text.bodySmall),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                gradient: AppColors.mainGradient,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+              ),
+              child: Text(context.l10n.connect, style: context.text.labelMedium?.copyWith(color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -262,7 +335,7 @@ class _KeyButton extends StatelessWidget {
         icon: icon,
         size: size,
         filled: filled,
-        tooltip: supported ? command.label : '${command.label} isn’t supported by ${device.type.label}',
+        tooltip: supported ? command.label : context.l10n.isntSupportedBy(command.label, device.type.label),
         onPressed: supported ? () => send(command) : null,
       ),
     );
@@ -288,21 +361,21 @@ class _DPad extends StatelessWidget {
     final p = context.palette;
     final okSupported = device.supports(RemoteCommand.ok);
     Widget arrow(RemoteCommand c, IconData icon, Alignment a) => Align(
-          alignment: a,
-          child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: Opacity(
-              opacity: device.supports(c) ? 1 : 0.3,
-              child: IconButton(
-                tooltip: c.label,
-                iconSize: 30,
-                constraints: const BoxConstraints(minWidth: 64, minHeight: 64),
-                onPressed: device.supports(c) ? () => send(c) : null,
-                icon: Icon(icon, color: p.textPrimary),
-              ),
-            ),
+      alignment: a,
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: Opacity(
+          opacity: device.supports(c) ? 1 : 0.3,
+          child: IconButton(
+            tooltip: context.tr(c.label),
+            iconSize: 30,
+            constraints: const BoxConstraints(minWidth: 64, minHeight: 64),
+            onPressed: device.supports(c) ? () => send(c) : null,
+            icon: Icon(icon, color: p.textPrimary),
           ),
-        );
+        ),
+      ),
+    );
 
     return Center(
       child: Container(
@@ -323,7 +396,7 @@ class _DPad extends StatelessWidget {
             Center(
               child: TapScale(
                 onTap: okSupported ? () => send(RemoteCommand.ok) : null,
-                semanticLabel: 'OK',
+                semanticLabel: context.l10n.ok,
                 child: Opacity(
                   opacity: okSupported ? 1 : 0.35,
                   child: Container(
@@ -335,7 +408,7 @@ class _DPad extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: okSupported ? AppShadows.glow(AppColors.primary) : null,
                     ),
-                    child: Text('OK', style: context.text.titleLarge?.copyWith(color: Colors.white)),
+                    child: Text(context.l10n.ok, style: context.text.titleLarge?.copyWith(color: Colors.white)),
                   ),
                 ),
               ),
@@ -374,7 +447,7 @@ class _TouchpadState extends State<_Touchpad> {
     final p = context.palette;
     final enabled = widget.device.supports(RemoteCommand.ok);
     return Semantics(
-      label: 'Touchpad. Swipe to move, tap to select.',
+      label: context.l10n.touchpadSwipeToMove,
       child: GestureDetector(
         onPanEnd: enabled ? _swipe : null,
         onTapUp: enabled
@@ -404,7 +477,7 @@ class _TouchpadState extends State<_Touchpad> {
                     Icon(Iconsax.finger_scan_copy, size: 32, color: p.textSecondary),
                     const SizedBox(height: AppSpace.sm),
                     Text(
-                      enabled ? 'Swipe to move · Tap to select' : 'Navigation isn’t supported by this TV',
+                      enabled ? context.l10n.swipeToMoveTap : context.l10n.navigationIsntSupportedBy,
                       style: context.text.bodySmall,
                     ),
                   ],
@@ -442,8 +515,14 @@ class _PlaybackRow extends ConsumerWidget {
       children: [
         _KeyButton(device, RemoteCommand.previous, Iconsax.previous_copy, send, size: 48),
         _KeyButton(device, RemoteCommand.rewind, Iconsax.backward_10_seconds_copy, send, size: 48),
-        _KeyButton(device, RemoteCommand.playPause, playing ? Iconsax.pause_copy : Iconsax.play_copy, send,
-            size: 64, filled: true),
+        _KeyButton(
+          device,
+          RemoteCommand.playPause,
+          playing ? Iconsax.pause_copy : Iconsax.play_copy,
+          send,
+          size: 64,
+          filled: true,
+        ),
         _KeyButton(device, RemoteCommand.fastForward, Iconsax.forward_10_seconds_copy, send, size: 48),
         _KeyButton(device, RemoteCommand.next, Iconsax.next_copy, send, size: 48),
       ],
@@ -463,15 +542,18 @@ class _VolumeRow extends ConsumerWidget {
     final volume = device.supports(RemoteCommand.volumeUp);
 
     Widget half(RemoteCommand c, IconData icon) => Expanded(
-          child: InkWell(
-            onTap: volume ? () => send(c) : null,
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-            child: SizedBox(
-              height: 56,
-              child: Tooltip(message: c.label, child: Icon(icon, color: volume ? p.textPrimary : p.textSecondary)),
-            ),
+      child: InkWell(
+        onTap: volume ? () => send(c) : null,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        child: SizedBox(
+          height: 56,
+          child: Tooltip(
+            message: context.tr(c.label),
+            child: Icon(icon, color: volume ? p.textPrimary : p.textSecondary),
           ),
-        );
+        ),
+      ),
+    );
 
     return Row(
       children: [
@@ -488,7 +570,7 @@ class _VolumeRow extends ConsumerWidget {
               child: Row(
                 children: [
                   half(RemoteCommand.volumeDown, Icons.remove_rounded),
-                  Text('VOL', style: context.text.labelMedium?.copyWith(color: p.textSecondary)),
+                  Text(context.l10n.vol2, style: context.text.labelMedium?.copyWith(color: p.textSecondary)),
                   half(RemoteCommand.volumeUp, Icons.add_rounded),
                 ],
               ),
@@ -500,4 +582,10 @@ class _VolumeRow extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// No TV yet: open the device list, after checking for Wi-Fi or hotspot.
+Future<void> _chooseDevice(BuildContext context) async {
+  if (!await requireNetwork(context, source: 'tv_remote')) return;
+  if (context.mounted) await context.push<bool>('/connect?reason=remote');
 }

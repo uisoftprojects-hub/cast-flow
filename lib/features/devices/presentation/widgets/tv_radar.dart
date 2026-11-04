@@ -10,6 +10,8 @@ import '../../../../core/theme/app_tokens.dart';
 import '../../../../core/widgets/effects.dart';
 import '../../domain/cast_device.dart';
 
+import '../../../../core/l10n.dart';
+
 /// Radar scan around the phone. Each TV that is found pops onto the radar
 /// ring at its own position, so the user sees discovery happen.
 class TvRadar extends StatelessWidget {
@@ -28,7 +30,7 @@ class TvRadar extends StatelessWidget {
     const blip = 38.0;
 
     return Semantics(
-      label: scanning ? 'Searching for TVs. ${devices.length} found.' : '${devices.length} TVs found',
+      label: scanning ? context.l10n.searchingForTvsFound(devices.length) : context.l10n.tvsFound(devices.length),
       liveRegion: true,
       child: SizedBox.square(
         dimension: size,
@@ -56,20 +58,21 @@ class TvRadar extends StatelessWidget {
                 // Spread blips around the ring, starting top-right.
                 left: center + ring * math.cos(-math.pi / 3 + i * math.pi / 3) - blip / 2,
                 top: center + ring * math.sin(-math.pi / 3 + i * math.pi / 3) - blip / 2,
-                child: Container(
-                  width: blip,
-                  height: blip,
-                  decoration: BoxDecoration(
-                    color: d.id == connectedId ? p.success : p.surface,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: d.id == connectedId ? p.success : p.primary, width: 1.5),
-                    boxShadow: AppShadows.soft(p),
-                  ),
-                  child: Icon(d.type.icon, size: 18, color: d.id == connectedId ? Colors.white : p.primary),
-                )
-                    .animate()
-                    .scale(begin: const Offset(0.2, 0.2), curve: Curves.elasticOut, duration: 700.ms)
-                    .fadeIn(duration: 200.ms),
+                child:
+                    Container(
+                          width: blip,
+                          height: blip,
+                          decoration: BoxDecoration(
+                            color: d.id == connectedId ? p.success : p.surface,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: d.id == connectedId ? p.success : p.primary, width: 1.5),
+                            boxShadow: AppShadows.soft(p),
+                          ),
+                          child: Icon(d.type.icon, size: 18, color: d.id == connectedId ? Colors.white : p.primary),
+                        )
+                        .animate()
+                        .scale(begin: const Offset(0.2, 0.2), curve: Curves.elasticOut, duration: 700.ms)
+                        .fadeIn(duration: 200.ms),
               ),
           ],
         ),

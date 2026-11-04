@@ -8,7 +8,8 @@ import '../domain/network_status.dart';
 
 /// Reads the platform network state. Overridable in tests.
 final networkStatusReaderProvider = Provider<Future<NetworkStatus> Function()>(
-  (ref) => () async => NetworkStatus.fromMap(await NetworkChannel.networkStatus()),
+  (ref) =>
+      () async => NetworkStatus.fromMap(await NetworkChannel.networkStatus()),
 );
 
 /// Current Wi-Fi / hotspot state. Re-checked every few seconds while the app

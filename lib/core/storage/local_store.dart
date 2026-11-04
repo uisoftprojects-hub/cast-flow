@@ -23,7 +23,11 @@ class LocalStore {
 
 /// Removes devices (and their history) saved by the old demo build, whose
 /// fake receivers no longer exist. Safe to run on every launch.
-Future<void> purgeDemoDevices(LocalStore store, {required String? lastDeviceId, required void Function() clearLastDevice}) async {
+Future<void> purgeDemoDevices(
+  LocalStore store, {
+  required String? lastDeviceId,
+  required void Function() clearLastDevice,
+}) async {
   const ids = {'tv-1', 'cc-1', 'fire-1', 'roku-1', 'dlna-1', 'mira-1'};
   const names = {'Samsung TV', 'Living Room', 'Bedroom Fire TV', 'Roku Ultra', 'Kitchen Speaker', 'LG Display'};
   await store.devices.deleteAll(store.devices.keys.where(ids.contains).toList());

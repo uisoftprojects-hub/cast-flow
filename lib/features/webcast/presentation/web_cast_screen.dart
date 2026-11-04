@@ -3,8 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
+import '../../../core/analytics/analytics.dart';
+import '../../../core/analytics/analytics_events.dart';
 import '../../../core/app_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
@@ -191,6 +194,10 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
   /// First video on a page: show the "Video found" prompt once.
   void _onVideos(PageVideos? prev, PageVideos next) {
     if (next.count == 0 || next.promptShown || _url == null) return;
+    ref.read(analyticsProvider).log(AnalyticsEvent.browserVideoFound, {
+      AnalyticsParam.videoCount: next.count,
+      AnalyticsParam.host: Uri.tryParse(_url!)?.host,
+    });
     ref.read(pageVideosProvider.notifier).markPromptShown();
     setState(() => _banner = true);
     _bannerTimer?.cancel();
@@ -220,7 +227,16 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
 
   Future<void> _castVideo(WebVideo v) async {
     final l = context.l10n;
-    if (v.protected) return _snack(l.protectedVideo);
+    final analytics = ref.read(analyticsProvider);
+    final host = Uri.tryParse(_url ?? v.url)?.host;
+    analytics.log(AnalyticsEvent.browserCastTap, {
+      AnalyticsParam.videoType: v.type,
+      AnalyticsParam.quality: v.quality,
+      AnalyticsParam.host: host,
+    });
+    if (v.protected) {
+      return _snack(l.protectedVideo);
+    }
     if (_preparing) return;
     // Network check → device list → pairing (when the TV asks for it).
     if (!await ensureConnected(context, ref)) return;
@@ -260,6 +276,8 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
     setState(() => _casting = fresh);
     // The TV plays it now; don't play it twice.
     await _web.pauseVideos();
+    // Open the full preview, not just the mini bar.
+    if (mounted) context.push('/player');
   }
 
   bool get _bookmarked => _url != null && ref.watch(browserProvider).bookmarks.any((b) => b.url == _url);
@@ -330,13 +348,21 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
     ref.listen(pageVideosProvider, _onVideos);
     final native = _native && _url != null;
     return PopScope(
-      // System back walks the page history before leaving the browser.
-      canPop: !(native && _canBack),
+      // Back walks the page history first; once there is none it always goes to
+      // the previous screen (or Home), and never closes the app.
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _web.back();
+        if (didPop) return;
+        if (native && _canBack) {
+          _web.back();
+        } else if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/home');
+        }
       },
       child: Scaffold(
-        appBar: const CastAppBar(title: 'Web Cast'),
+        appBar: CastAppBar(title: context.l10n.webCast),
         bottomNavigationBar: native
             ? BrowserBottomBar(
                 count: videos.count,
@@ -403,7 +429,7 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
                               child: Center(
                                 child: detected.isNotEmpty
                                     ? GradientButton(
-                                            label: 'Cast this video',
+                                            label: context.l10n.castThisVideo,
                                             icon: Iconsax.screenmirroring_copy,
                                             onPressed: () =>
                                                 detected.length == 1 ? _cast(detected.first) : _showDetected(detected),
@@ -473,7 +499,7 @@ class _UrlBar extends StatelessWidget {
         children: [
           if (onHome != null)
             IconButton(
-              tooltip: 'Start page',
+              tooltip: context.l10n.browserStartPage,
               onPressed: onHome,
               icon: Icon(Iconsax.home_2_copy, color: p.textSecondary, size: 20),
             )
@@ -491,8 +517,8 @@ class _UrlBar extends StatelessWidget {
               autocorrect: false,
               onSubmitted: onSubmit,
               style: context.text.bodyLarge,
-              decoration: const InputDecoration(
-                hintText: 'Search or type a web address',
+              decoration: InputDecoration(
+                hintText: context.l10n.searchOrTypeAWeb,
                 filled: false,
                 contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 14),
               ),
@@ -500,7 +526,7 @@ class _UrlBar extends StatelessWidget {
           ),
           if (onBookmark != null)
             IconButton(
-              tooltip: bookmarked ? 'Remove bookmark' : 'Bookmark',
+              tooltip: bookmarked ? context.l10n.removeBookmark : context.l10n.bookmark,
               onPressed: onBookmark,
               icon: Icon(
                 bookmarked ? Icons.bookmark_rounded : Iconsax.bookmark_copy,
@@ -510,7 +536,7 @@ class _UrlBar extends StatelessWidget {
             ),
           if (onReload != null)
             IconButton(
-              tooltip: 'Reload',
+              tooltip: context.l10n.browserReload,
               onPressed: onReload,
               icon: Icon(Iconsax.refresh_copy, color: p.textSecondary, size: 20),
             ),
@@ -546,7 +572,7 @@ class _StartPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SectionHeader('Quick access'),
+                  SectionHeader(context.l10n.quickAccess),
                   Wrap(
                     spacing: AppSpace.md,
                     runSpacing: AppSpace.lg,
@@ -556,7 +582,7 @@ class _StartPage extends StatelessWidget {
                           width: 72,
                           child: TapScale(
                             onTap: () => onOpen(s.url),
-                            semanticLabel: 'Open ${s.title}',
+                            semanticLabel: context.l10n.open2(s.title),
                             child: Column(
                               children: [
                                 Container(
@@ -590,10 +616,10 @@ class _StartPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppRadius.pill),
                       boxShadow: AppShadows.soft(p),
                     ),
-                    child: const TabBar(
+                    child: TabBar(
                       tabs: [
-                        Tab(text: 'Bookmarks', height: 40),
-                        Tab(text: 'History', height: 40),
+                        Tab(text: context.l10n.bookmarks, height: 40),
+                        Tab(text: context.l10n.history, height: 40),
                       ],
                     ),
                   ),
@@ -605,17 +631,17 @@ class _StartPage extends StatelessWidget {
         body: TabBarView(
           children: [
             bookmarks.isEmpty
-                ? const EmptyState(
+                ? EmptyState(
                     icon: Iconsax.bookmark_copy,
-                    title: 'No bookmarks',
-                    message: 'Tap the bookmark icon in the address bar to save a page.',
+                    title: context.l10n.noBookmarks,
+                    message: context.l10n.tapTheBookmarkIcon,
                   )
                 : _LinkList(links: bookmarks, onOpen: onOpen, onRemove: onRemoveBookmark),
             history.isEmpty
-                ? const EmptyState(
+                ? EmptyState(
                     icon: Iconsax.clock_copy,
-                    title: 'No history',
-                    message: 'Pages you visit show up here.',
+                    title: context.l10n.noHistory,
+                    message: context.l10n.pagesYouVisitShow,
                   )
                 : _LinkList(links: history, onOpen: onOpen),
           ],
@@ -643,7 +669,7 @@ class _LinkList extends StatelessWidget {
         return SoftCard(
           padding: const EdgeInsets.symmetric(horizontal: AppSpace.md, vertical: AppSpace.sm),
           onTap: () => onOpen(l.url),
-          semanticLabel: 'Open ${l.title}',
+          semanticLabel: context.l10n.open2(l.title),
           child: Row(
             children: [
               IconBubble(icon: siteIcon(host), color: siteColor(host), size: 42),
@@ -664,7 +690,7 @@ class _LinkList extends StatelessWidget {
               ),
               if (onRemove != null)
                 IconButton(
-                  tooltip: 'Remove',
+                  tooltip: context.l10n.remove,
                   onPressed: () => onRemove!(l),
                   icon: Icon(Iconsax.trash_copy, size: 18, color: context.palette.textSecondary),
                 ),
@@ -726,7 +752,7 @@ class _SimulatedPage extends StatelessWidget {
           for (final m in detected) ...[
             TapScale(
               onTap: () => onCast(m),
-              semanticLabel: 'Cast ${m.title}',
+              semanticLabel: context.l10n.cast(m.title),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
                 child: MediaArt(
@@ -773,8 +799,8 @@ class _SimulatedPage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Result ${i + 1} on $host', style: context.text.titleSmall),
-                          Text('A simulated page result', style: context.text.bodySmall),
+                          Text(context.l10n.resultOn(i + 1, host), style: context.text.titleSmall),
+                          Text(context.l10n.aSimulatedPageResult, style: context.text.bodySmall),
                         ],
                       ),
                     ),
@@ -799,9 +825,9 @@ class _DetectedSheet extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Videos on this page', style: context.text.headlineMedium),
+          Text(context.l10n.videosOnThisPage, style: context.text.headlineMedium),
           const SizedBox(height: 4),
-          Text('Pick one to send to your TV.', style: context.text.bodyMedium),
+          Text(context.l10n.pickOneToSend, style: context.text.bodyMedium),
           const SizedBox(height: AppSpace.xl),
           for (final m in items)
             Padding(
@@ -828,7 +854,11 @@ class _DetectedSheet extends StatelessWidget {
                         ],
                       ),
                     ),
-                    GradientButton(label: 'Cast', compact: true, onPressed: () => Navigator.of(context).pop(m)),
+                    GradientButton(
+                      label: context.l10n.castAction,
+                      compact: true,
+                      onPressed: () => Navigator.of(context).pop(m),
+                    ),
                   ],
                 ),
               ),

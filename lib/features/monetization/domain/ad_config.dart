@@ -12,15 +12,12 @@ abstract final class AdConfig {
   static bool get _ios => defaultTargetPlatform == TargetPlatform.iOS;
 
   static String unitId(AdPlacement p) => switch (p) {
-        AdPlacement.languageFirstRun ||
-        AdPlacement.languageSettings ||
-        AdPlacement.onboarding =>
-          _ios ? 'ca-app-pub-3940256099942544/3986624511' : 'ca-app-pub-3940256099942544/2247696110',
-        AdPlacement.interstitial =>
-          _ios ? 'ca-app-pub-3940256099942544/4411468910' : 'ca-app-pub-3940256099942544/1033173712',
-        AdPlacement.appOpen =>
-          _ios ? 'ca-app-pub-3940256099942544/5575463023' : 'ca-app-pub-3940256099942544/9257395921',
-      };
+    AdPlacement.languageFirstRun || AdPlacement.languageSettings || AdPlacement.onboarding =>
+      _ios ? 'ca-app-pub-3940256099942544/3986624511' : 'ca-app-pub-3940256099942544/2247696110',
+    AdPlacement.interstitial =>
+      _ios ? 'ca-app-pub-3940256099942544/4411468910' : 'ca-app-pub-3940256099942544/1033173712',
+    AdPlacement.appOpen => _ios ? 'ca-app-pub-3940256099942544/5575463023' : 'ca-app-pub-3940256099942544/9257395921',
+  };
 
   // Five-click interstitial.
   static const loadAtClick = 3;

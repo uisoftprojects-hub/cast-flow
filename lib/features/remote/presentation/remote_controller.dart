@@ -10,9 +10,7 @@ import '../../settings/presentation/settings_controller.dart';
 import '../data/fake_remote_service.dart';
 import '../domain/remote_service.dart';
 
-final remoteServiceProvider = Provider<RemoteService>(
-  (ref) => FakeRemoteService(() => ref.read(previewModeProvider)),
-);
+final remoteServiceProvider = Provider<RemoteService>((ref) => FakeRemoteService(() => ref.read(previewModeProvider)));
 
 @immutable
 class TvRemoteState {
@@ -25,11 +23,11 @@ class TvRemoteState {
   final String? error;
 
   TvRemoteState copyWith({int? volume, bool? muted, String? lastAction, String? error}) => TvRemoteState(
-        volume: volume ?? this.volume,
-        muted: muted ?? this.muted,
-        lastAction: lastAction ?? this.lastAction,
-        error: error,
-      );
+    volume: volume ?? this.volume,
+    muted: muted ?? this.muted,
+    lastAction: lastAction ?? this.lastAction,
+    error: error,
+  );
 }
 
 class RemoteController extends Notifier<TvRemoteState> {

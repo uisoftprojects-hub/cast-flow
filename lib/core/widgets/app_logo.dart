@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n.dart';
+
 /// CastFlow mark: a phone sending waves to a TV.
 class AppLogo extends StatelessWidget {
   const AppLogo({super.key, this.size = 96, this.color = Colors.white, this.background});
@@ -11,7 +13,7 @@ class AppLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'CastFlow logo',
+      label: context.l10n.castflowLogo,
       image: true,
       child: Container(
         width: size,

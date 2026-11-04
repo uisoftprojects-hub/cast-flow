@@ -357,7 +357,7 @@ class _BrowserCastBarState extends ConsumerState<BrowserCastBar> {
   @override
   Widget build(BuildContext context) {
     final s = ref.watch(playerProvider);
-    final device = ref.watch(connectionProvider.select((c) => c.device?.name)) ?? 'TV';
+    final device = ref.watch(connectionProvider.select((c) => c.device?.name)) ?? context.l10n.tv;
     final media = s.media;
     final p = context.palette;
     final l = context.l10n;

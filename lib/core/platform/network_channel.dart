@@ -36,6 +36,14 @@ abstract final class NetworkChannel {
     return await _channel.invokeMethod<bool>('openHotspotSettings').catchError((_) => false) ?? false;
   }
 
+  /// Whether the screen is being mirrored right now (Smart View / Cast adds
+  /// a presentation display), and the TV's name.
+  static Future<({bool active, String? name})> mirroringStatus() async {
+    if (!_android) return (active: false, name: null);
+    final raw = await _channel.invokeMethod<Map<Object?, Object?>>('mirroringStatus').catchError((_) => null);
+    return (active: raw?['active'] == true, name: raw?['name'] as String?);
+  }
+
   /// Opens the system Cast / Smart View screen. Returns false if none exists.
   static Future<bool> openCastSettings() async {
     if (!_android) return false;

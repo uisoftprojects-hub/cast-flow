@@ -107,11 +107,7 @@ class _RipplePainter extends CustomPainter {
     for (var i = 0; i < rings; i++) {
       final t = (anim.value + i / rings) % 1.0;
       final r = maxR * (0.25 + 0.75 * t);
-      canvas.drawCircle(
-        center,
-        r,
-        Paint()..color = color.withValues(alpha: (1 - t) * 0.18),
-      );
+      canvas.drawCircle(center, r, Paint()..color = color.withValues(alpha: (1 - t) * 0.18));
     }
 
     if (sweep) {
@@ -231,7 +227,10 @@ class MediaArt extends StatelessWidget {
                 decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.14)),
               ),
             ),
-            if (icon != null) Center(child: Icon(icon, color: Colors.white.withValues(alpha: 0.9), size: iconSize)),
+            if (icon != null)
+              Center(
+                child: Icon(icon, color: Colors.white.withValues(alpha: 0.9), size: iconSize),
+              ),
             ?child,
           ],
         ),

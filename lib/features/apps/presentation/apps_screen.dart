@@ -8,6 +8,8 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/soft_card.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
 
+import '../../../core/l10n.dart';
+
 class _App {
   const _App(this.name, this.icon, this.color, this.route);
   final String name;
@@ -39,7 +41,7 @@ class AppsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CastAppBar(title: 'Apps'),
+      appBar: CastAppBar(title: context.l10n.apps),
       body: GridView.builder(
         padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, AppSpace.xxxl),
         gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
@@ -54,7 +56,7 @@ class AppsScreen extends StatelessWidget {
           return SoftCard(
             padding: const EdgeInsets.all(AppSpace.md),
             onTap: () => context.push(a.route),
-            semanticLabel: 'Open ${a.name}',
+            semanticLabel: context.l10n.open(a.name),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

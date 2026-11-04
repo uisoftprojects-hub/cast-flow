@@ -1,4 +1,5 @@
 import 'network_status.dart';
+
 import 'package:flutter/widgets.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
@@ -40,35 +41,35 @@ class CastDevice {
   final DateTime? lastSeen;
 
   CastDevice seenNow() => CastDevice(
-        id: id,
-        name: name,
-        type: type,
-        address: address,
-        port: port,
-        model: model,
-        signal: signal,
-        lastSeen: DateTime.now(),
-      );
+    id: id,
+    name: name,
+    type: type,
+    address: address,
+    port: port,
+    model: model,
+    signal: signal,
+    lastSeen: DateTime.now(),
+  );
 
   Map<String, Object?> toMap() => {
-        'id': id,
-        'name': name,
-        'type': type.name,
-        'address': address,
-        'port': port,
-        'model': model,
-        'lastSeen': lastSeen?.millisecondsSinceEpoch,
-      };
+    'id': id,
+    'name': name,
+    'type': type.name,
+    'address': address,
+    'port': port,
+    'model': model,
+    'lastSeen': lastSeen?.millisecondsSinceEpoch,
+  };
 
   factory CastDevice.fromMap(Map m) => CastDevice(
-        id: m['id'] as String,
-        name: m['name'] as String,
-        type: DeviceType.values.asNameMap()[m['type']] ?? DeviceType.smartTv,
-        address: m['address'] as String,
-        port: m['port'] as int?,
-        model: m['model'] as String?,
-        lastSeen: m['lastSeen'] == null ? null : DateTime.fromMillisecondsSinceEpoch(m['lastSeen'] as int),
-      );
+    id: m['id'] as String,
+    name: m['name'] as String,
+    type: DeviceType.values.asNameMap()[m['type']] ?? DeviceType.smartTv,
+    address: m['address'] as String,
+    port: m['port'] as int?,
+    model: m['model'] as String?,
+    lastSeen: m['lastSeen'] == null ? null : DateTime.fromMillisecondsSinceEpoch(m['lastSeen'] as int),
+  );
 
   @override
   bool operator ==(Object other) => other is CastDevice && other.id == id;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -17,24 +18,21 @@ import '../../player/presentation/player_controller.dart';
 import '../domain/media_models.dart';
 import 'media_providers.dart';
 
+import '../../../core/l10n.dart';
+
 class MusicScreen extends ConsumerWidget {
   const MusicScreen({super.key});
 
   List<CastMedia> _queue(List<SongItem> songs) => [
-        for (final s in songs)
-          CastMedia(
-            id: s.id,
-            title: s.title,
-            subtitle: s.artist,
-            kind: CastKind.music,
-            seed: s.seed,
-            duration: s.duration,
-          ),
-      ];
+    for (final s in songs)
+      CastMedia(id: s.id, title: s.title, subtitle: s.artist, kind: CastKind.music, seed: s.seed, duration: s.duration),
+  ];
 
   Future<void> _play(BuildContext context, WidgetRef ref, List<SongItem> songs, int index) async {
     if (!await ensureConnected(context, ref)) return;
     ref.read(playerProvider.notifier).play(_queue(songs), index: index);
+    // Open the full preview, not just the mini bar.
+    if (context.mounted) context.push('/player');
   }
 
   @override
@@ -44,17 +42,17 @@ class MusicScreen extends ConsumerWidget {
     final playing = ref.watch(playerProvider.select((s) => s.playing));
 
     return Scaffold(
-      appBar: const CastAppBar(title: 'Cast Music'),
+      appBar: CastAppBar(title: context.l10n.castMusic),
       body: Stack(
         children: [
           AsyncView<List<SongItem>>(
             value: songs,
             onRetry: () => ref.invalidate(songsProvider),
             isEmpty: (s) => s.isEmpty,
-            empty: const EmptyState(
+            empty: EmptyState(
               icon: Iconsax.music_square_search_copy,
-              title: 'No music found',
-              message: 'Add songs to your phone and they’ll show up here.',
+              title: context.l10n.noMusicFound,
+              message: context.l10n.addSongsToYour,
             ),
             data: (items) => ListView(
               padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, 140),
@@ -63,14 +61,14 @@ class MusicScreen extends ConsumerWidget {
                   children: [
                     Expanded(child: Text('${items.length} songs', style: context.text.titleLarge)),
                     TintedButton(
-                      label: 'Shuffle',
+                      label: context.l10n.shuffle,
                       icon: Iconsax.shuffle_copy,
                       compact: true,
                       onPressed: () => _play(context, ref, [...items]..shuffle(), 0),
                     ),
                     const SizedBox(width: AppSpace.sm),
                     GradientButton(
-                      label: 'Play all',
+                      label: context.l10n.playAll,
                       icon: Iconsax.play_copy,
                       compact: true,
                       onPressed: () => _play(context, ref, items, 0),
@@ -132,12 +130,18 @@ class _SongRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(song.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.text.titleSmall?.copyWith(color: active ? p.primary : null)),
-                  Text('${song.artist} · ${song.album}',
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.bodySmall),
+                  Text(
+                    song.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.text.titleSmall?.copyWith(color: active ? p.primary : null),
+                  ),
+                  Text(
+                    '${song.artist} · ${song.album}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.text.bodySmall,
+                  ),
                 ],
               ),
             ),

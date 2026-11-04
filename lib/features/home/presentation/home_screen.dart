@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
+import '../../../core/analytics/analytics.dart';
+import '../../../core/analytics/analytics_events.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
@@ -14,7 +16,10 @@ import '../../../core/widgets/soft_card.dart';
 import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../devices/presentation/widgets/connection_bar.dart';
+import '../../devices/presentation/widgets/network_widgets.dart';
 import '../../settings/presentation/settings_controller.dart';
+
+import '../../../core/l10n.dart';
 
 class _Tile {
   const _Tile(this.title, this.subtitle, this.icon, this.color, this.route);
@@ -53,11 +58,13 @@ class HomeScreen extends ConsumerWidget {
                   const _MirrorCard(),
                   const SizedBox(height: AppSpace.md),
                   const _RemoteAndApps(),
+                  // Offline: a small card between the options and Media.
+                  const NoWifiBanner(),
                   const SizedBox(height: AppSpace.xxl),
-                  const SectionHeader('Media'),
+                  SectionHeader(context.l10n.media),
                   const _MediaRow(),
                   const SizedBox(height: AppSpace.xxl),
-                  const SectionHeader('Browse the web'),
+                  SectionHeader(context.l10n.browseTheWeb),
                   const _BrowserBar(),
                   const SizedBox(height: AppSpace.xxl),
                   const _HelpBanner(),
@@ -86,36 +93,30 @@ class _Header extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(greeting(), style: context.text.bodyMedium),
-                  Text('CastFlow', style: context.text.headlineLarge),
+                  Text(context.tr(greeting()), style: context.text.bodyMedium),
+                  Text('CastFlow', style: context.text.headlineLarge, maxLines: 1, overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
             if (!premium)
               TapScale(
-                onTap: () => context.push('/premium'),
-                semanticLabel: 'Go Pro',
+                onTap: () => context.push('/premium?from=home_pro_button'),
+                semanticLabel: context.l10n.goPro,
                 child: Container(
                   constraints: const BoxConstraints(minHeight: kMinTap),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF1E8),
                     borderRadius: BorderRadius.circular(AppRadius.pill),
                     border: Border.all(color: const Color(0xFFFFD3BD)),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Iconsax.crown_1_copy, size: 18, color: Color(0xFFE8590C)),
-                      const SizedBox(width: 6),
-                      Text('PRO', style: context.text.labelMedium?.copyWith(color: const Color(0xFFE8590C))),
-                    ],
-                  ),
+                  child: const Icon(Iconsax.crown_1_copy, size: 20, color: Color(0xFFE8590C)),
                 ),
               ),
           ],
         ),
         const SizedBox(height: AppSpace.md),
+        // TV bar: its connection status is on the right edge of the bar.
         const ConnectionBar(),
       ],
     ).animate().fadeIn(duration: 300.ms);
@@ -136,15 +137,15 @@ class _MediaRow extends StatelessWidget {
             Expanded(
               child: SoftCard(
                 padding: const EdgeInsets.all(AppSpace.md),
-                onTap: () => context.push(m.route),
-                semanticLabel: 'Cast ${m.title}',
+                onTap: () => _openFeature(context, m.route),
+                semanticLabel: context.l10n.cast(context.tr(m.title)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     IconBubble(icon: m.icon, color: m.color, size: 44, filled: true),
                     const SizedBox(height: AppSpace.md),
-                    Text(m.title, style: context.text.titleSmall),
-                    Text(m.subtitle, style: context.text.bodySmall),
+                    Text(context.tr(m.title), style: context.text.titleSmall),
+                    Text(context.tr(m.subtitle), style: context.text.bodySmall),
                   ],
                 ),
               ).animate(delay: (40 * i).ms).fadeIn(duration: 300.ms).slideY(begin: 0.08, end: 0),
@@ -164,8 +165,8 @@ class _MirrorCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final device = ref.watch(connectionProvider.select((c) => c.isConnected ? c.device?.name : null));
     return TapScale(
-      onTap: () => context.push('/mirror'),
-      semanticLabel: 'Screen Mirroring. Start mirroring',
+      onTap: () => _openFeature(context, '/mirror'),
+      semanticLabel: context.l10n.screenMirroringStartMirroring,
       child: Container(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
@@ -185,20 +186,23 @@ class _MirrorCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Screen Mirroring', style: context.text.headlineMedium?.copyWith(color: Colors.white)),
+                    Text(
+                      context.l10n.screenMirroring,
+                      style: context.text.headlineMedium?.copyWith(color: Colors.white),
+                    ),
                     const SizedBox(height: 2),
                     Text(
-                      device != null ? 'Ready to mirror to $device' : 'Show your phone on the TV in real time.',
+                      device != null ? context.l10n.readyToMirrorTo(device) : context.l10n.showYourPhoneOn,
                       style: context.text.bodySmall?.copyWith(color: Colors.white70),
                     ),
                     const SizedBox(height: AppSpace.lg),
                     GradientButton(
-                      label: 'Start Mirroring',
+                      label: context.l10n.startMirroring,
                       icon: Iconsax.screenmirroring_copy,
                       gradient: const LinearGradient(colors: [Colors.white, Colors.white]),
                       foreground: const Color(0xFF312E81),
                       compact: true,
-                      onPressed: () => context.push('/mirror'),
+                      onPressed: () => _openFeature(context, '/mirror'),
                     ),
                   ],
                 ),
@@ -230,9 +234,9 @@ class _RemoteAndApps extends ConsumerWidget {
             child: _ActionCard(
               icon: Iconsax.mobile_copy,
               color: AppColors.primary,
-              title: 'TV Remote',
-              subtitle: device ?? 'Control your TV',
-              onTap: () => context.push('/remote'),
+              title: context.l10n.tvRemote,
+              subtitle: device ?? context.l10n.controlYourTv,
+              onTap: () => _openFeature(context, '/remote'),
             ),
           ),
           const SizedBox(width: AppSpace.md),
@@ -240,9 +244,9 @@ class _RemoteAndApps extends ConsumerWidget {
             child: _ActionCard(
               icon: Iconsax.element_3_copy,
               color: const Color(0xFFFF7A59),
-              title: 'Apps',
-              subtitle: 'YouTube & more',
-              onTap: () => context.push('/apps'),
+              title: context.l10n.apps,
+              subtitle: context.l10n.youtubeMore,
+              onTap: () => _openFeature(context, '/apps'),
             ),
           ),
         ],
@@ -300,8 +304,8 @@ class _BrowserBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.palette;
     return TapScale(
-      onTap: () => context.push('/web'),
-      semanticLabel: 'Open the browser',
+      onTap: () => _openFeature(context, '/web'),
+      semanticLabel: context.l10n.openTheBrowser,
       child: Container(
         constraints: const BoxConstraints(minHeight: 56),
         padding: const EdgeInsetsDirectional.only(start: 16, end: 6),
@@ -315,7 +319,7 @@ class _BrowserBar extends StatelessWidget {
           children: [
             Icon(Iconsax.global_copy, size: 20, color: p.textSecondary),
             const SizedBox(width: AppSpace.md),
-            Expanded(child: Text('Search or type a website', style: context.text.bodyMedium)),
+            Expanded(child: Text(context.l10n.searchOrTypeA, style: context.text.bodyMedium)),
             Container(
               width: 44,
               height: 44,
@@ -335,8 +339,8 @@ class _HelpBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SoftCard(
-      onTap: () => context.push('/guide'),
-      semanticLabel: 'How to connect. Open the visual guide',
+      onTap: () => _openFeature(context, '/guide'),
+      semanticLabel: context.l10n.howToConnectOpen,
       child: Row(
         children: [
           const IconBubble(icon: Iconsax.message_question_copy, color: Color(0xFF12B886), size: 44),
@@ -345,8 +349,8 @@ class _HelpBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('How to connect', style: context.text.titleSmall),
-                Text('Visual guide for every feature', style: context.text.bodySmall),
+                Text(context.l10n.howToConnect, style: context.text.titleSmall),
+                Text(context.l10n.visualGuideForEvery, style: context.text.bodySmall),
               ],
             ),
           ),
@@ -355,4 +359,14 @@ class _HelpBanner extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Opens a Home feature and reports which one was tapped.
+/// Mirroring and the remote need Wi-Fi or the hotspot, so they're checked first.
+Future<void> _openFeature(BuildContext context, String route) async {
+  analyticsOf(context).log(AnalyticsEvent.homeFeatureTap, {AnalyticsParam.feature: screenNameFor(route)});
+  if (route == '/mirror' || route == '/remote') {
+    if (!await requireNetwork(context, source: screenNameFor(route)!)) return;
+  }
+  if (context.mounted) context.push(route);
 }

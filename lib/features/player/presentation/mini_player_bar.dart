@@ -12,6 +12,8 @@ import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/device_providers.dart';
 import 'player_controller.dart';
 
+import '../../../core/l10n.dart';
+
 /// Compact "now casting" bar. Hidden when nothing is being cast.
 class MiniPlayerBar extends ConsumerWidget {
   const MiniPlayerBar({super.key});
@@ -25,13 +27,16 @@ class MiniPlayerBar extends ConsumerWidget {
 
     return AnimatedSwitcher(
       duration: AppDurations.medium,
-      transitionBuilder: (child, a) => SizeTransition(sizeFactor: a, child: FadeTransition(opacity: a, child: child)),
+      transitionBuilder: (child, a) => SizeTransition(
+        sizeFactor: a,
+        child: FadeTransition(opacity: a, child: child),
+      ),
       child: media == null
           ? const SizedBox(width: double.infinity, key: ValueKey('none'))
           : TapScale(
               key: const ValueKey('bar'),
               onTap: () => context.push('/player'),
-              semanticLabel: 'Now casting ${media.title}. Open remote',
+              semanticLabel: context.l10n.nowCastingOpenRemote(media.title),
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -47,29 +52,43 @@ class MiniPlayerBar extends ConsumerWidget {
                         children: [
                           SizedBox.square(
                             dimension: 44,
-                            child: MediaArt(seed: media.seed, icon: media.kind.icon, iconSize: 18, radius: AppRadius.sm),
+                            child: MediaArt(
+                              seed: media.seed,
+                              icon: media.kind.icon,
+                              iconSize: 18,
+                              radius: AppRadius.sm,
+                            ),
                           ),
                           const SizedBox(width: AppSpace.md),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(media.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.labelLarge),
-                                Text('Casting to ${device ?? 'TV'}',
-                                    maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.bodySmall),
+                                Text(
+                                  media.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.text.labelLarge,
+                                ),
+                                Text(
+                                  context.l10n.castingTo2(device ?? 'TV'),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.text.bodySmall,
+                                ),
                               ],
                             ),
                           ),
                           SoftIconButton(
                             icon: s.playing ? Iconsax.pause_copy : Iconsax.play_copy,
-                            tooltip: s.playing ? 'Pause' : 'Play',
+                            tooltip: s.playing ? context.l10n.pause : context.l10n.play,
                             filled: true,
                             size: kMinTap,
                             onPressed: ref.read(playerProvider.notifier).toggle,
                           ),
                           const SizedBox(width: 4),
                           IconButton(
-                            tooltip: 'Stop casting',
+                            tooltip: context.l10n.stopCasting,
                             constraints: const BoxConstraints(minWidth: kMinTap, minHeight: kMinTap),
                             onPressed: ref.read(playerProvider.notifier).stop,
                             icon: Icon(Iconsax.close_circle_copy, color: p.textSecondary),

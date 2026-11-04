@@ -55,9 +55,7 @@ class SegmentedPills<T> extends StatelessWidget {
                       labelOf(v),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: context.text.labelMedium?.copyWith(
-                        color: v == selected ? Colors.white : p.textSecondary,
-                      ),
+                      style: context.text.labelMedium?.copyWith(color: v == selected ? Colors.white : p.textSecondary),
                     ),
                   ),
                 ),
@@ -140,7 +138,10 @@ class SoftBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[Icon(icon, size: 12, color: textColor ?? AppColors.textPrimary), const SizedBox(width: 4)],
+          if (icon != null) ...[
+            Icon(icon, size: 12, color: textColor ?? AppColors.textPrimary),
+            const SizedBox(width: 4),
+          ],
           Text(
             label,
             style: context.text.labelSmall?.copyWith(

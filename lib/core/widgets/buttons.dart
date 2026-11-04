@@ -50,10 +50,7 @@ class GradientButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (loading)
-                SizedBox.square(
-                  dimension: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2.2, color: foreground),
-                )
+                SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: foreground))
               else if (icon != null)
                 Icon(icon, color: foreground, size: 20),
               if (loading || icon != null) const SizedBox(width: 10),

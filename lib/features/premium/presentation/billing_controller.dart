@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/analytics.dart';
+import '../../../core/analytics/analytics_events.dart';
 import '../../../core/app_providers.dart';
 import '../../settings/presentation/settings_controller.dart';
 import '../data/billing_factory.dart';
@@ -40,10 +42,28 @@ class EntitlementController extends Notifier<EntitlementState> {
     ref.read(settingsProvider.notifier).setPremium(e.active);
   }
 
-  Future<PurchaseOutcome> buy(StoreProduct product) async {
+  /// Buys [product] from the paywall opened from [source], reporting the
+  /// result to analytics.
+  Future<PurchaseOutcome> buy(StoreProduct product, {String? source}) async {
+    final analytics = ref.read(analyticsProvider);
+    final params = <String, Object?>{
+      AnalyticsParam.productId: product.id,
+      AnalyticsParam.plan: product.period,
+      AnalyticsParam.price: product.price,
+      AnalyticsParam.source: source,
+    };
+    analytics.log(AnalyticsEvent.purchaseStart, params);
     final service = ref.read(billingServiceProvider);
-    if (!await service.isAvailable()) return PurchaseOutcome.unavailable;
-    return service.buy(product);
+    final outcome = await service.isAvailable() ? await service.buy(product) : PurchaseOutcome.unavailable;
+    // Cancelled, pending, failed and unavailable all count as purchase_fail,
+    // told apart by the reason.
+    final ok = outcome == PurchaseOutcome.success;
+    analytics.log(ok ? AnalyticsEvent.purchaseSuccess : AnalyticsEvent.purchaseFail, {
+      ...params,
+      if (!ok) AnalyticsParam.reason: outcome,
+    });
+    if (outcome == PurchaseOutcome.success) analytics.userProperty(AnalyticsUserProperty.isPremium, 'true');
+    return outcome;
   }
 
   /// Restores purchases; returns whether an active entitlement was found.

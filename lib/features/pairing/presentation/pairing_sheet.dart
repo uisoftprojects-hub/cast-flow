@@ -111,105 +111,112 @@ class _PairingSheetState extends ConsumerState<_PairingSheet> {
     });
 
     final busy = ui.phase == PairingPhase.verifying;
-    final codeMode = ui.isCode &&
-        const {PairingPhase.enterCode, PairingPhase.verifying, PairingPhase.wrongCode}.contains(ui.phase);
+    final codeMode =
+        ui.isCode && const {PairingPhase.enterCode, PairingPhase.verifying, PairingPhase.wrongCode}.contains(ui.phase);
 
     final Widget body = switch (ui.phase) {
       PairingPhase.success => _Status(
-          key: const ValueKey('ok'),
-          icon: Icons.check_rounded,
-          color: p.success,
-          text: l.pairingPaired,
-          pop: true,
-        ),
+        key: const ValueKey('ok'),
+        icon: Icons.check_rounded,
+        color: p.success,
+        text: l.pairingPaired,
+        pop: true,
+      ),
       PairingPhase.timeout => _Retry(
-          key: const ValueKey('timeout'),
-          icon: Iconsax.timer_1_copy,
-          text: l.pairingTimedOut,
-          action: l.tryAgain,
-          onAction: ctrl.restart,
-        ),
+        key: const ValueKey('timeout'),
+        icon: Iconsax.timer_1_copy,
+        text: l.pairingTimedOut,
+        action: l.tryAgain,
+        onAction: ctrl.restart,
+      ),
       PairingPhase.rejected => _Retry(
-          key: const ValueKey('rejected'),
-          icon: Iconsax.close_circle_copy,
-          text: l.pairingDeclined,
-          action: l.tryAgain,
-          onAction: ctrl.restart,
-        ),
+        key: const ValueKey('rejected'),
+        icon: Iconsax.close_circle_copy,
+        text: l.pairingDeclined,
+        action: l.tryAgain,
+        onAction: ctrl.restart,
+      ),
       PairingPhase.networkLost => _Retry(
-          key: const ValueKey('net'),
-          icon: Iconsax.wifi_square_copy,
-          text: l.pairingNetworkLost,
-          action: l.tryAgain,
-          onAction: ctrl.restart,
-        ),
+        key: const ValueKey('net'),
+        icon: Iconsax.wifi_square_copy,
+        text: l.pairingNetworkLost,
+        action: l.tryAgain,
+        onAction: ctrl.restart,
+      ),
       PairingPhase.failed => _Retry(
-          key: const ValueKey('failed'),
-          icon: Iconsax.danger_copy,
-          text: l.pairingFailed,
-          action: l.tryAgain,
-          onAction: ctrl.restart,
-        ),
+        key: const ValueKey('failed'),
+        icon: Iconsax.danger_copy,
+        text: l.pairingFailed,
+        action: l.tryAgain,
+        onAction: ctrl.restart,
+      ),
       PairingPhase.cooldown => () {
-          final left = ui.cooldownUntil == null ? 0 : ui.cooldownUntil!.difference(DateTime.now()).inSeconds.clamp(0, 999);
-          return _Retry(
-            key: const ValueKey('cooldown'),
-            icon: Iconsax.lock_1_copy,
-            text: left > 0 ? l.pairingTooManyAttempts(left) : l.pairingCooldownOver,
-            action: l.pairingRequestNewCode,
-            onAction: left > 0 ? null : ctrl.restart,
-          );
-        }(),
+        final left = ui.cooldownUntil == null
+            ? 0
+            : ui.cooldownUntil!.difference(DateTime.now()).inSeconds.clamp(0, 999);
+        return _Retry(
+          key: const ValueKey('cooldown'),
+          icon: Iconsax.lock_1_copy,
+          text: left > 0 ? l.pairingTooManyAttempts(left) : l.pairingCooldownOver,
+          action: l.pairingRequestNewCode,
+          onAction: left > 0 ? null : ctrl.restart,
+        );
+      }(),
       PairingPhase.approval => Column(
-          key: const ValueKey('approval'),
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: AppSpace.md),
-            PulseRipple(
-              size: 140,
-              child: Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(color: p.primary, shape: BoxShape.circle),
-                child: const Icon(Iconsax.monitor_copy, color: Colors.white, size: 30),
-              ),
+        key: const ValueKey('approval'),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: AppSpace.md),
+          PulseRipple(
+            size: 140,
+            child: Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(color: p.primary, shape: BoxShape.circle),
+              child: const Icon(Iconsax.monitor_copy, color: Colors.white, size: 30),
             ),
-            const SizedBox(height: AppSpace.lg),
-            Text(l.pairingApproveOnTv, textAlign: TextAlign.center, style: context.text.titleSmall),
-          ],
-        ),
+          ),
+          const SizedBox(height: AppSpace.lg),
+          Text(l.pairingApproveOnTv, textAlign: TextAlign.center, style: context.text.titleSmall),
+        ],
+      ),
       _ => Column(
-          key: const ValueKey('code'),
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _CodeBoxes(
-              controller: _field,
-              focusNode: _focus,
-              length: ui.codeLength,
-              hex: ui.hex,
-              enabled: !busy,
-              error: ui.phase == PairingPhase.wrongCode,
-              onChanged: (_) {
-                ctrl.clearError();
-                setState(() {});
-              },
-              onComplete: () => _submit(ui),
-            ).animate(key: ValueKey(_shake), target: _shake == 0 ? 0 : 1).shakeX(hz: 5, amount: 6, duration: 450.ms),
-            AnimatedSize(
-              duration: AppDurations.fast,
-              child: ui.phase == PairingPhase.wrongCode
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: AppSpace.sm),
-                      child: Text(l.pairingIncorrectCode, style: context.text.bodySmall?.copyWith(color: p.error)),
-                    )
-                  : const SizedBox(width: double.infinity),
-            ),
-          ],
-        ),
+        key: const ValueKey('code'),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _CodeBoxes(
+            controller: _field,
+            focusNode: _focus,
+            length: ui.codeLength,
+            hex: ui.hex,
+            enabled: !busy,
+            error: ui.phase == PairingPhase.wrongCode,
+            onChanged: (_) {
+              ctrl.clearError();
+              setState(() {});
+            },
+            onComplete: () => _submit(ui),
+          ).animate(key: ValueKey(_shake), target: _shake == 0 ? 0 : 1).shakeX(hz: 5, amount: 6, duration: 450.ms),
+          AnimatedSize(
+            duration: AppDurations.fast,
+            child: ui.phase == PairingPhase.wrongCode
+                ? Padding(
+                    padding: const EdgeInsets.only(top: AppSpace.sm),
+                    child: Text(l.pairingIncorrectCode, style: context.text.bodySmall?.copyWith(color: p.error)),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
+        ],
+      ),
     };
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(AppSpace.xxl, 0, AppSpace.xxl, AppSpace.xxl + MediaQuery.viewInsetsOf(context).bottom),
+      padding: EdgeInsets.fromLTRB(
+        AppSpace.xxl,
+        0,
+        AppSpace.xxl,
+        AppSpace.xxl + MediaQuery.viewInsetsOf(context).bottom,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -219,16 +226,18 @@ class _PairingSheetState extends ConsumerState<_PairingSheet> {
               Icon(Iconsax.monitor_copy, size: 18, color: p.textSecondary),
               const SizedBox(width: 6),
               Expanded(
-                child: Text(ui.device.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.labelMedium),
+                child: Text(
+                  ui.device.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.text.labelMedium,
+                ),
               ),
             ],
           ),
           const SizedBox(height: AppSpace.md),
           Text(l.pairingRequired, style: context.text.headlineMedium),
-          if (codeMode) ...[
-            const SizedBox(height: 4),
-            Text(l.pairingEnterCode, style: context.text.bodyMedium),
-          ],
+          if (codeMode) ...[const SizedBox(height: 4), Text(l.pairingEnterCode, style: context.text.bodyMedium)],
           const SizedBox(height: AppSpace.xl),
           AnimatedSwitcher(duration: AppDurations.medium, child: body),
           const SizedBox(height: AppSpace.xl),
@@ -330,9 +339,7 @@ class _CodeBoxes extends StatelessWidget {
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                         border: Border.all(
                           width: (i == text.length && focusNode.hasFocus) || error ? 2 : 1,
-                          color: error
-                              ? p.error
-                              : (i == text.length && focusNode.hasFocus ? p.primary : p.divider),
+                          color: error ? p.error : (i == text.length && focusNode.hasFocus ? p.primary : p.divider),
                         ),
                       ),
                       child: Text(i < text.length ? text[i] : '', style: context.text.headlineSmall),
@@ -366,7 +373,9 @@ class _Status extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        pop ? circle.animate().scale(begin: const Offset(0.4, 0.4), curve: Curves.elasticOut, duration: 700.ms) : circle,
+        pop
+            ? circle.animate().scale(begin: const Offset(0.4, 0.4), curve: Curves.elasticOut, duration: 700.ms)
+            : circle,
         const SizedBox(height: AppSpace.md),
         Text(text, style: context.text.titleMedium),
       ],

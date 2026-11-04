@@ -77,8 +77,12 @@ class _FakeNative extends LoadedNativeAd {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('Sample advertiser', style: context.text.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
-              Text('Test native ad · ${medium ? 'medium' : 'small'}',
-                  style: context.text.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(
+                'Test native ad · ${medium ? 'medium' : 'small'}',
+                style: context.text.bodySmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
           ),
         ),
@@ -173,8 +177,10 @@ class _FakeAdPageState extends State<_FakeAdPage> {
                       const SizedBox(height: AppSpace.xl),
                       Text(widget.title, style: context.text.headlineMedium?.copyWith(color: Colors.white)),
                       const SizedBox(height: AppSpace.sm),
-                      Text('Fake ad for previews and tests.',
-                          style: context.text.bodyMedium?.copyWith(color: Colors.white70)),
+                      Text(
+                        'Fake ad for previews and tests.',
+                        style: context.text.bodyMedium?.copyWith(color: Colors.white70),
+                      ),
                       const SizedBox(height: AppSpace.xl),
                       GradientButton(label: 'Learn more', onPressed: widget.onClicked),
                     ],

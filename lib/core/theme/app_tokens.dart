@@ -30,17 +30,11 @@ double navBottomPadding(BuildContext context) => MediaQuery.paddingOf(context).b
 
 abstract final class AppShadows {
   /// Tight, low-blur card shadow (paired with a hairline border on cards).
-  static List<BoxShadow> soft(AppPalette p) => [
-        BoxShadow(color: p.shadow, blurRadius: 12, offset: const Offset(0, 4)),
-      ];
+  static List<BoxShadow> soft(AppPalette p) => [BoxShadow(color: p.shadow, blurRadius: 12, offset: const Offset(0, 4))];
 
   static List<BoxShadow> glow(Color color) => [
-        BoxShadow(
-          color: color.withValues(alpha: 0.28),
-          blurRadius: 16,
-          offset: const Offset(0, 6),
-        ),
-      ];
+    BoxShadow(color: color.withValues(alpha: 0.28), blurRadius: 16, offset: const Offset(0, 6)),
+  ];
 }
 
 abstract final class AppDurations {

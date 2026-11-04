@@ -1,335 +1,351 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
-import '../../../core/platform/network_channel.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/utils/format.dart';
-import '../../../core/widgets/buttons.dart';
 import '../../../core/widgets/effects.dart';
 import '../../../core/widgets/selectors.dart';
-import '../../../core/widgets/soft_card.dart';
 import '../../../core/widgets/tap_scale.dart';
-import '../../devices/presentation/device_providers.dart';
+import '../../devices/domain/network_status.dart';
+import '../../home/presentation/media_shortcuts.dart';
+import '../../devices/presentation/network_controller.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
+import '../../devices/presentation/widgets/network_widgets.dart';
 import '../../settings/domain/app_settings.dart';
 import '../domain/mirroring.dart';
 import 'mirroring_controller.dart';
 
+import '../../../core/l10n.dart';
+
+/// Screen mirroring: Start / Stop and its status on top, live details right
+/// under it, then plain-text tips and the quality choice, all on one screen.
 class MirroringScreen extends ConsumerWidget {
   const MirroringScreen({super.key});
-
-  /// Screen mirroring runs through the phone's built-in Smart View / Cast,
-  /// since Android doesn't let third-party apps start Miracast themselves.
-  Future<void> _toggle(BuildContext context, WidgetRef ref) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final opened = await NetworkChannel.openCastSettings();
-    if (!opened) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Open Smart View or Cast from your phone’s quick settings to mirror.')),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final m = ref.watch(mirroringProvider);
-    final conn = ref.watch(connectionProvider);
+    final net = ref.watch(networkProvider);
     final ctrl = ref.read(mirroringProvider.notifier);
+    final p = context.palette;
+    final l = context.l10n;
+
+    // Came back from Android's cast picker without starting: no device chosen.
+    final noDevice = !m.isLive && !m.isBusy && (m.phase == MirrorPhase.error || m.error == mirrorNotStarted);
 
     return Scaffold(
-      appBar: const CastAppBar(title: 'Screen Mirroring'),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, AppSpace.xxxl),
-        children: [
-          _Preview(live: m.isLive, deviceName: conn.device?.name),
-          const SizedBox(height: AppSpace.xxl),
-          if (!conn.isConnected)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpace.xl),
-              child: SoftCard(
-                color: context.palette.warning.withValues(alpha: 0.16),
-                shadow: false,
-                child: Row(
-                  children: [
-                    IconBubble(icon: Iconsax.info_circle_copy, color: const Color(0xFFD97706), size: 42),
-                    const SizedBox(width: AppSpace.md),
-                    Expanded(
-                      child: Text('Connect to a TV first — we’ll ask when you tap Start.',
-                          style: context.text.bodyMedium?.copyWith(color: context.palette.textPrimary)),
-                    ),
-                  ],
+      appBar: CastAppBar(title: l.screenMirroring),
+      // Everything fits one screen: the Start animation takes whatever height
+      // the rest of the content leaves, so it is as large as it can be.
+      body: LayoutBuilder(
+        builder: (context, c) {
+          final rest = m.isLive ? 270.0 : (noDevice ? 400.0 : 380.0);
+          final startSize = (c.maxHeight - rest - 24).clamp(190.0, 320.0).clamp(0.0, c.maxWidth - 2 * AppSpace.page);
+          return SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, AppSpace.lg),
+            child: Column(
+              children: [
+                _StartArea(
+                  size: startSize,
+                  state: m,
+                  onTap: m.isLive
+                      ? ctrl.stop
+                      : () async {
+                          // Mirroring needs Wi-Fi or the phone's hotspot.
+                          if (await requireNetwork(context, source: 'mirroring')) ctrl.start();
+                        },
                 ),
-              ),
-            ),
-          if (m.phase == MirrorPhase.error)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpace.xl),
-              child: SoftCard(
-                color: context.palette.error.withValues(alpha: 0.14),
-                shadow: false,
-                child: Row(
-                  children: [
-                    IconBubble(icon: Iconsax.danger_copy, color: context.palette.error, size: 42),
-                    const SizedBox(width: AppSpace.md),
-                    Expanded(child: Text(m.error ?? 'Mirroring failed.', style: context.text.bodyMedium)),
-                    TintedButton(label: 'Retry', compact: true, color: context.palette.error, onPressed: ctrl.start),
-                  ],
+                AnimatedSize(
+                  duration: AppDurations.medium,
+                  curve: Curves.easeOutCubic,
+                  child: m.isLive ? _LiveStatus(state: m) : const SizedBox(width: double.infinity),
                 ),
-              ).animate().shakeX(hz: 3, amount: 4, duration: 400.ms),
-            ),
-          Text('Quality', style: context.text.titleSmall),
-          const SizedBox(height: AppSpace.sm),
-          IgnorePointer(
-            ignoring: m.isLive,
-            child: Opacity(
-              opacity: m.isLive ? 0.6 : 1,
-              child: SegmentedPills<MirrorQuality>(
-                values: MirrorQuality.values,
-                selected: m.quality,
-                labelOf: (q) => q.label,
-                onChanged: ctrl.setQuality,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpace.lg),
-          Wrap(
-            spacing: AppSpace.md,
-            runSpacing: AppSpace.md,
-            children: [
-              ToggleChip(
-                label: m.audio ? 'Audio on' : 'Audio off',
-                icon: Iconsax.volume_high_copy,
-                offIcon: Iconsax.volume_slash_copy,
-                value: m.audio,
-                onChanged: ctrl.setAudio,
-              ),
-              ToggleChip(
-                label: 'Auto-rotate',
-                icon: Iconsax.rotate_right_copy,
-                value: m.autoRotate,
-                onChanged: ctrl.setAutoRotate,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpace.xxl),
-          Center(child: _StartButton(state: m, onTap: () => _toggle(context, ref))),
-          const SizedBox(height: AppSpace.lg),
-          AnimatedSize(
-            duration: AppDurations.medium,
-            curve: Curves.easeOutCubic,
-            child: m.isLive ? _LiveStatus(state: m, deviceName: conn.device?.name ?? '') : const SizedBox(width: double.infinity),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Preview extends StatelessWidget {
-  const _Preview({required this.live, required this.deviceName});
-  final bool live;
-  final String? deviceName;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.palette;
-    Widget screen(double w, double h, double r) => AnimatedContainer(
-          duration: AppDurations.slow,
-          width: w,
-          height: h,
-          decoration: BoxDecoration(
-            gradient: live ? AppColors.mainGradient : null,
-            color: live ? null : p.surfaceHigh,
-            borderRadius: BorderRadius.circular(r),
-          ),
-          child: live
-              ? GridView.count(
-                  crossAxisCount: 3,
-                  padding: EdgeInsets.all(w * 0.12),
-                  mainAxisSpacing: w * 0.08,
-                  crossAxisSpacing: w * 0.08,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: List.generate(
-                    9,
-                    (i) => DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.35 + (i % 3) * 0.15),
-                        borderRadius: BorderRadius.circular(w * 0.06),
-                      ),
+                if (noDevice) ...[
+                  const SizedBox(height: AppSpace.md),
+                  _NoDevice(message: m.error == mirrorNotStarted ? l.mirroringDidntStartTap : l.openSmartViewOr),
+                  const SizedBox(height: AppSpace.lg),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(l.castPhotosVideosMusic, style: context.text.labelLarge),
+                  ),
+                  const SizedBox(height: 8),
+                  const MediaShortcuts(),
+                ] else if (!m.isLive) ...[
+                  const SizedBox(height: AppSpace.md),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: _Tips(network: net),
+                  ),
+                ],
+                const SizedBox(height: AppSpace.md),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(l.quality, style: context.text.labelLarge),
+                ),
+                const SizedBox(height: 6),
+                IgnorePointer(
+                  ignoring: m.isLive || m.isBusy,
+                  child: Opacity(
+                    opacity: m.isLive || m.isBusy ? 0.6 : 1,
+                    child: SegmentedPills<MirrorQuality>(
+                      values: MirrorQuality.values,
+                      selected: m.quality,
+                      labelOf: (q) => context.tr(q.label),
+                      onChanged: ctrl.setQuality,
                     ),
                   ),
-                )
-              : Icon(Iconsax.mobile_copy, color: p.textSecondary, size: w * 0.3),
-        );
-
-    return SoftCard(
-      padding: const EdgeInsets.symmetric(vertical: AppSpace.xxl, horizontal: AppSpace.lg),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          // Phone
-          Container(
-            padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              color: p.textPrimary.withValues(alpha: context.isDark ? 0.3 : 0.9),
-              borderRadius: BorderRadius.circular(22),
+                ),
+                const SizedBox(height: 4),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    m.quality == MirrorQuality.auto ? l.adjustsToYourWi : l.upToLowerIt(m.quality.label),
+                    style: context.text.bodySmall?.copyWith(fontSize: 12),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () => context.push('/guide?topic=mirroring'),
+                  icon: Icon(Iconsax.message_question_copy, size: 16, color: p.primary),
+                  label: Text(l.stillNeedHelp, style: context.text.labelMedium?.copyWith(color: p.primary)),
+                ),
+              ],
             ),
-            child: screen(78, 150, 18),
-          ),
-          // Waves
-          Column(
-            children: [
-              Row(
-                children: [
-                  for (var i = 0; i < 3; i++)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: live
-                          ? Container(
-                              width: 7,
-                              height: 7,
-                              decoration: BoxDecoration(color: p.primary, shape: BoxShape.circle),
-                            )
-                              .animate(onPlay: (c) => context.loopMotion(c, reverse: true), delay: (200 * i).ms)
-                              .fade(begin: 1, end: 0.25, duration: 600.ms)
-                          : Container(
-                              width: 7,
-                              height: 7,
-                              decoration: BoxDecoration(color: p.divider, shape: BoxShape.circle),
-                            ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(live ? 'Live' : 'Ready', style: context.text.labelSmall?.copyWith(color: live ? p.primary : null)),
-            ],
-          ),
-          // TV
-          Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: p.textPrimary.withValues(alpha: context.isDark ? 0.3 : 0.9),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: live
-                    ? screen(120, 72, 10)
-                    : Container(
-                        width: 120,
-                        height: 72,
-                        decoration: BoxDecoration(color: p.surfaceHigh, borderRadius: BorderRadius.circular(10)),
-                        child: Icon(Iconsax.monitor_copy, color: p.textSecondary, size: 28),
-                      ),
-              ),
-              const SizedBox(height: 6),
-              Container(width: 40, height: 5, decoration: BoxDecoration(color: p.divider, borderRadius: BorderRadius.circular(3))),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: 130,
-                child: Text(
-                  deviceName ?? 'No TV',
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.text.labelSmall,
-                ),
-              ),
-            ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 }
 
-class _StartButton extends StatelessWidget {
-  const _StartButton({required this.state, required this.onTap});
+/// Status line, the round Start / Stop button and what it is doing.
+///
+/// The button always animates: a slow ripple invites a tap while ready, a fast
+/// ripple with a spinner shows it is starting, a red ripple means live.
+class _StartArea extends StatelessWidget {
+  const _StartArea({required this.size, required this.state, required this.onTap});
+
+  /// Diameter of the ripple; the button is half of it.
+  final double size;
   final MirrorState state;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
+    final l = context.l10n;
     final live = state.isLive;
+    final starting = state.phase == MirrorPhase.starting;
+    final stopping = state.phase == MirrorPhase.stopping;
     final busy = state.isBusy;
+    final color = live ? p.error : p.primary;
+
+    final label = switch (state.phase) {
+      MirrorPhase.starting => l.startingScreenMirroring,
+      MirrorPhase.live => l.mirroringTo(state.tvName ?? 'TV'),
+      MirrorPhase.stopping => l.stopping,
+      _ => l.readyToMirror,
+    };
+
     final button = TapScale(
       onTap: busy ? null : onTap,
-      semanticLabel: live ? 'Stop mirroring' : 'Start mirroring',
+      semanticLabel: live ? l.stopMirroring : l.startMirroring2,
       child: AnimatedContainer(
         duration: AppDurations.medium,
-        width: 120,
-        height: 120,
+        width: size * 0.52,
+        height: size * 0.52,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: live
-              ? LinearGradient(colors: [p.error.withValues(alpha: 0.85), p.error])
-              : AppColors.mainGradient,
-          boxShadow: AppShadows.glow(live ? p.error : AppColors.primary),
+          gradient: live ? LinearGradient(colors: [p.error.withValues(alpha: 0.85), p.error]) : AppColors.mainGradient,
+          boxShadow: AppShadows.glow(color),
         ),
         child: Center(
           child: busy
               ? const SizedBox.square(
-                  dimension: 34,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                  dimension: 38,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3.5),
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(live ? Iconsax.stop_copy : Iconsax.screenmirroring_copy, color: Colors.white, size: 34),
-                    const SizedBox(height: 4),
-                    Text(live ? 'Stop' : 'Start',
-                        style: context.text.labelMedium?.copyWith(color: Colors.white)),
+                    Icon(
+                      live ? Iconsax.stop_copy : Iconsax.screenmirroring_copy,
+                      color: Colors.white,
+                      size: size * 0.17,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(live ? l.stop : l.start, style: context.text.titleSmall?.copyWith(color: Colors.white)),
                   ],
                 ),
         ),
       ),
     );
-    return PulseRipple(
-      size: 220,
-      active: live || busy,
-      color: live ? p.error : p.primary,
-      duration: const Duration(milliseconds: 1800),
-      child: button,
+
+    return Column(
+      children: [
+        PulseRipple(
+          size: size,
+          rings: 3,
+          // Never still: it invites a tap when ready, and speeds up while starting.
+          active: !stopping,
+          color: color,
+          sweep: starting,
+          duration: Duration(milliseconds: starting ? 1100 : (live ? 1800 : 2600)),
+          child: button,
+        ),
+        AnimatedSwitcher(
+          duration: AppDurations.medium,
+          child: Row(
+            key: ValueKey(label),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (live)
+                Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                    )
+                    .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
+                    .fade(begin: 1, end: 0.2, duration: 700.ms),
+              if (live) const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.text.labelMedium?.copyWith(color: live ? color : p.textSecondary),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _LiveStatus extends StatelessWidget {
-  const _LiveStatus({required this.state, required this.deviceName});
-  final MirrorState state;
-  final String deviceName;
+/// "Before you start": plain bullet lines on the screen, no card. The Wi-Fi
+/// and VPN lines show a live tick or cross.
+class _Tips extends StatelessWidget {
+  const _Tips({required this.network});
+  final NetworkStatus? network;
 
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
-    final ms = state.latencyMs;
-    final (Color latencyColor, String latencyLabel) =
-        ms < 70 ? (p.success, 'Excellent') : ms < 100 ? (p.warning, 'Good') : (p.error, 'Laggy');
-
-    Widget stat(IconData icon, String label, String value, Color color) => Expanded(
-          child: Column(
-            children: [
-              IconBubble(icon: icon, color: color, size: 40),
-              const SizedBox(height: 8),
-              Text(value, style: context.text.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
-              Text(label, style: context.text.bodySmall),
-            ],
-          ),
-        );
-
-    return SoftCard(
+    final l = context.l10n;
+    final n = network;
+    Widget bullet(String text, bool? ok) => Padding(
+      padding: const EdgeInsets.only(top: 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          stat(Iconsax.timer_1_copy, 'Duration', formatDuration(state.elapsed), p.primary),
-          stat(Iconsax.monitor_copy, 'Device', deviceName, const Color(0xFF12B886)),
-          stat(Iconsax.flash_1_copy, latencyLabel, '$ms ms', latencyColor),
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(color: p.textSecondary, shape: BoxShape.circle),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(text, style: context.text.bodySmall?.copyWith(fontSize: 13, color: p.textPrimary)),
+          ),
+          if (ok != null) ...[
+            const SizedBox(width: 6),
+            Icon(ok ? Iconsax.tick_circle_copy : Iconsax.close_circle_copy, size: 16, color: ok ? p.success : p.error),
+          ],
         ],
       ),
-    ).animate().fadeIn().slideY(begin: 0.1, end: 0);
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l.beforeYouStart, style: context.text.labelLarge),
+        bullet(l.phoneAndTvAre, n?.ready),
+        bullet(l.noVpnIsConnected, n == null ? null : !n.vpn),
+        bullet(l.tvIsOnWith, null),
+        bullet(l.phoneIsCloseTo, null),
+      ],
+    );
+  }
+}
+
+/// Live details in one small row of plain text, right under the button.
+class _LiveStatus extends StatelessWidget {
+  const _LiveStatus({required this.state});
+  final MirrorState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final l = context.l10n;
+    Widget stat(IconData icon, String label, String value) => Expanded(
+      child: Column(
+        children: [
+          Icon(icon, size: 16, color: p.textSecondary),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: context.text.labelLarge?.copyWith(fontSize: 13),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(label, style: context.text.bodySmall?.copyWith(fontSize: 11)),
+        ],
+      ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpace.md),
+      child: Row(
+        children: [
+          stat(Iconsax.timer_1_copy, l.duration, formatDuration(state.elapsed)),
+          stat(Iconsax.monitor_copy, l.tv, state.tvName ?? l.tv),
+          stat(Iconsax.setting_4_copy, l.quality, state.quality.label),
+        ],
+      ),
+    ).animate().fadeIn();
+  }
+}
+
+/// Shown when the Android cast picker was closed without choosing a TV.
+class _NoDevice extends StatelessWidget {
+  const _NoDevice({required this.message});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpace.md),
+      decoration: BoxDecoration(
+        color: p.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Iconsax.monitor_copy, size: 20, color: p.warning),
+          const SizedBox(width: AppSpace.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(context.l10n.noTvFound, style: context.text.labelLarge),
+                const SizedBox(height: 2),
+                Text(message, style: context.text.bodySmall?.copyWith(fontSize: 12.5, color: p.textPrimary)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ).animate().shakeX(hz: 3, amount: 4, duration: 400.ms);
   }
 }
