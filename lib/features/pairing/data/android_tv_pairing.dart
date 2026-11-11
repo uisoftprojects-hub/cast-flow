@@ -51,7 +51,7 @@ Future<_Identity> _newIdentity() => compute((_) {
   final pair = CryptoUtils.generateRSAKeyPair();
   final priv = pair.privateKey as RSAPrivateKey;
   final pub = pair.publicKey as RSAPublicKey;
-  final csr = X509Utils.generateRsaCsrPem({'CN': 'CastFlow'}, priv, pub);
+  final csr = X509Utils.generateRsaCsrPem({'CN': 'Cast to TV'}, priv, pub);
   final cert = X509Utils.generateSelfSignedCertificate(priv, csr, 3650);
   return _Identity(cert, CryptoUtils.encodeRSAPrivateKeyToPemPkcs1(priv));
 }, null);
@@ -149,7 +149,7 @@ class _AtvSession implements PairingSession {
           if (!_closed) _emit(const PairingFailed('connection'));
         },
       );
-      _socket!.add(_outer(10, [..._bytes(1, utf8.encode('atvremote')), ..._bytes(2, utf8.encode('CastFlow'))]));
+      _socket!.add(_outer(10, [..._bytes(1, utf8.encode('atvremote')), ..._bytes(2, utf8.encode('Cast to TV'))]));
     } catch (_) {
       _emit(const PairingFailed('connection'));
     }
@@ -289,3 +289,11 @@ class _AtvSession implements PairingSession {
     await _steps.close();
   }
 }
+
+/// TLS context carrying the paired client certificate (for the remote channel).
+SecurityContext? androidTvSecurityContext(String? saved) => _Identity.fromJson(saved)?.context;
+
+/// Protobuf helpers shared with the Android TV remote channel.
+List<int> atvVarint(int v) => _varint(v);
+List<int> atvInt(int field, int value) => _int(field, value);
+List<int> atvBytes(int field, List<int> value) => _bytes(field, value);

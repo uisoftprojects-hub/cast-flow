@@ -362,7 +362,7 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
                   Icon(Icons.check_circle_rounded, color: const Color(0xFF22C55E), size: h * 0.14),
                   SizedBox(width: w * 0.02),
                   Text(
-                    'CastFlow',
+                    'Cast to TV',
                     style: TextStyle(color: Colors.white, fontSize: h * 0.1, fontWeight: FontWeight.w700),
                   ),
                 ],

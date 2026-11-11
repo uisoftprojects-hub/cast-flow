@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -312,7 +311,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get couldntOpenTheLink => 'پیوند باز نشد.';
 
   @override
-  String get castflowLogo => 'لوگوی CastFlow';
+  String get castflowLogo => 'لوگوی Cast to TV';
 
   @override
   String get somethingWentWrong => 'مشکلی پیش آمد';
@@ -330,7 +329,7 @@ class AppLocalizationsFa extends AppLocalizations {
   }
 
   @override
-  String get smartTv => 'Smart TV';
+  String get smartTv => 'تلویزیون هوشمند';
 
   @override
   String get chromecast => 'Chromecast';
@@ -342,7 +341,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get roku => 'Roku';
 
   @override
-  String get dlnaRenderer => 'DLNA renderer';
+  String get dlnaRenderer => 'رندر کننده DLNA';
 
   @override
   String get miracast => 'Miracast';
@@ -467,7 +466,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get openDevicesInCastflow =>
-      'در CastFlow بخش دستگاه‌ها را باز کنید و چند ثانیه صبر کنید تا تلویزیون ظاهر شود.';
+      'در Cast to TV بخش دستگاه‌ها را باز کنید و چند ثانیه صبر کنید تا تلویزیون ظاهر شود.';
 
   @override
   String get tapConnect => 'روی اتصال ضربه بزنید';
@@ -512,7 +511,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get livingRoomTv => 'تلویزیون اتاق نشیمن';
 
   @override
-  String get allowCastflowToConnect => 'به CastFlow اجازه اتصال داده شود؟';
+  String get allowCastflowToConnect => 'به Cast to TV اجازه اتصال داده شود؟';
 
   @override
   String get deny => 'رد کردن';
@@ -564,7 +563,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get allowCastflowToFind =>
-      'هنگام درخواست، اجازه دهید CastFlow دستگاه‌های شبکه شما را پیدا کند.';
+      'هنگام درخواست، اجازه دهید Cast to TV دستگاه‌های شبکه شما را پیدا کند.';
 
   @override
   String get noTvFound => 'تلویزیونی پیدا نشد';
@@ -995,7 +994,7 @@ class AppLocalizationsFa extends AppLocalizations {
   }
 
   @override
-  String get tv => 'TV';
+  String get tv => 'تلویزیون';
 
   @override
   String get screenMirroringSession => 'نشست آینه‌سازی صفحه';
@@ -1226,7 +1225,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get noAds => 'بدون تبلیغ';
 
   @override
-  String get welcomeToCastflowPro => 'به CastFlow Pro خوش آمدید!';
+  String get welcomeToCastflowPro => 'به Cast to TV Pro خوش آمدید!';
 
   @override
   String get purchaseCancelled => 'خرید لغو شد.';
@@ -1469,7 +1468,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get canCastflowTurnMy =>
-      'آیا CastFlow می‌تواند تلویزیون را روشن کند یا ورودی را عوض کند؟';
+      'آیا Cast to TV می‌تواند تلویزیون را روشن کند یا ورودی را عوض کند؟';
 
   @override
   String get onlyOnTvsThat =>
@@ -1490,7 +1489,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get noEmailAppFound => 'برنامه ایمیلی پیدا نشد.';
 
   @override
-  String get enjoyingCastflow => 'از CastFlow راضی هستید؟';
+  String get enjoyingCastflow => 'از Cast to TV راضی هستید؟';
 
   @override
   String get sorryToHearThat => 'متأسفیم که این را می‌شنویم';
@@ -1522,32 +1521,19 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get tapAStarTo =>
-      'برای امتیاز دادن به CastFlow روی یک ستاره ضربه بزنید.';
+      'برای امتیاز دادن به Cast to TV روی یک ستاره ضربه بزنید.';
 
   @override
   String get general => 'عمومی';
 
   @override
-  String get english => 'English';
+  String get english => 'انگلیسی';
 
   @override
   String get defaultQuality => 'کیفیت پیش‌فرض';
 
   @override
   String get autoConnectToLast => 'اتصال خودکار به آخرین تلویزیون';
-
-  @override
-  String get hapticFeedback => 'بازخورد لمسی';
-
-  @override
-  String get clearCastingHistory => 'پاک کردن تاریخچه پخش';
-
-  @override
-  String get clearCastingHistory2 => 'تاریخچه پخش پاک شود؟';
-
-  @override
-  String get onlyCastflowsListIs =>
-      'فقط فهرست CastFlow پاک می‌شود. رسانه‌های گوشی شما هرگز حذف نمی‌شوند.';
 
   @override
   String get appearance => 'ظاهر';
@@ -1577,13 +1563,13 @@ class AppLocalizationsFa extends AppLocalizations {
   String get version => 'نسخه';
 
   @override
-  String get castflowProIsActive => 'CastFlow Pro فعال است';
+  String get castflowProIsActive => 'Cast to TV Pro فعال است';
 
   @override
   String get upgradeToPremium => 'ارتقا به Premium';
 
   @override
-  String get castflowPremium => 'CastFlow Premium';
+  String get castflowPremium => 'پخش روی تلویزیون پریمیوم';
 
   @override
   String get thanksForYourSupport =>
@@ -1694,4 +1680,54 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get noWifiAlertMessage =>
       'شما از اینترنت همراه استفاده می‌کنید. گوشی و تلویزیون را به یک Wi-Fi وصل کنید، یا هات‌اسپات گوشی را روشن کنید و تلویزیون را به آن وصل کنید.';
+
+  @override
+  String get checkingNetwork => 'در حال بررسی شبکه...';
+
+  @override
+  String get discoveryStopped => 'جستجو متوقف شد';
+
+  @override
+  String get discoveryStoppedHint =>
+      'جستجو متوقف شد. برای یافتن دستگاه‌های مجاور روی جستجو ضربه بزنید.';
+
+  @override
+  String get search => 'جستجو';
+
+  @override
+  String get permissionNeededToDiscover =>
+      'برای شناسایی دستگاه‌ها در Wi-Fi مجوز مکان لازم است.';
+
+  @override
+  String get locationServicesDisabled => 'سرویس‌های مکان غیرفعال است';
+
+  @override
+  String get openLocationSettings => 'باز کردن تنظیمات مکان';
+
+  @override
+  String get openAppSettings => 'باز کردن تنظیمات برنامه';
+
+  @override
+  String get subscriptionExpired => 'اشتراک شما منقضی شده است.';
+
+  @override
+  String get noPurchasesFound => 'هیچ خرید قبلی یافت نشد.';
+
+  @override
+  String get restore => 'بازیابی';
+
+  @override
+  String get permissionNeeded => 'مجوز لازم است';
+
+  @override
+  String get permissionBlockedInSettings => 'مجوز در تنظیمات مسدود شده است';
+
+  @override
+  String get grantPermission => 'اعطای مجوز';
+
+  @override
+  String get checkAgain => 'بررسی مجدد';
+
+  @override
+  String get appName => 'پخش روی تلویزیون';
 }

@@ -77,7 +77,7 @@ const _sections = <(IconData, String, List<(String, String)>)>[
         'Each receiver supports different commands. Chromecast and DLNA only support playback and volume; Miracast has no remote channel.',
       ),
       (
-        'Can CastFlow turn my TV on or change inputs?',
+        'Can Cast to TV turn my TV on or change inputs?',
         'Only on TVs that expose those commands over the network. Unsupported buttons are disabled instead of pretending to work.',
       ),
     ],

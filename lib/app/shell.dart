@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
@@ -8,7 +9,9 @@ import '../core/l10n.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/app_tokens.dart';
+import '../features/monetization/presentation/click_count_interstitial_manager.dart';
 import '../features/player/presentation/mini_player_bar.dart';
+import '../features/premium/domain/premium_status_service.dart';
 import '../features/settings/presentation/rate_sheet.dart';
 
 const _tabs = [
@@ -20,13 +23,13 @@ const _tabs = [
 
 /// Hosts the four main tabs with the floating, blurred bottom navigation
 /// and the "now casting" mini bar above it.
-class AppShell extends StatelessWidget {
+class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // Back from any tab returns to Home; back on Home asks for a rating with
     // a one-tap exit.
     return PopScope(
@@ -39,13 +42,15 @@ class AppShell extends StatelessWidget {
           showRateSheet(context, exit: true);
         }
       },
-      child: _scaffold(context),
+      child: _scaffold(context, ref),
     );
   }
 
-  Widget _scaffold(BuildContext context) {
+  Widget _scaffold(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      extendBody: true,
+      // The bar sits below the page instead of floating over it, so content
+      // never shows through or hides behind the navigation.
+      extendBody: false,
       body: navigationShell,
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(AppSpace.lg, 0, AppSpace.lg, AppSpace.md),
@@ -56,7 +61,14 @@ class AppShell extends StatelessWidget {
             const SizedBox(height: AppSpace.sm),
             _FloatingNavBar(
               index: navigationShell.currentIndex,
-              onTap: (i) => navigationShell.goBranch(i, initialLocation: i == navigationShell.currentIndex),
+              onTap: (i) {
+                if (i != navigationShell.currentIndex) {
+                  ref
+                      .read(clickCountInterstitialManagerProvider)
+                      .onBottomNavClick(isPremium: ref.read(isPremiumProvider));
+                }
+                navigationShell.goBranch(i, initialLocation: i == navigationShell.currentIndex);
+              },
             ),
           ],
         ),
@@ -86,7 +98,7 @@ class _FloatingNavBar extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(AppSpace.sm),
             decoration: BoxDecoration(
-              color: p.surface.withValues(alpha: context.isDark ? 0.85 : 0.88),
+              color: p.surface.withValues(alpha: 1),
               borderRadius: BorderRadius.circular(AppRadius.xl),
             ),
             child: Row(

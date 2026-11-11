@@ -76,7 +76,14 @@ ThemeData _build(Brightness brightness, AppPalette p) {
       centerTitle: false,
       foregroundColor: p.textPrimary,
       titleTextStyle: text.headlineSmall,
-      systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+        systemNavigationBarColor: p.background,
+        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
     ),
     dividerTheme: DividerThemeData(color: p.divider, thickness: 1, space: 1),
     iconTheme: IconThemeData(color: p.textPrimary, size: 22),
@@ -157,6 +164,25 @@ extension ThemeX on BuildContext {
   AppPalette get palette => Theme.of(this).extension<AppPalette>()!;
   TextTheme get text => Theme.of(this).textTheme;
   bool get isDark => Theme.of(this).brightness == Brightness.dark;
+
+  /// Returns a [SystemUiOverlayStyle] matching the current screen background
+  /// and ensuring proper contrasting status bar text/icons.
+  SystemUiOverlayStyle systemOverlayStyle({
+    Color? statusBarColor,
+    Brightness? statusBarIconBrightness,
+    Color? navigationBarColor,
+    Brightness? navigationBarIconBrightness,
+  }) {
+    final dark = isDark;
+    return SystemUiOverlayStyle(
+      statusBarColor: statusBarColor ?? Colors.transparent,
+      statusBarIconBrightness: statusBarIconBrightness ?? (dark ? Brightness.light : Brightness.dark),
+      statusBarBrightness: dark ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor: navigationBarColor ?? palette.background,
+      systemNavigationBarIconBrightness: navigationBarIconBrightness ?? (dark ? Brightness.light : Brightness.dark),
+      systemNavigationBarDividerColor: Colors.transparent,
+    );
+  }
 }
 
 extension MotionX on BuildContext {

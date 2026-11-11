@@ -1,16 +1,23 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../domain/ad_adapter.dart';
 import '../domain/ad_config.dart';
+import '../domain/ad_logger.dart';
 import '../domain/ad_models.dart';
 
 /// Google Mobile Ads (AdMob) + UMP consent. Android/iOS only.
 class GoogleAdAdapter implements AdAdapter {
   @override
   Future<void> initialize() async {
+    AdLogger.i(
+      AdState.consentCheckStart,
+      adType: 'UMP_Consent',
+      message: 'GoogleAdAdapter initializing consent and MobileAds SDK.',
+    );
     final done = Completer<void>();
     ConsentInformation.instance.requestConsentInfoUpdate(
       ConsentRequestParameters(),
@@ -22,7 +29,11 @@ class GoogleAdAdapter implements AdAdapter {
       },
     );
     await done.future;
-    if (await canRequestAds()) await MobileAds.instance.initialize();
+    if (await canRequestAds()) {
+      AdLogger.i(AdState.sdkInitStart, adType: 'GoogleMobileAds', message: 'Initializing MobileAds.instance.');
+      await MobileAds.instance.initialize();
+      AdLogger.i(AdState.sdkInitSuccess, adType: 'GoogleMobileAds', message: 'MobileAds.instance initialized.');
+    }
   }
 
   @override
@@ -36,35 +47,126 @@ class GoogleAdAdapter implements AdAdapter {
     required VoidCallback onClicked,
   }) {
     final c = Completer<LoadedNativeAd>();
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    final isDark = AdMobConfig.nativeAdIsDark;
+    final unitId = AdMobConfig.unitId(placement);
+
+    AdLogger.i(
+      AdState.requestStart,
+      placement: placement,
+      adType: 'Native',
+      unitId: unitId,
+      message: 'Dispatching NativeAd.load() | isDark: $isDark | medium: $medium',
+    );
+
     NativeAd(
-      adUnitId: AdConfig.unitId(placement),
+      adUnitId: unitId,
+      factoryId: isAndroid ? AdMobConfig.nativeFactoryId : null,
+      customOptions: isAndroid ? {'isDark': isDark} : null,
+      nativeTemplateStyle: isAndroid
+          ? null
+          : NativeTemplateStyle(templateType: medium ? TemplateType.medium : TemplateType.small, cornerRadius: 16),
       request: const AdRequest(),
-      nativeTemplateStyle: NativeTemplateStyle(
-        templateType: medium ? TemplateType.medium : TemplateType.small,
-        cornerRadius: 16,
-      ),
       listener: NativeAdListener(
-        onAdLoaded: (ad) => c.complete(_Native(ad as NativeAd)),
+        onAdLoaded: (ad) {
+          AdLogger.i(
+            AdState.loaded,
+            placement: placement,
+            adType: 'Native',
+            unitId: unitId,
+            message: 'NativeAd loaded successfully.',
+          );
+          c.complete(_Native(ad as NativeAd, placement));
+        },
         onAdFailedToLoad: (ad, error) {
+          AdLogger.w(
+            AdState.loadFailed,
+            placement: placement,
+            adType: 'Native',
+            unitId: unitId,
+            message: 'NativeAd failed to load: [${error.code}] ${error.message} (domain: ${error.domain})',
+          );
           ad.dispose();
           c.completeError(error.message);
         },
-        onAdImpression: (_) => onImpression(),
-        onAdClicked: (_) => onClicked(),
+        onAdImpression: (_) {
+          AdLogger.i(
+            AdState.impression,
+            placement: placement,
+            adType: 'Native',
+            unitId: unitId,
+            message: 'NativeAd impression recorded.',
+          );
+          onImpression();
+        },
+        onAdClicked: (_) {
+          AdLogger.i(
+            AdState.clicked,
+            placement: placement,
+            adType: 'Native',
+            unitId: unitId,
+            message: 'NativeAd clicked by user.',
+          );
+          onClicked();
+        },
+        onAdOpened: (_) {
+          AdLogger.d(
+            AdState.opened,
+            placement: placement,
+            adType: 'Native',
+            message: 'NativeAd opened full-screen overlay.',
+          );
+        },
+        onAdClosed: (_) {
+          AdLogger.d(
+            AdState.dismissed,
+            placement: placement,
+            adType: 'Native',
+            message: 'NativeAd full-screen overlay closed.',
+          );
+        },
       ),
     ).load();
     return c.future;
   }
 
   @override
-  Future<LoadedFullScreenAd> loadInterstitial() {
+  Future<LoadedFullScreenAd> loadInterstitial([AdPlacement placement = AdPlacement.clickInterstitial]) {
     final c = Completer<LoadedFullScreenAd>();
+    final unitId = AdMobConfig.unitId(placement);
+
+    AdLogger.i(
+      AdState.requestStart,
+      placement: placement,
+      adType: 'Interstitial',
+      unitId: unitId,
+      message: 'Dispatching InterstitialAd.load()',
+    );
+
     InterstitialAd.load(
-      adUnitId: AdConfig.unitId(AdPlacement.interstitial),
+      adUnitId: unitId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) => c.complete(_Interstitial(ad)),
-        onAdFailedToLoad: (error) => c.completeError(error.message),
+        onAdLoaded: (ad) {
+          AdLogger.i(
+            AdState.loaded,
+            placement: placement,
+            adType: 'Interstitial',
+            unitId: unitId,
+            message: 'InterstitialAd loaded successfully.',
+          );
+          c.complete(_Interstitial(ad, placement));
+        },
+        onAdFailedToLoad: (error) {
+          AdLogger.w(
+            AdState.loadFailed,
+            placement: placement,
+            adType: 'Interstitial',
+            unitId: unitId,
+            message: 'InterstitialAd failed to load: [${error.code}] ${error.message} (domain: ${error.domain})',
+          );
+          c.completeError(error.message);
+        },
       ),
     );
     return c.future;
@@ -73,12 +175,40 @@ class GoogleAdAdapter implements AdAdapter {
   @override
   Future<LoadedFullScreenAd> loadAppOpen() {
     final c = Completer<LoadedFullScreenAd>();
+    final unitId = AdMobConfig.unitId(AdPlacement.appOpen);
+
+    AdLogger.i(
+      AdState.requestStart,
+      placement: AdPlacement.appOpen,
+      adType: 'AppOpen',
+      unitId: unitId,
+      message: 'Dispatching AppOpenAd.load()',
+    );
+
     AppOpenAd.load(
-      adUnitId: AdConfig.unitId(AdPlacement.appOpen),
+      adUnitId: unitId,
       request: const AdRequest(),
       adLoadCallback: AppOpenAdLoadCallback(
-        onAdLoaded: (ad) => c.complete(_AppOpen(ad)),
-        onAdFailedToLoad: (error) => c.completeError(error.message),
+        onAdLoaded: (ad) {
+          AdLogger.i(
+            AdState.loaded,
+            placement: AdPlacement.appOpen,
+            adType: 'AppOpen',
+            unitId: unitId,
+            message: 'AppOpenAd loaded successfully.',
+          );
+          c.complete(_AppOpen(ad));
+        },
+        onAdFailedToLoad: (error) {
+          AdLogger.w(
+            AdState.loadFailed,
+            placement: AdPlacement.appOpen,
+            adType: 'AppOpen',
+            unitId: unitId,
+            message: 'AppOpenAd failed to load: [${error.code}] ${error.message} (domain: ${error.domain})',
+          );
+          c.completeError(error.message);
+        },
       ),
     );
     return c.future;
@@ -86,35 +216,93 @@ class GoogleAdAdapter implements AdAdapter {
 }
 
 class _Native extends LoadedNativeAd {
-  _Native(this.ad);
+  _Native(this.ad, this.placement);
   final NativeAd ad;
+  final AdPlacement placement;
 
   @override
-  Widget build(BuildContext context) => AdWidget(ad: ad);
+  Widget build(BuildContext context) {
+    AdLogger.d(AdState.showing, placement: placement, adType: 'Native', message: 'Rendering AdWidget for Native ad.');
+    return AdWidget(ad: ad);
+  }
 
   @override
-  void dispose() => ad.dispose();
+  void dispose() {
+    AdLogger.d(AdState.disposed, placement: placement, adType: 'Native', message: 'Disposing NativeAd instance.');
+    ad.dispose();
+  }
 }
 
 class _Interstitial extends LoadedFullScreenAd {
-  _Interstitial(this.ad);
+  _Interstitial(this.ad, this.placement);
   final InterstitialAd ad;
+  final AdPlacement placement;
 
   @override
   Future<void> show({required VoidCallback onImpression, VoidCallback? onClicked}) {
     final c = Completer<void>();
+    AdLogger.i(
+      AdState.showRequested,
+      placement: placement,
+      adType: 'Interstitial',
+      message: 'Presenting InterstitialAd.',
+    );
+
     ad.fullScreenContentCallback = FullScreenContentCallback(
-      onAdImpression: (_) => onImpression(),
-      onAdClicked: (_) => onClicked?.call(),
-      onAdDismissedFullScreenContent: (_) => c.complete(),
-      onAdFailedToShowFullScreenContent: (_, _) => c.complete(),
+      onAdShowedFullScreenContent: (_) {
+        AdLogger.i(
+          AdState.showing,
+          placement: placement,
+          adType: 'Interstitial',
+          message: 'InterstitialAd full screen content displayed.',
+        );
+      },
+      onAdImpression: (_) {
+        AdLogger.i(
+          AdState.impression,
+          placement: placement,
+          adType: 'Interstitial',
+          message: 'InterstitialAd impression recorded.',
+        );
+        onImpression();
+      },
+      onAdClicked: (_) {
+        AdLogger.i(AdState.clicked, placement: placement, adType: 'Interstitial', message: 'InterstitialAd clicked.');
+        onClicked?.call();
+      },
+      onAdDismissedFullScreenContent: (_) {
+        AdLogger.i(
+          AdState.dismissed,
+          placement: placement,
+          adType: 'Interstitial',
+          message: 'InterstitialAd dismissed by user.',
+        );
+        c.complete();
+      },
+      onAdFailedToShowFullScreenContent: (_, error) {
+        AdLogger.e(
+          AdState.showFailed,
+          placement: placement,
+          adType: 'Interstitial',
+          message: 'InterstitialAd failed to show: [${error.code}] ${error.message}',
+        );
+        c.complete();
+      },
     );
     ad.show();
     return c.future;
   }
 
   @override
-  void dispose() => ad.dispose();
+  void dispose() {
+    AdLogger.d(
+      AdState.disposed,
+      placement: placement,
+      adType: 'Interstitial',
+      message: 'Disposing InterstitialAd instance.',
+    );
+    ad.dispose();
+  }
 }
 
 class _AppOpen extends LoadedFullScreenAd {
@@ -124,16 +312,66 @@ class _AppOpen extends LoadedFullScreenAd {
   @override
   Future<void> show({required VoidCallback onImpression, VoidCallback? onClicked}) {
     final c = Completer<void>();
+    AdLogger.i(
+      AdState.showRequested,
+      placement: AdPlacement.appOpen,
+      adType: 'AppOpen',
+      message: 'Presenting AppOpenAd.',
+    );
+
     ad.fullScreenContentCallback = FullScreenContentCallback(
-      onAdImpression: (_) => onImpression(),
-      onAdClicked: (_) => onClicked?.call(),
-      onAdDismissedFullScreenContent: (_) => c.complete(),
-      onAdFailedToShowFullScreenContent: (_, _) => c.complete(),
+      onAdShowedFullScreenContent: (_) {
+        AdLogger.i(
+          AdState.showing,
+          placement: AdPlacement.appOpen,
+          adType: 'AppOpen',
+          message: 'AppOpenAd full screen content displayed.',
+        );
+      },
+      onAdImpression: (_) {
+        AdLogger.i(
+          AdState.impression,
+          placement: AdPlacement.appOpen,
+          adType: 'AppOpen',
+          message: 'AppOpenAd impression recorded.',
+        );
+        onImpression();
+      },
+      onAdClicked: (_) {
+        AdLogger.i(AdState.clicked, placement: AdPlacement.appOpen, adType: 'AppOpen', message: 'AppOpenAd clicked.');
+        onClicked?.call();
+      },
+      onAdDismissedFullScreenContent: (_) {
+        AdLogger.i(
+          AdState.dismissed,
+          placement: AdPlacement.appOpen,
+          adType: 'AppOpen',
+          message: 'AppOpenAd dismissed by user.',
+        );
+        c.complete();
+      },
+      onAdFailedToShowFullScreenContent: (_, error) {
+        AdLogger.e(
+          AdState.showFailed,
+          placement: AdPlacement.appOpen,
+          adType: 'AppOpen',
+          message: 'AppOpenAd failed to show: [${error.code}] ${error.message}',
+        );
+        c.complete();
+      },
     );
     ad.show();
     return c.future;
   }
 
   @override
-  void dispose() => ad.dispose();
+  void dispose() {
+    AdLogger.d(
+      AdState.disposed,
+      placement: AdPlacement.appOpen,
+      adType: 'AppOpen',
+      message: 'Disposing AppOpenAd instance.',
+    );
+    ad.dispose();
+  }
 }

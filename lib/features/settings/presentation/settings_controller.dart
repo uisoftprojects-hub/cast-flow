@@ -56,10 +56,6 @@ class SettingsController extends Notifier<AppSettings> {
   Future<void> completeOnboarding() => _update(state.copyWith(onboardingDone: true));
   Future<void> completeFirstLaunch() => _update(state.copyWith(firstLaunchCompleted: true));
   void setPremium(bool v) => _update(state.copyWith(isPremium: v));
-  void setHaptics(bool v) {
-    _update(state.copyWith(hapticsEnabled: v));
-  }
-
   void setButtonSound(bool v) {
     _update(state.copyWith(buttonSound: v));
   }

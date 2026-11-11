@@ -2,6 +2,10 @@ import 'dart:io';
 
 import 'package:castflow/core/app_providers.dart';
 import 'package:castflow/core/storage/local_store.dart';
+import 'package:castflow/features/monetization/domain/consent_manager.dart';
+import 'package:castflow/features/monetization/presentation/ad_manager.dart';
+import 'package:castflow/features/permissions/domain/app_permission.dart';
+import 'package:castflow/features/permissions/presentation/permissions_controller.dart';
 import 'fakes/fake_device_repository.dart';
 import 'package:castflow/features/devices/domain/network_status.dart';
 import 'package:castflow/features/devices/presentation/device_providers.dart';
@@ -15,6 +19,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<ProviderContainer> makeContainer({
   Map<String, Object> prefs = const {},
   NetworkStatus Function() network = _wifi,
+  DiscoveryPermissionService? discoveryPermissionService,
   List overrides = const [],
 }) async {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -23,17 +28,31 @@ Future<ProviderContainer> makeContainer({
   final dir = await Directory.systemTemp.createTemp('castflow_test');
   Hive.init(dir.path);
   final store = await LocalStore.open();
+
+  final overrideOrigins = overrides.map((o) => (o as dynamic).origin).toSet();
+
+  final defaultOverrides = <dynamic>[
+    sharedPrefsProvider.overrideWithValue(sp),
+    localStoreProvider.overrideWithValue(store),
+    deviceRepositoryProvider.overrideWith((ref) => FakeDeviceRepository(() => ref.read(previewModeProvider))),
+    networkStatusReaderProvider.overrideWithValue(() async => network()),
+    nearbyPermissionProvider.overrideWithValue(() async {}),
+    discoveryPermissionServiceProvider.overrideWithValue(
+      discoveryPermissionService ?? FakeDiscoveryPermissionService(),
+    ),
+    consentManagerProvider.overrideWithValue(ConsentManager(debugCanRequestAds: true)),
+  ];
+
+  final effectiveOverrides = [
+    for (final d in defaultOverrides)
+      if (!overrideOrigins.contains(d.origin)) d,
+    ...overrides,
+  ];
+
   final c = ProviderContainer(
     retry: (_, _) => null,
     overrides: [
-      sharedPrefsProvider.overrideWithValue(sp),
-      localStoreProvider.overrideWithValue(store),
-      // Tests use the scripted fake instead of real network discovery.
-      deviceRepositoryProvider.overrideWith((ref) => FakeDeviceRepository(() => ref.read(previewModeProvider))),
-      // On Wi-Fi unless a test says otherwise.
-      networkStatusReaderProvider.overrideWithValue(() async => network()),
-      nearbyPermissionProvider.overrideWithValue(() async {}),
-      ...overrides,
+      for (final o in effectiveOverrides) o,
     ],
   );
   addTearDown(() async {

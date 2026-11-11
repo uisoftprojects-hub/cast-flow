@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -313,7 +312,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get couldntOpenTheLink => 'Link konnte nicht geöffnet werden.';
 
   @override
-  String get castflowLogo => 'CastFlow-Logo';
+  String get castflowLogo => 'Cast to TV-Logo';
 
   @override
   String get somethingWentWrong => 'Etwas ist schiefgelaufen';
@@ -343,7 +342,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get roku => 'Roku';
 
   @override
-  String get dlnaRenderer => 'DLNA renderer';
+  String get dlnaRenderer => 'DLNA-Renderer';
 
   @override
   String get miracast => 'Miracast';
@@ -470,7 +469,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get openDevicesInCastflow =>
-      'Öffne Geräte in CastFlow und warte einige Sekunden, bis dein Fernseher erscheint.';
+      'Öffne Geräte in Cast to TV und warte einige Sekunden, bis dein Fernseher erscheint.';
 
   @override
   String get tapConnect => 'Auf Verbinden tippen';
@@ -516,7 +515,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get livingRoomTv => 'Wohnzimmer-TV';
 
   @override
-  String get allowCastflowToConnect => 'CastFlow die Verbindung erlauben?';
+  String get allowCastflowToConnect => 'Cast to TV die Verbindung erlauben?';
 
   @override
   String get deny => 'Ablehnen';
@@ -569,7 +568,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get allowCastflowToFind =>
-      'Erlaube CastFlow auf Nachfrage, Geräte in deinem Netzwerk zu finden.';
+      'Erlaube Cast to TV auf Nachfrage, Geräte in deinem Netzwerk zu finden.';
 
   @override
   String get noTvFound => 'Kein Fernseher gefunden';
@@ -1235,7 +1234,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get noAds => 'Keine Werbung';
 
   @override
-  String get welcomeToCastflowPro => 'Willkommen bei CastFlow Pro!';
+  String get welcomeToCastflowPro => 'Willkommen bei Cast to TV Pro!';
 
   @override
   String get purchaseCancelled => 'Kauf abgebrochen.';
@@ -1480,7 +1479,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get canCastflowTurnMy =>
-      'Kann CastFlow meinen Fernseher einschalten oder den Eingang wechseln?';
+      'Kann Cast to TV meinen Fernseher einschalten oder den Eingang wechseln?';
 
   @override
   String get onlyOnTvsThat =>
@@ -1501,7 +1500,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get noEmailAppFound => 'Keine E-Mail-App gefunden.';
 
   @override
-  String get enjoyingCastflow => 'Gefällt dir CastFlow?';
+  String get enjoyingCastflow => 'Gefällt dir Cast to TV?';
 
   @override
   String get sorryToHearThat => 'Das tut uns leid';
@@ -1532,32 +1531,19 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bewerte deine Erfahrung, bevor du gehst.';
 
   @override
-  String get tapAStarTo => 'Tippe auf einen Stern, um CastFlow zu bewerten.';
+  String get tapAStarTo => 'Tippe auf einen Stern, um Cast to TV zu bewerten.';
 
   @override
   String get general => 'Allgemein';
 
   @override
-  String get english => 'English';
+  String get english => 'Englisch';
 
   @override
   String get defaultQuality => 'Standardqualität';
 
   @override
   String get autoConnectToLast => 'Automatisch mit letztem TV verbinden';
-
-  @override
-  String get hapticFeedback => 'Haptisches Feedback';
-
-  @override
-  String get clearCastingHistory => 'Streaming-Verlauf löschen';
-
-  @override
-  String get clearCastingHistory2 => 'Streaming-Verlauf löschen?';
-
-  @override
-  String get onlyCastflowsListIs =>
-      'Nur die Liste von CastFlow wird gelöscht. Medien auf deinem Handy werden nie gelöscht.';
 
   @override
   String get appearance => 'Darstellung';
@@ -1587,13 +1573,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get version => 'Version';
 
   @override
-  String get castflowProIsActive => 'CastFlow Pro ist aktiv';
+  String get castflowProIsActive => 'Cast to TV Pro ist aktiv';
 
   @override
   String get upgradeToPremium => 'Auf Premium upgraden';
 
   @override
-  String get castflowPremium => 'CastFlow Premium';
+  String get castflowPremium => 'Auf TV übertragen Premium';
 
   @override
   String get thanksForYourSupport =>
@@ -1707,4 +1693,55 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get noWifiAlertMessage =>
       'Du nutzt mobile Daten. Verbinde Handy und Fernseher mit demselben WLAN oder aktiviere den Hotspot deines Handys und verbinde den Fernseher damit.';
+
+  @override
+  String get checkingNetwork => 'Netzwerk überprüfen...';
+
+  @override
+  String get discoveryStopped => 'Suche gestoppt';
+
+  @override
+  String get discoveryStoppedHint =>
+      'Suche gestoppt. Tippen Sie auf Suchen, um Geräte in der Nähe zu finden.';
+
+  @override
+  String get search => 'Suchen';
+
+  @override
+  String get permissionNeededToDiscover =>
+      'Die Standortberechtigung ist erforderlich, um Geräte im WLAN zu finden.';
+
+  @override
+  String get locationServicesDisabled => 'Standortdienste deaktiviert';
+
+  @override
+  String get openLocationSettings => 'Standorteinstellungen öffnen';
+
+  @override
+  String get openAppSettings => 'App-Einstellungen öffnen';
+
+  @override
+  String get subscriptionExpired => 'Ihr Abonnement ist abgelaufen.';
+
+  @override
+  String get noPurchasesFound => 'Keine vorherigen Einkäufe gefunden.';
+
+  @override
+  String get restore => 'Wiederherstellen';
+
+  @override
+  String get permissionNeeded => 'Berechtigung erforderlich';
+
+  @override
+  String get permissionBlockedInSettings =>
+      'Berechtigung in den Einstellungen blockiert';
+
+  @override
+  String get grantPermission => 'Berechtigung erteilen';
+
+  @override
+  String get checkAgain => 'Erneut prüfen';
+
+  @override
+  String get appName => 'Auf TV übertragen';
 }

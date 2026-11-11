@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -308,7 +307,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get couldntOpenTheLink => 'เปิดลิงก์ไม่ได้';
 
   @override
-  String get castflowLogo => 'โลโก้ CastFlow';
+  String get castflowLogo => 'โลโก้ Cast to TV';
 
   @override
   String get somethingWentWrong => 'เกิดข้อผิดพลาด';
@@ -325,7 +324,7 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
-  String get smartTv => 'Smart TV';
+  String get smartTv => 'สมาร์ททีวี';
 
   @override
   String get chromecast => 'Chromecast';
@@ -337,7 +336,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get roku => 'Roku';
 
   @override
-  String get dlnaRenderer => 'DLNA renderer';
+  String get dlnaRenderer => 'ตัวแสดงผล DLNA';
 
   @override
   String get miracast => 'Miracast';
@@ -462,7 +461,7 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get openDevicesInCastflow =>
-      'เปิดอุปกรณ์ใน CastFlow แล้วรอสักครู่ให้ทีวีปรากฏ';
+      'เปิดอุปกรณ์ใน Cast to TV แล้วรอสักครู่ให้ทีวีปรากฏ';
 
   @override
   String get tapConnect => 'แตะเชื่อมต่อ';
@@ -506,7 +505,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get livingRoomTv => 'ทีวีห้องนั่งเล่น';
 
   @override
-  String get allowCastflowToConnect => 'อนุญาตให้ CastFlow เชื่อมต่อไหม';
+  String get allowCastflowToConnect => 'อนุญาตให้ Cast to TV เชื่อมต่อไหม';
 
   @override
   String get deny => 'ปฏิเสธ';
@@ -558,7 +557,7 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get allowCastflowToFind =>
-      'เมื่อถูกถาม ให้อนุญาตให้ CastFlow ค้นหาอุปกรณ์ในเครือข่ายของคุณ';
+      'เมื่อถูกถาม ให้อนุญาตให้ Cast to TV ค้นหาอุปกรณ์ในเครือข่ายของคุณ';
 
   @override
   String get noTvFound => 'ไม่พบทีวี';
@@ -974,7 +973,7 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
-  String get tv => 'TV';
+  String get tv => 'ทีวี';
 
   @override
   String get screenMirroringSession => 'เซสชันการสะท้อนหน้าจอ';
@@ -1202,7 +1201,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get noAds => 'ไม่มีโฆษณา';
 
   @override
-  String get welcomeToCastflowPro => 'ยินดีต้อนรับสู่ CastFlow Pro!';
+  String get welcomeToCastflowPro => 'ยินดีต้อนรับสู่ Cast to TV Pro!';
 
   @override
   String get purchaseCancelled => 'ยกเลิกการซื้อแล้ว';
@@ -1439,7 +1438,7 @@ class AppLocalizationsTh extends AppLocalizations {
       'ตัวรับแต่ละตัวรองรับคำสั่งต่างกัน Chromecast และ DLNA รองรับเฉพาะการเล่นและระดับเสียง Miracast ไม่มีช่องรีโมท';
 
   @override
-  String get canCastflowTurnMy => 'CastFlow เปิดทีวีหรือเปลี่ยนอินพุตได้ไหม';
+  String get canCastflowTurnMy => 'Cast to TV เปิดทีวีหรือเปลี่ยนอินพุตได้ไหม';
 
   @override
   String get onlyOnTvsThat =>
@@ -1460,7 +1459,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get noEmailAppFound => 'ไม่พบแอปอีเมล';
 
   @override
-  String get enjoyingCastflow => 'ชอบ CastFlow ไหม';
+  String get enjoyingCastflow => 'ชอบ Cast to TV ไหม';
 
   @override
   String get sorryToHearThat => 'เสียใจที่ได้ยินเช่นนั้น';
@@ -1490,32 +1489,19 @@ class AppLocalizationsTh extends AppLocalizations {
   String get rateYourExperienceBefore => 'ให้คะแนนประสบการณ์ของคุณก่อนไป';
 
   @override
-  String get tapAStarTo => 'แตะดาวเพื่อให้คะแนน CastFlow';
+  String get tapAStarTo => 'แตะดาวเพื่อให้คะแนน Cast to TV';
 
   @override
   String get general => 'ทั่วไป';
 
   @override
-  String get english => 'English';
+  String get english => 'อังกฤษ';
 
   @override
   String get defaultQuality => 'คุณภาพเริ่มต้น';
 
   @override
   String get autoConnectToLast => 'เชื่อมต่อทีวีเครื่องล่าสุดอัตโนมัติ';
-
-  @override
-  String get hapticFeedback => 'การตอบสนองแบบสัมผัส';
-
-  @override
-  String get clearCastingHistory => 'ล้างประวัติการแคสต์';
-
-  @override
-  String get clearCastingHistory2 => 'ล้างประวัติการแคสต์ไหม';
-
-  @override
-  String get onlyCastflowsListIs =>
-      'ล้างเฉพาะรายการของ CastFlow สื่อในโทรศัพท์ของคุณจะไม่ถูกลบ';
 
   @override
   String get appearance => 'รูปลักษณ์';
@@ -1545,13 +1531,13 @@ class AppLocalizationsTh extends AppLocalizations {
   String get version => 'เวอร์ชัน';
 
   @override
-  String get castflowProIsActive => 'CastFlow Pro ใช้งานอยู่';
+  String get castflowProIsActive => 'Cast to TV Pro ใช้งานอยู่';
 
   @override
   String get upgradeToPremium => 'อัปเกรดเป็น Premium';
 
   @override
-  String get castflowPremium => 'CastFlow Premium';
+  String get castflowPremium => 'แคสต์ไปทีวี พรีเมียม';
 
   @override
   String get thanksForYourSupport =>
@@ -1659,4 +1645,54 @@ class AppLocalizationsTh extends AppLocalizations {
   @override
   String get noWifiAlertMessage =>
       'คุณกำลังใช้อินเทอร์เน็ตมือถือ เชื่อมต่อโทรศัพท์และทีวีกับ Wi-Fi เดียวกัน หรือเปิดฮอตสปอตของโทรศัพท์แล้วให้ทีวีเชื่อมต่อ';
+
+  @override
+  String get checkingNetwork => 'กำลังตรวจสอบเครือข่าย...';
+
+  @override
+  String get discoveryStopped => 'หยุดการค้นหาแล้ว';
+
+  @override
+  String get discoveryStoppedHint =>
+      'หยุดการค้นหาแล้ว แตะค้นหาเพื่อค้นหาอุปกรณ์ใกล้เคียง';
+
+  @override
+  String get search => 'ค้นหา';
+
+  @override
+  String get permissionNeededToDiscover =>
+      'ต้องได้รับสิทธิ์ตำแหน่งเพื่อค้นหาอุปกรณ์บน Wi-Fi';
+
+  @override
+  String get locationServicesDisabled => 'บริการระบุตำแหน่งปิดอยู่';
+
+  @override
+  String get openLocationSettings => 'เปิดการตั้งค่าตำแหน่ง';
+
+  @override
+  String get openAppSettings => 'เปิดการตั้งค่าแอป';
+
+  @override
+  String get subscriptionExpired => 'การสมัครสมาชิกของคุณหมดอายุแล้ว';
+
+  @override
+  String get noPurchasesFound => 'ไม่พบการซื้อก่อนหน้านี้';
+
+  @override
+  String get restore => 'กู้คืน';
+
+  @override
+  String get permissionNeeded => 'จำเป็นต้องได้รับอนุญาต';
+
+  @override
+  String get permissionBlockedInSettings => 'การอนุญาตถูกบล็อกในการตั้งค่า';
+
+  @override
+  String get grantPermission => 'ให้สิทธิ์';
+
+  @override
+  String get checkAgain => 'ตรวจสอบอีกครั้ง';
+
+  @override
+  String get appName => 'แคสต์ไปทีวี';
 }

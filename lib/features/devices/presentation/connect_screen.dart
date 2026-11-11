@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
+import '../../../core/l10n.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/ad_side_layout.dart';
@@ -14,7 +15,7 @@ import '../domain/cast_device.dart';
 import 'device_providers.dart';
 import 'widgets/connection_chip.dart';
 import 'widgets/connection_guide_sheet.dart';
-import '../../../core/l10n.dart';
+import 'widgets/discovery_permission_cards.dart';
 import 'widgets/network_widgets.dart';
 import 'widgets/no_devices_found.dart';
 import 'widgets/tv_radar.dart';
@@ -34,13 +35,49 @@ class ConnectScreen extends ConsumerStatefulWidget {
 }
 
 class _ConnectScreenState extends ConsumerState<ConnectScreen> {
+  AppLifecycleListener? _lifecycle;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final d = ref.read(discoveryProvider);
-      if (!d.scanning && d.devices.isEmpty) ref.read(discoveryProvider.notifier).scan();
-    });
+    _lifecycle = AppLifecycleListener(
+      onResume: () {
+        ref.read(discoveryProvider.notifier).recheckPermissions();
+      },
+    );
+  }
+
+  /// The Devices tab lives in an IndexedStack, so initState only runs once.
+  /// Watching the ticker state tells us each time the tab is shown again.
+  bool _wasShown = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final shown = TickerMode.valuesOf(context).enabled;
+    if (shown && !_wasShown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scanOnShow();
+      });
+    }
+    _wasShown = shown;
+  }
+
+  /// Every time Devices opens with no TV connected it starts a fresh scan,
+  /// instead of leaving an old error or an old "no TV found" screen up.
+  void _scanOnShow() {
+    final conn = ref.read(connectionProvider);
+    if (conn.isConnected || conn.isConnecting) return;
+    if (conn.status == ConnectionStatus.failed) ref.read(connectionProvider.notifier).clearFailure();
+    final d = ref.read(discoveryProvider);
+    if (d.scanning && d.phase != DiscoveryPhase.stopped) return;
+    ref.read(discoveryProvider.notifier).grantPermission();
+  }
+
+  @override
+  void dispose() {
+    _lifecycle?.dispose();
+    super.dispose();
   }
 
   Future<void> _connect(CastDevice device) async {
@@ -49,12 +86,10 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     if (ok) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.connectedTo(device.name))));
       if (widget.standalone && context.canPop()) {
-        // Let the connected pulse play before returning.
         await Future<void>.delayed(const Duration(milliseconds: 700));
         if (mounted && context.canPop()) context.pop(true);
       }
     }
-    // Failure is shown inline by ConnectFailedCard.
   }
 
   @override
@@ -64,14 +99,44 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     final notifier = ref.read(discoveryProvider.notifier);
     final l = context.l10n;
 
+    final isPermissionBlocked =
+        discovery.phase == DiscoveryPhase.permissionDenied ||
+        discovery.phase == DiscoveryPhase.permissionPermanentlyDenied ||
+        discovery.phase == DiscoveryPhase.locationServicesDisabled;
+    final isPermissionPhase =
+        isPermissionBlocked ||
+        discovery.phase == DiscoveryPhase.permissionRequired ||
+        discovery.phase == DiscoveryPhase.checkingConnectivity;
+
     final failed = conn.status == ConnectionStatus.failed && conn.device != null;
     final blocked = failed || discovery.networkRequired;
     final showHotspotHelp = !discovery.scanning && !discovery.hotspot && !conn.isConnected;
     final showEmpty =
-        !blocked && !discovery.scanning && discovery.devices.isEmpty && discovery.error == null && !discovery.hotspot;
-    final status = discovery.devices.isNotEmpty
-        ? l.devicesFound(discovery.devices.length)
-        : (discovery.hotspot ? l.waitingForTvOnHotspot : l.searchingDevices);
+        !blocked &&
+        !isPermissionPhase &&
+        !discovery.scanning &&
+        discovery.devices.isEmpty &&
+        discovery.error == null &&
+        !discovery.hotspot &&
+        discovery.phase != DiscoveryPhase.stopped;
+
+    final String status;
+    if (discovery.phase == DiscoveryPhase.permissionDenied ||
+        discovery.phase == DiscoveryPhase.permissionPermanentlyDenied) {
+      status = l.permissionNeededToDiscover;
+    } else if (discovery.phase == DiscoveryPhase.locationServicesDisabled) {
+      status = l.locationServicesDisabled;
+    } else if (discovery.phase == DiscoveryPhase.checkingConnectivity) {
+      status = l.checkingNetwork;
+    } else if (discovery.phase == DiscoveryPhase.stopped) {
+      status = l.discoveryStopped;
+    } else if (discovery.devices.isNotEmpty) {
+      status = l.devicesFound(discovery.devices.length);
+    } else if (discovery.hotspot) {
+      status = l.waitingForTvOnHotspot;
+    } else {
+      status = l.searchingDevices;
+    }
 
     return Scaffold(
       appBar: CastAppBar(
@@ -106,6 +171,29 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                     ),
                   ),
                 if (!showEmpty && !blocked) ...[
+                  if (discovery.phase == DiscoveryPhase.stopped)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, AppSpace.sm),
+                        child: SoftCard(
+                          color: context.palette.surfaceHigh,
+                          child: Row(
+                            children: [
+                              Icon(Iconsax.info_circle_copy, color: context.palette.textSecondary),
+                              const SizedBox(width: AppSpace.md),
+                              Expanded(child: Text(l.discoveryStoppedHint, style: context.text.bodyMedium)),
+                              const SizedBox(width: AppSpace.sm),
+                              TintedButton(
+                                label: l.search,
+                                icon: Iconsax.refresh_copy,
+                                compact: true,
+                                onPressed: notifier.grantPermission,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   if (discovery.hotspot)
                     SliverToBoxAdapter(
                       child: Center(
@@ -120,40 +208,79 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                       scanning: discovery.scanning,
                       devices: discovery.devices,
                       connectedId: conn.device?.id,
+                      // Permission problems are explained once, in the banner below.
+                      statusOverride: isPermissionBlocked
+                          ? ''
+                          : (discovery.phase == DiscoveryPhase.checkingConnectivity
+                                ? l.checkingNetwork
+                                : (discovery.phase == DiscoveryPhase.stopped ? l.discoveryStopped : null)),
                     ),
                   ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, AppSpace.md),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            children: [
-                              if (discovery.scanning) ...[
-                                SizedBox.square(
-                                  dimension: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: context.palette.primary),
-                                ),
-                                const SizedBox(width: AppSpace.sm),
+                  if (isPermissionBlocked)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, AppSpace.md),
+                        child: DiscoveryPermissionBanner(
+                          phase: discovery.phase,
+                          onGrant: notifier.grantPermission,
+                          onOpenSettings: notifier.openSettings,
+                          onOpenLocationSettings: notifier.openLocationSettings,
+                        ),
+                      ),
+                    )
+                  else
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, AppSpace.md),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                if (discovery.scanning) ...[
+                                  SizedBox.square(
+                                    dimension: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: context.palette.primary),
+                                  ),
+                                  const SizedBox(width: AppSpace.sm),
+                                ],
+                                Expanded(child: Text(status, style: context.text.titleSmall)),
                               ],
-                              Expanded(child: Text(status, style: context.text.titleSmall)),
-                              TintedButton(
-                                label: l.retry,
-                                icon: Iconsax.refresh_copy,
-                                compact: true,
-                                onPressed: notifier.scan,
-                              ),
+                            ),
+                            // Buttons sit on their own row so long translations of the
+                            // status text never get squeezed into a few characters per line.
+                            const SizedBox(height: AppSpace.sm),
+                            Row(
+                              children: [
+                                if (discovery.scanning) ...[
+                                  Expanded(
+                                    child: TintedButton(
+                                      label: l.stop,
+                                      icon: Iconsax.stop_circle_copy,
+                                      compact: true,
+                                      onPressed: notifier.stop,
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppSpace.sm),
+                                ],
+                                Expanded(
+                                  child: TintedButton(
+                                    label: l.retry,
+                                    icon: Iconsax.refresh_copy,
+                                    compact: true,
+                                    onPressed: notifier.grantPermission,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (discovery.isolationSuspected) ...[
+                              const SizedBox(height: AppSpace.md),
+                              const IsolationHint(),
                             ],
-                          ),
-                          if (discovery.isolationSuspected) ...[
-                            const SizedBox(height: AppSpace.md),
-                            const IsolationHint(),
                           ],
-                        ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
                 if (blocked)
                   const SliverToBoxAdapter(child: SizedBox.shrink())
@@ -171,8 +298,6 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                   SliverPadding(
                     padding: EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, navBottomPadding(context)),
                     sliver: SliverList.separated(
-                      // While scanning: a skeleton row. After the search: hotspot
-                      // help at the bottom (unless already on the hotspot/connected).
                       itemCount: discovery.devices.length + (discovery.scanning || showHotspotHelp ? 1 : 0),
                       separatorBuilder: (_, _) => const SizedBox(height: AppSpace.md),
                       itemBuilder: (context, i) {
@@ -196,16 +321,24 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 }
 
 class _Radar extends StatelessWidget {
-  const _Radar({required this.scanning, required this.devices, this.connectedId});
+  const _Radar({required this.scanning, required this.devices, this.connectedId, this.statusOverride});
+
   final bool scanning;
   final List<CastDevice> devices;
   final String? connectedId;
+  final String? statusOverride;
 
   int get found => devices.length;
 
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
+    final label =
+        statusOverride ??
+        (scanning
+            ? (found == 0 ? context.l10n.lookingForTvsOn : context.l10n.foundSoFar(found))
+            : context.l10n.deviceFound(found, found == 1 ? '' : 's'));
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpace.lg),
       child: Column(
@@ -215,10 +348,8 @@ class _Radar extends StatelessWidget {
           AnimatedSwitcher(
             duration: AppDurations.medium,
             child: Text(
-              scanning
-                  ? (found == 0 ? context.l10n.lookingForTvsOn : context.l10n.foundSoFar(found))
-                  : context.l10n.deviceFound(found, found == 1 ? '' : 's'),
-              key: ValueKey('$scanning$found'),
+              label,
+              key: ValueKey('$scanning$found$statusOverride'),
               style: context.text.bodyMedium?.copyWith(color: p.textSecondary),
             ),
           ),
@@ -264,7 +395,6 @@ class _DeviceTile extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpace.md),
       child: Row(
         children: [
-          // Brief connected pulse, then it settles.
           connected
               ? bubble.animate().scale(begin: const Offset(0.8, 0.8), curve: Curves.elasticOut, duration: 700.ms)
               : bubble,
@@ -465,8 +595,9 @@ class _ForgetMenu extends ConsumerWidget {
   }
 }
 
-/// "No TV found" laid out to fit the screen: the content scales down a little
-/// on small phones instead of scrolling.
+/// "No TV found": the animation sits at the top, the message is centred in
+/// the free space, and the actions stay at the bottom. Scrolls only when the
+/// screen is too short to fit everything.
 class _EmptyOneScreen extends StatelessWidget {
   const _EmptyOneScreen({required this.reason, required this.onRetry});
   final String? reason;
@@ -478,17 +609,23 @@ class _EmptyOneScreen extends StatelessWidget {
       children: [
         if (reason != null) _ReasonBanner(reason!),
         Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(bottom: navBottomPadding(context)),
-            child: LayoutBuilder(
-              builder: (context, c) => Align(
-                alignment: Alignment.topCenter,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.topCenter,
-                  child: SizedBox(
-                    width: c.maxWidth,
-                    child: NoDevicesFound(onRetry: onRetry),
+          child: LayoutBuilder(
+            builder: (context, c) => SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, navBottomPadding(context)),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: c.maxHeight - AppSpace.sm - navBottomPadding(context)),
+                child: IntrinsicHeight(
+                  child: Column(
+                    // Hero on top, actions at the bottom, message centred between them.
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const NoDevicesHero(),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: AppSpace.lg),
+                        child: NoDevicesContent(),
+                      ),
+                      NoDevicesActions(onRetry: onRetry),
+                    ],
                   ),
                 ),
               ),

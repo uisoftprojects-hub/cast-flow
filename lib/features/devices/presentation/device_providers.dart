@@ -7,12 +7,15 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../core/analytics/analytics.dart';
 import '../../../core/analytics/analytics_events.dart';
 import '../../../core/storage/local_store.dart';
+import '../../monetization/domain/ad_suppression.dart';
+import '../../pairing/presentation/pairing_controller.dart';
+import '../../permissions/domain/app_permission.dart';
+import '../../permissions/presentation/permissions_controller.dart';
 import '../../settings/presentation/settings_controller.dart';
 import '../data/hive_saved_devices_repository.dart';
 import '../data/network_device_repository.dart';
 import '../domain/cast_device.dart';
 import '../domain/network_status.dart';
-import '../../pairing/presentation/pairing_controller.dart';
 import 'network_controller.dart';
 
 final deviceRepositoryProvider = Provider<DeviceRepository>((ref) => NetworkDeviceRepository());
@@ -21,22 +24,48 @@ final savedDevicesProvider = Provider<SavedDevicesRepository>(
   (ref) => HiveSavedDevicesRepository(ref.watch(localStoreProvider).devices),
 );
 
-/// Asks for Nearby Wi-Fi devices on Android 13+ (granted implicitly below).
+/// Nearby Wi-Fi permission check/request hook for backward compatibility in tests.
 final nearbyPermissionProvider = Provider<Future<void> Function()>(
   (ref) => () async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     try {
-      await Permission.nearbyWifiDevices.request();
+      await AdSuppression.around(() => Permission.nearbyWifiDevices.request());
     } catch (_) {}
   },
 );
 
-/// Runs discovery as a background stream so scanning never blocks the UI.
-/// Checks the network first; on the phone's own hotspot it keeps rescanning
-/// so a TV appears as soon as it joins, without a manual refresh.
+/// Resolves duplicate devices across multiple discovery protocols (mDNS, SSDP, subnet scan).
+CastDevice mergeCastDevices(CastDevice existing, CastDevice incoming) {
+  final bestName = (existing.name.isNotEmpty && !existing.name.startsWith('TV ')) ? existing.name : incoming.name;
+  final bestType = existing.type != DeviceType.smartTv ? existing.type : incoming.type;
+  final bestModel = existing.model ?? incoming.model;
+  final bestPort = existing.port ?? incoming.port;
+  final bestLastSeen = (existing.lastSeen != null && incoming.lastSeen != null)
+      ? (incoming.lastSeen!.isAfter(existing.lastSeen!) ? incoming.lastSeen : existing.lastSeen)
+      : (incoming.lastSeen ?? existing.lastSeen);
+
+  return CastDevice(
+    id: existing.id.isNotEmpty ? existing.id : incoming.id,
+    name: bestName,
+    type: bestType,
+    address: existing.address.isNotEmpty ? existing.address : incoming.address,
+    port: bestPort,
+    model: bestModel,
+    signal: incoming.signal > 0 ? incoming.signal : existing.signal,
+    lastSeen: bestLastSeen,
+  );
+}
+
+/// Runs discovery as a background stream with robust permission lifecycle management:
+/// - Enforces Scenario A-E location and nearby permission checks before starting discovery
+/// - Handles Android 12- location requirements vs Android 13+ nearby permissions
+/// - Automatically restarts on lifecycle resume or system setting changes
+/// - Guarantees accurate UI discovery phases (13 states)
+/// - Deduplicates across protocols and enforces discovery timeouts
 class DiscoveryController extends Notifier<DiscoveryState> {
   StreamSubscription<List<CastDevice>>? _sub;
   Timer? _rescan;
+  Timer? _sessionTimeout;
   int _run = 0;
 
   static const hotspotRescanDelay = Duration(seconds: 4);
@@ -45,12 +74,11 @@ class DiscoveryController extends Notifier<DiscoveryState> {
   DiscoveryState build() {
     ref.onDispose(_cancel);
     ref.listen(networkProvider, (prev, next) {
-      // Network came back while we were waiting for it: start automatically.
       if (next != null && next.ready && state.networkRequired) scan();
       if (next != null && !next.ready && (state.scanning || state.hotspot)) {
         _run++;
         _cancel();
-        state = DiscoveryState(devices: state.devices, networkRequired: true);
+        state = DiscoveryState(phase: DiscoveryPhase.failed, devices: state.devices, networkRequired: true);
       }
     });
     return const DiscoveryState();
@@ -58,50 +86,217 @@ class DiscoveryController extends Notifier<DiscoveryState> {
 
   void _cancel() {
     _sub?.cancel();
+    _sub = null;
     _rescan?.cancel();
+    _rescan = null;
+    _sessionTimeout?.cancel();
+    _sessionTimeout = null;
   }
 
-  Future<void> scan() async {
+  /// Evaluates permissions and system services before beginning discovery.
+  /// If permissions are already granted, immediately begins discovery.
+  /// If not, transitions to [DiscoveryPhase.permissionRequired] with explanations.
+  Future<void> checkPermissionsAndStart({bool userInitiatedRequest = false}) async {
     _cancel();
     final run = ++_run;
-    state = DiscoveryState(scanning: true, hotspot: state.hotspot, devices: state.hotspot ? state.devices : const []);
-    final network = await ref.read(networkProvider.notifier).refresh();
-    if (run != _run) return;
-    if (!network.ready) {
-      ref.read(analyticsProvider).log(AnalyticsEvent.networkNoWifi, {AnalyticsParam.source: 'device_scan'});
-      state = const DiscoveryState(networkRequired: true);
-      return;
+    state = state.copyWith(
+      phase: DiscoveryPhase.checkingConnectivity,
+      scanning: true,
+      devices: state.hotspot ? state.devices : const [],
+    );
+    final permService = ref.read(discoveryPermissionServiceProvider);
+    final requiresLocation = await permService.isLocationRequired();
+    if (run != _run || !ref.mounted) return;
+
+    final status = await permService.checkStatus();
+    if (run != _run || !ref.mounted) return;
+
+    switch (status) {
+      case DiscoveryPermissionStatus.granted:
+        await _proceedToConnectivityAndScan(run, requiresLocation);
+      case DiscoveryPermissionStatus.locationServiceDisabled:
+        state = DiscoveryState(
+          phase: DiscoveryPhase.locationServicesDisabled,
+          requiresLocation: true,
+          devices: state.devices,
+        );
+      case DiscoveryPermissionStatus.permanentlyDenied:
+        state = DiscoveryState(
+          phase: DiscoveryPhase.permissionPermanentlyDenied,
+          requiresLocation: requiresLocation,
+          devices: state.devices,
+        );
+      case DiscoveryPermissionStatus.denied:
+      case DiscoveryPermissionStatus.notDetermined:
+        if (userInitiatedRequest) {
+          await grantPermission();
+        } else {
+          state = DiscoveryState(
+            phase: DiscoveryPhase.permissionRequired,
+            requiresLocation: requiresLocation,
+            devices: state.devices,
+          );
+        }
     }
-    await ref.read(nearbyPermissionProvider)();
-    if (run != _run) return;
-    _discover(network, run, keep: false);
   }
 
-  void _discover(NetworkStatus network, int run, {required bool keep}) {
+  /// Triggers the native runtime permission request following user tap.
+  Future<void> grantPermission() async {
+    _cancel();
+    final run = ++_run;
+    state = state.copyWith(
+      phase: DiscoveryPhase.checkingConnectivity,
+      scanning: true,
+      devices: state.hotspot ? state.devices : const [],
+    );
+    final permService = ref.read(discoveryPermissionServiceProvider);
+    final requiresLocation = await permService.isLocationRequired();
+    if (run != _run || !ref.mounted) return;
+
+    final result = await permService.requestPermission();
+    if (run != _run || !ref.mounted) return;
+
+    switch (result) {
+      case DiscoveryPermissionStatus.granted:
+        await _proceedToConnectivityAndScan(run, requiresLocation);
+      case DiscoveryPermissionStatus.locationServiceDisabled:
+        state = DiscoveryState(
+          phase: DiscoveryPhase.locationServicesDisabled,
+          requiresLocation: true,
+          devices: state.devices,
+        );
+      case DiscoveryPermissionStatus.permanentlyDenied:
+        state = DiscoveryState(
+          phase: DiscoveryPhase.permissionPermanentlyDenied,
+          requiresLocation: requiresLocation,
+          devices: state.devices,
+        );
+      case DiscoveryPermissionStatus.denied:
+      case DiscoveryPermissionStatus.notDetermined:
+        state = DiscoveryState(
+          phase: DiscoveryPhase.permissionDenied,
+          requiresLocation: requiresLocation,
+          devices: state.devices,
+        );
+    }
+  }
+
+  /// Called when returning to the app (e.g. from app settings or location settings).
+  Future<void> recheckPermissions() async {
+    final permService = ref.read(discoveryPermissionServiceProvider);
+    final status = await permService.checkStatus();
+    if (!ref.mounted) return;
+    final requiresLocation = await permService.isLocationRequired();
+    if (!ref.mounted) return;
+
+    if (status == DiscoveryPermissionStatus.granted) {
+      final run = ++_run;
+      await _proceedToConnectivityAndScan(run, requiresLocation);
+    } else if (status == DiscoveryPermissionStatus.locationServiceDisabled) {
+      state = state.copyWith(phase: DiscoveryPhase.locationServicesDisabled, requiresLocation: true);
+    } else if (status == DiscoveryPermissionStatus.permanentlyDenied) {
+      state = state.copyWith(phase: DiscoveryPhase.permissionPermanentlyDenied, requiresLocation: requiresLocation);
+    }
+  }
+
+  Future<void> openSettings() async {
+    await ref.read(discoveryPermissionServiceProvider).openAppSettings();
+  }
+
+  Future<void> openLocationSettings() async {
+    await ref.read(discoveryPermissionServiceProvider).openLocationSettings();
+  }
+
+  /// Standard scan entrypoint; checks permissions first.
+  Future<void> scan() async {
+    await grantPermission();
+  }
+
+  Future<void> _proceedToConnectivityAndScan(int run, bool requiresLocation) async {
+    if (run != _run || !ref.mounted) return;
+    state = DiscoveryState(
+      phase: DiscoveryPhase.checkingConnectivity,
+      scanning: true,
+      hotspot: state.hotspot,
+      requiresLocation: requiresLocation,
+      devices: state.hotspot ? state.devices : const [],
+    );
+
+    final network = await ref.read(networkProvider.notifier).refresh();
+    if (run != _run || !ref.mounted) return;
+
+    if (!network.ready) {
+      ref.read(analyticsProvider).log(AnalyticsEvent.networkNoWifi, {AnalyticsParam.source: 'device_scan'});
+      state = DiscoveryState(
+        phase: DiscoveryPhase.failed,
+        networkRequired: true,
+        requiresLocation: requiresLocation,
+        devices: state.devices,
+      );
+      return;
+    }
+
+    // Call legacy hook if present in test environment.
+    await ref.read(nearbyPermissionProvider)();
+    if (run != _run || !ref.mounted) return;
+
+    _discover(network, run, requiresLocation: requiresLocation, keep: false);
+  }
+
+  void _discover(NetworkStatus network, int run, {required bool requiresLocation, required bool keep}) {
     final hotspot = network.mode == NetworkMode.hotspot;
     final repo = ref.read(deviceRepositoryProvider);
     final previous = keep ? state.devices : const <CastDevice>[];
+
     state = state.copyWith(
+      phase: DiscoveryPhase.searching,
       scanning: true,
       hotspot: hotspot,
       networkRequired: false,
       clearError: true,
+      requiresLocation: requiresLocation,
       devices: previous,
     );
+
+    // Discovery timeout (12s): transitions to noDevicesFound if no devices discovered
+    _sessionTimeout = Timer(const Duration(seconds: 12), () {
+      if (run != _run || !ref.mounted) return;
+      if (state.devices.isEmpty && state.scanning) {
+        state = state.copyWith(phase: DiscoveryPhase.noDevicesFound, scanning: false);
+      }
+    });
+
     _sub = repo
         .discover(network: network)
         .listen(
           (found) {
-            if (run != _run) return;
-            // Merge with earlier rounds so the list only grows while live.
-            final byAddress = {for (final d in previous) d.address: d, for (final d in found) d.address: d};
-            state = state.copyWith(devices: List.unmodifiable(byAddress.values));
+            if (run != _run || !ref.mounted) return;
+            // Clean composite deduplication
+            final map = <String, CastDevice>{};
+            for (final d in state.devices) {
+              final key = d.address.isNotEmpty ? d.address : d.id;
+              map[key] = d;
+            }
+            for (final d in found) {
+              final key = d.address.isNotEmpty ? d.address : d.id;
+              if (map.containsKey(key)) {
+                map[key] = mergeCastDevices(map[key]!, d);
+              } else {
+                map[key] = d;
+              }
+            }
+            final list = List<CastDevice>.unmodifiable(map.values);
+            state = state.copyWith(devices: list, phase: list.isNotEmpty ? DiscoveryPhase.devicesFound : state.phase);
           },
           onError: (Object e) {
-            if (run == _run) state = state.copyWith(scanning: false, error: e.toString());
+            if (run == _run && ref.mounted) {
+              _sessionTimeout?.cancel();
+              state = state.copyWith(phase: DiscoveryPhase.failed, scanning: false, error: e.toString());
+            }
           },
           onDone: () {
-            if (run != _run) return;
+            if (run != _run || !ref.mounted) return;
+            _sessionTimeout?.cancel();
             if (!keep) {
               final count = state.devices.length;
               if (count == 0) {
@@ -110,20 +305,29 @@ class DiscoveryController extends Notifier<DiscoveryState> {
                 });
               }
             }
+
+            final nextPhase = state.devices.isEmpty ? DiscoveryPhase.noDevicesFound : DiscoveryPhase.devicesFound;
             state = state.copyWith(
+              phase: hotspot ? DiscoveryPhase.searching : nextPhase,
               scanning: hotspot, // the hotspot keeps searching
               isolationSuspected: hotspot && state.devices.isEmpty && repo.unidentifiedClients > 0,
             );
+
             if (!hotspot) return;
             _rescan = Timer(hotspotRescanDelay, () async {
               if (run != _run || !ref.mounted) return;
               final net = await ref.read(networkProvider.notifier).refresh();
-              if (run != _run) return;
+              if (run != _run || !ref.mounted) return;
               if (!net.ready) {
-                state = DiscoveryState(devices: state.devices, networkRequired: true);
+                state = DiscoveryState(
+                  phase: DiscoveryPhase.failed,
+                  devices: state.devices,
+                  networkRequired: true,
+                  requiresLocation: requiresLocation,
+                );
                 return;
               }
-              _discover(net, run, keep: true);
+              _discover(net, run, requiresLocation: requiresLocation, keep: true);
             });
           },
         );
@@ -132,20 +336,17 @@ class DiscoveryController extends Notifier<DiscoveryState> {
   void stop() {
     _run++;
     _cancel();
-    state = state.copyWith(scanning: false);
+    state = state.copyWith(phase: DiscoveryPhase.stopped, scanning: false);
   }
 }
 
 final discoveryProvider = NotifierProvider<DiscoveryController, DiscoveryState>(DiscoveryController.new);
 
 class ConnectionController extends Notifier<CastConnection> {
-  /// [CastConnection.error] value when Wi-Fi / hotspot dropped.
   static const networkLost = 'network-lost';
 
   @override
   CastConnection build() {
-    // Network lost mid-session: show it clearly and keep the device so the
-    // user can reconnect in one tap once Wi-Fi / hotspot is back.
     ref.listen(networkProvider, (prev, next) {
       if (next != null && !next.ready && state.isConnected) {
         state = CastConnection(status: ConnectionStatus.failed, device: state.device, error: networkLost);
@@ -162,8 +363,14 @@ class ConnectionController extends Notifier<CastConnection> {
   });
 
   Future<bool> connect(CastDevice device) async {
-    // Ignore double taps / a second TV while one connection is in progress.
+    // Ignore double taps / duplicate connection requests while in progress
     if (state.isConnecting) return false;
+
+    // Cleanly switch if already connected to a different device
+    if (state.isConnected && state.device?.id != device.id) {
+      await disconnect();
+    }
+
     state = CastConnection(status: ConnectionStatus.connecting, device: device);
     final network = await ref.read(networkProvider.notifier).refresh();
     if (!network.ready) {
@@ -171,10 +378,10 @@ class ConnectionController extends Notifier<CastConnection> {
       _connectFailed(device, networkLost);
       return false;
     }
+
     try {
       await ref.read(deviceRepositoryProvider).connect(device);
-      // Pairing (code or Allow on TV) when the protocol asks for it; saved
-      // credentials skip the sheet. Cancelled → back to not connected.
+      // Pairing flow
       if (!await ref.read(pairingProvider.notifier).pair(device)) {
         state = const CastConnection();
         _connectFailed(device, 'pairing_cancelled');
@@ -192,12 +399,15 @@ class ConnectionController extends Notifier<CastConnection> {
     }
   }
 
-  /// "Forget device": drops saved pairing credentials and the saved TV, and
-  /// disconnects if it is the current one.
   Future<void> forget(CastDevice device) async {
     if (state.device?.id == device.id) await disconnect();
     await ref.read(pairingProvider.notifier).forget(device.id);
     await ref.read(savedDevicesProvider).delete(device.id);
+  }
+
+  /// Forgets an old failed attempt so a fresh scan starts from a clean screen.
+  void clearFailure() {
+    if (state.status == ConnectionStatus.failed) state = const CastConnection();
   }
 
   Future<void> disconnect() async {
@@ -205,7 +415,6 @@ class ConnectionController extends Notifier<CastConnection> {
     state = const CastConnection();
   }
 
-  /// Reconnects to the last used device when "Auto-connect" is enabled.
   Future<void> autoConnect() async {
     final s = ref.read(settingsProvider);
     if (!s.autoConnect || s.lastDeviceId == null || state.isConnected) return;
@@ -213,7 +422,6 @@ class ConnectionController extends Notifier<CastConnection> {
         ref.read(savedDevicesProvider).findById(s.lastDeviceId!) ??
         await ref.read(deviceRepositoryProvider).findById(s.lastDeviceId!);
     if (device == null) return;
-    // A TV that is off or gone shouldn't show an error on launch.
     if (!await connect(device)) state = const CastConnection();
   }
 }

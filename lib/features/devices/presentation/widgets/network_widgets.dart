@@ -248,6 +248,7 @@ Future<void> showNetworkRequiredDialog(BuildContext context) {
 Future<void> showHotspotGuide(BuildContext context) {
   analyticsOf(context).log(AnalyticsEvent.hotspotGuideOpen);
   return showModalBottomSheet<void>(
+    useRootNavigator: true,
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
@@ -283,7 +284,6 @@ class _HotspotGuideState extends ConsumerState<_HotspotGuide> {
         setState(() {});
       }
     });
-    final steps = [l.hotspotStep1, l.hotspotStep2, l.hotspotStep3];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(AppSpace.xxl, 0, AppSpace.xxl, AppSpace.xxl),
@@ -294,32 +294,7 @@ class _HotspotGuideState extends ConsumerState<_HotspotGuide> {
           const SizedBox(height: 4),
           Text(l.hotspotInstruction, style: context.text.bodyMedium),
           const SizedBox(height: AppSpace.xl),
-          for (final (i, step) in steps.indexed)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpace.md),
-              child: SoftCard(
-                padding: const EdgeInsets.all(AppSpace.md),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(gradient: AppColors.mainGradient, shape: BoxShape.circle),
-                      child: Text('${i + 1}', style: context.text.labelMedium?.copyWith(color: Colors.white)),
-                    ),
-                    const SizedBox(width: AppSpace.md),
-                    Icon(
-                      [Iconsax.mobile_copy, Iconsax.monitor_copy, Iconsax.arrow_left_copy][i],
-                      color: p.primary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: AppSpace.sm),
-                    Expanded(child: Text(step, style: context.text.titleSmall)),
-                  ],
-                ),
-              ).animate(delay: (80 * i).ms).fadeIn().slideX(begin: 0.05, end: 0),
-            ),
+          const HotspotSteps(),
           const SizedBox(height: AppSpace.sm),
           AnimatedSwitcher(
             duration: AppDurations.medium,
@@ -335,7 +310,7 @@ class _HotspotGuideState extends ConsumerState<_HotspotGuide> {
                   )
                 : GradientButton(
                     key: const ValueKey('open'),
-                    label: l.openHotspotSettings,
+                    label: l.continueWithHotspot,
                     icon: Iconsax.setting_2_copy,
                     expand: true,
                     onPressed: NetworkChannel.openHotspotSettings,
@@ -480,8 +455,8 @@ class HotspotSteps extends StatelessWidget {
   }
 }
 
-/// Shown under the device list once a search finishes: the TV may simply
-/// not be on this Wi-Fi, so offer the phone's hotspot with the steps.
+/// One quiet line instead of a card: "Still can't find your TV? Continue with
+/// hotspot". Tapping it opens the hotspot guide in a bottom sheet.
 class StillCantFindCard extends StatelessWidget {
   const StillCantFindCard({super.key});
 
@@ -489,36 +464,36 @@ class StillCantFindCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final p = context.palette;
-    return SoftCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              IconBubble(icon: Icons.wifi_tethering_rounded, color: p.warning, size: 44),
-              const SizedBox(width: AppSpace.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l.stillCantFindTitle, style: context.text.titleSmall),
-                    Text(l.stillCantFindBody, style: context.text.bodySmall),
-                  ],
-                ),
+    return Semantics(
+      button: true,
+      label: '${l.stillCantFindTitle} ${l.continueWithHotspot}',
+      excludeSemantics: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        onTap: () => showHotspotGuide(context),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpace.md, vertical: AppSpace.md),
+          child: Center(
+            child: Text.rich(
+              TextSpan(
+                text: '${l.stillCantFindTitle} ',
+                children: [
+                  TextSpan(
+                    text: l.continueWithHotspot,
+                    style: TextStyle(
+                      color: p.primary,
+                      fontWeight: FontWeight.w700,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ],
               ),
-            ],
+              textAlign: TextAlign.center,
+              style: context.text.bodyMedium?.copyWith(color: p.textSecondary),
+            ),
           ),
-          const SizedBox(height: AppSpace.md),
-          const HotspotSteps(),
-          const SizedBox(height: AppSpace.xs),
-          TintedButton(
-            label: l.continueWithHotspot,
-            icon: Iconsax.mobile_copy,
-            expand: true,
-            onPressed: () => showHotspotGuide(context),
-          ),
-        ],
+        ),
       ),
-    ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.08, end: 0);
+    ).animate().fadeIn(duration: 300.ms);
   }
 }

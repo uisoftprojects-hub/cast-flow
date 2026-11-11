@@ -2,15 +2,19 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/app_providers.dart';
 import '../../devices/domain/receiver_capabilities.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../player/presentation/player_controller.dart';
 import '../../settings/presentation/settings_controller.dart';
-import '../data/fake_remote_service.dart';
+import '../../pairing/presentation/pairing_controller.dart';
+import '../data/network_remote_service.dart';
 import '../domain/remote_service.dart';
 
-final remoteServiceProvider = Provider<RemoteService>((ref) => FakeRemoteService(() => ref.read(previewModeProvider)));
+final remoteServiceProvider = Provider<RemoteService>((ref) {
+  final service = NetworkRemoteService(ref.watch(credentialStoreProvider));
+  ref.onDispose(service.dispose);
+  return service;
+});
 
 @immutable
 class TvRemoteState {
@@ -43,7 +47,7 @@ class RemoteController extends Notifier<TvRemoteState> {
     if (device == null || !device.supports(command)) return;
 
     final settings = ref.read(settingsProvider);
-    if (settings.hapticsEnabled) HapticFeedback.lightImpact();
+    HapticFeedback.lightImpact();
     if (settings.buttonSound) SystemSound.play(SystemSoundType.click);
 
     try {

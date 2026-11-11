@@ -92,20 +92,63 @@ class CastConnection {
   bool get isConnecting => status == ConnectionStatus.connecting;
 }
 
+/// The specific stage of the device discovery lifecycle.
+enum DiscoveryPhase {
+  /// Screen opened, not yet initiated.
+  initial,
+
+  /// Location / Nearby Wi-Fi permission is required before starting.
+  permissionRequired,
+
+  /// Permission was denied by the user.
+  permissionDenied,
+
+  /// Permission was permanently denied; requires app settings.
+  permissionPermanentlyDenied,
+
+  /// Required location services (GPS toggle) are disabled on the system.
+  locationServicesDisabled,
+
+  /// Checking Wi-Fi / hotspot readiness.
+  checkingConnectivity,
+
+  /// Actively probing local network for receivers.
+  searching,
+
+  /// At least one device found.
+  devicesFound,
+
+  /// Scan completed without finding any devices.
+  noDevicesFound,
+
+  /// Scan failed with an error.
+  failed,
+
+  /// Scan was explicitly stopped by user.
+  stopped,
+}
+
 @immutable
 class DiscoveryState {
   const DiscoveryState({
-    this.scanning = false,
+    this.phase = DiscoveryPhase.initial,
+    bool? scanning,
     this.devices = const [],
     this.error,
     this.networkRequired = false,
     this.hotspot = false,
     this.isolationSuspected = false,
-  });
+    this.requiresLocation = false,
+  }) : _scanningExplicit = scanning;
 
-  final bool scanning;
+  final DiscoveryPhase phase;
+  final bool? _scanningExplicit;
   final List<CastDevice> devices;
   final String? error;
+
+  /// True when actively searching or checking connectivity.
+  bool get scanning =>
+      _scanningExplicit ?? (phase == DiscoveryPhase.searching || phase == DiscoveryPhase.checkingConnectivity);
 
   /// Neither Wi-Fi nor the phone's hotspot is on, so nothing can be found.
   final bool networkRequired;
@@ -117,7 +160,11 @@ class DiscoveryState {
   /// device-to-device traffic ("client isolation").
   final bool isolationSuspected;
 
+  /// Whether location permission specifically is required by the OS version.
+  final bool requiresLocation;
+
   DiscoveryState copyWith({
+    DiscoveryPhase? phase,
     bool? scanning,
     List<CastDevice>? devices,
     String? error,
@@ -125,14 +172,17 @@ class DiscoveryState {
     bool? networkRequired,
     bool? hotspot,
     bool? isolationSuspected,
+    bool? requiresLocation,
   }) {
     return DiscoveryState(
-      scanning: scanning ?? this.scanning,
+      phase: phase ?? this.phase,
+      scanning: scanning ?? _scanningExplicit,
       devices: devices ?? this.devices,
       error: clearError ? null : (error ?? this.error),
       networkRequired: networkRequired ?? this.networkRequired,
       hotspot: hotspot ?? this.hotspot,
       isolationSuspected: isolationSuspected ?? this.isolationSuspected,
+      requiresLocation: requiresLocation ?? this.requiresLocation,
     );
   }
 }

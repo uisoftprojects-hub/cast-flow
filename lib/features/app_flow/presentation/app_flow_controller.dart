@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/analytics/analytics.dart';
 import '../../../core/analytics/analytics_events.dart';
 import '../../../core/app_providers.dart';
+import '../../premium/domain/premium_status_service.dart';
 import '../../settings/presentation/settings_controller.dart';
 import '../domain/flow_config.dart';
 
@@ -74,12 +75,13 @@ class AppFlowController extends Notifier<FlowState> {
   /// Called once by Splash. Returns the first route of this launch.
   String start() {
     final s = ref.read(settingsProvider);
+    final premium = s.isPremium || ref.read(premiumStatusServiceProvider).isPremium;
     final steps = buildFlow(
       config: ref.read(flowConfigProvider),
       firstLaunchCompleted: s.firstLaunchCompleted,
       onboardingDone: s.onboardingDone,
       languageChosen: s.languageChosen,
-      isPremium: s.isPremium,
+      isPremium: premium,
     );
     state = FlowState(steps: steps, index: 0);
     return _enter(steps.first);
@@ -91,8 +93,9 @@ class AppFlowController extends Notifier<FlowState> {
     if (state.current != from) return null;
     _funnel(from, done: true);
     var next = state.index + 1;
+    final isPremium = ref.read(settingsProvider).isPremium || ref.read(premiumStatusServiceProvider).isPremium;
     // Skip paywalls if the user became Pro during this launch.
-    while (next < state.steps.length && state.steps[next].isPaywall && ref.read(settingsProvider).isPremium) {
+    while (next < state.steps.length && state.steps[next].isPaywall && isPremium) {
       next++;
     }
     if (next >= state.steps.length) return FlowStep.home.route;

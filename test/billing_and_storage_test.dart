@@ -15,16 +15,16 @@ void main() {
   test('store prices come from the billing service, not the app', () async {
     final c = await makeContainer();
     final products = await c.read(storeProductsProvider.future);
-    expect(products.map((p) => p.id), [BillingConfig.weekly, BillingConfig.yearly, BillingConfig.lifetime]);
+    expect(products.map((p) => p.id), [BillingConfig.weekly]);
     expect(products.every((p) => p.price.isNotEmpty), isTrue);
-    expect(products.last.isSubscription, isFalse);
+    expect(products.last.isSubscription, isTrue);
   });
 
   test('a purchase activates the entitlement and Pro', () async {
     final c = await makeContainer();
     c.listen(entitlementProvider, (_, _) {});
     final products = await c.read(storeProductsProvider.future);
-    final outcome = await c.read(entitlementProvider.notifier).buy(products[1]);
+    final outcome = await c.read(entitlementProvider.notifier).buy(products.first);
     await Future<void>.delayed(Duration.zero);
     expect(outcome, PurchaseOutcome.success);
     expect(c.read(entitlementProvider).active, isTrue);
@@ -84,11 +84,9 @@ void main() {
   test('new settings round-trip through local storage', () async {
     final c = await makeContainer();
     final s = c.read(settingsProvider.notifier);
-    s.setHaptics(false);
     s.setButtonSound(true);
     await s.confirmLanguage('ar');
     final reloaded = c.read(settingsRepositoryProvider).load();
-    expect(reloaded.hapticsEnabled, isFalse);
     expect(reloaded.buttonSound, isTrue);
     expect(reloaded.languageCode, 'ar');
     expect(reloaded.languageChosen, isTrue);

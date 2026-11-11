@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,7 +16,12 @@ import '../../../core/widgets/buttons.dart';
 import '../../../core/widgets/tap_scale.dart';
 import '../../app_flow/domain/flow_config.dart';
 import '../../app_flow/presentation/app_flow_controller.dart';
+import '../../monetization/presentation/ad_display_coordinator.dart';
+import '../../monetization/presentation/ad_manager.dart';
+import '../../monetization/presentation/native_ad_manager.dart';
+import '../../monetization/presentation/splash_interstitial_manager.dart';
 import '../domain/billing.dart';
+import '../domain/premium_status_service.dart';
 import 'billing_controller.dart';
 
 import '../../../core/l10n.dart';
@@ -29,7 +35,7 @@ const _benefits = [
   (Iconsax.shield_cross_copy, 'No ads'),
 ];
 
-/// Simple white paywall: benefits with ticks, three plans, one Continue.
+/// Paywall screen: benefits with ticks, three plans, one Continue.
 /// With [slot] it is a startup step (close continues the flow, back is
 /// blocked); without it, it is a normal pushed screen.
 class PaywallScreen extends ConsumerStatefulWidget {
@@ -60,7 +66,16 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   @override
   void initState() {
     super.initState();
-    _analytics.log(AnalyticsEvent.paywallView, {AnalyticsParam.source: _source});
+    _analytics.log(AnalyticsEvent.paywallView, {
+      AnalyticsParam.source: _source,
+    });
+    // Section 6: Preload the onboarding native ad on the Paywall screen
+    Future.microtask(() {
+      final isPremium = ref.read(isPremiumProvider);
+      if (!isPremium) {
+        ref.read(nativeAdManagerProvider).preloadOnboardingAd(isPremium: false);
+      }
+    });
   }
 
   FlowStep? get _step => switch (widget.slot) {
@@ -69,11 +84,23 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     _ => null,
   };
 
-  void _close() {
+  Future<void> _close() async {
     _analytics.log(AnalyticsEvent.paywallClose, {
       AnalyticsParam.source: _source,
-      AnalyticsParam.elapsedMs: DateTime.now().difference(_openedAt).inMilliseconds,
+      AnalyticsParam.elapsedMs: DateTime.now()
+          .difference(_openedAt)
+          .inMilliseconds,
     });
+
+    // Section 4: If splash interstitial was not shown on language completion, show it on paywall close
+    final isPremium = ref.read(isPremiumProvider);
+    if (!isPremium) {
+      await ref
+          .read(splashInterstitialManagerProvider)
+          .tryShowAtPaywallClose(isPremium: false);
+    }
+
+    if (!mounted) return;
     final step = _step;
     if (step == null) {
       if (context.canPop()) context.pop();
@@ -83,18 +110,37 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     if (next != null) context.go(next);
   }
 
-  void _snack(String text) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  void _snack(String text) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
   Future<void> _purchase(StoreProduct product) async {
     if (_buying) return;
     setState(() => _buying = true);
-    final outcome = await ref.read(entitlementProvider.notifier).buy(product, source: _source);
+
+    // Section 11: Do not display ads during purchase processing
+    ref.read(adDisplayCoordinatorProvider).setPurchaseInProgress(true);
+
+    final outcome = await ref
+        .read(purchaseStateProvider.notifier)
+        .buy(product, _source);
+
+    ref.read(adDisplayCoordinatorProvider).setPurchaseInProgress(false);
+
     if (!mounted) return;
     setState(() => _buying = false);
+
     switch (outcome) {
       case PurchaseOutcome.success:
-        _snack(context.l10n.welcomeToCastflowPro);
-        _close();
+        // Section 13: Stop future ad displays and dispose loaded ads immediately
+        ref.read(adManagerProvider.notifier).onPremiumPurchased();
+        // Advance to next step without showing any interstitial
+        final step = _step;
+        if (step == null) {
+          if (context.canPop()) context.pop();
+        } else {
+          final next = ref.read(appFlowProvider.notifier).advance(step);
+          if (next != null) context.go(next);
+        }
       case PurchaseOutcome.cancelled:
         _snack(context.l10n.purchaseCancelled);
       case PurchaseOutcome.pending:
@@ -108,48 +154,83 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Premium users never see the paywall (e.g. entitlement verified/restored while open).
+    ref.listen<bool>(isPremiumProvider, (_, isPremium) {
+      if (!isPremium || _buying || !mounted) return;
+      final step = _step;
+      if (step == null) {
+        if (context.canPop()) context.pop();
+      } else {
+        final next = ref.read(appFlowProvider.notifier).advance(step);
+        if (next != null) context.go(next);
+      }
+    });
     final products = ref.watch(storeProductsProvider);
     final list = products.value ?? const <StoreProduct>[];
     final selected =
-        list.where((x) => x.id == _selectedId).firstOrNull ??
-        list.where((x) => x.id == BillingConfig.yearly).firstOrNull ??
-        list.firstOrNull;
+        list.where((x) => x.id == _selectedId).firstOrNull ?? list.firstOrNull;
 
-    // Always white, whatever the app theme.
-    return Theme(
-      data: AppTheme.light,
-      child: Builder(
-        builder: (context) {
-          final p = context.palette;
-          return PopScope(
+    // Follows the app theme (light/dark).
+    return Builder(
+      builder: (context) {
+        final p = context.palette;
+        final dark = context.isDark;
+        final overlay = SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+          statusBarBrightness: dark ? Brightness.dark : Brightness.light,
+          systemNavigationBarColor: p.background,
+          systemNavigationBarIconBrightness: dark
+              ? Brightness.light
+              : Brightness.dark,
+          systemNavigationBarDividerColor: Colors.transparent,
+        );
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: overlay,
+          child: PopScope(
             canPop: _step == null,
+            // In the startup flow back behaves like the close (X): ad if it triggers, then on.
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop && _step != null) _close();
+            },
             child: Scaffold(
-              backgroundColor: Colors.white,
+              backgroundColor: p.background,
               body: SafeArea(
                 child: LayoutBuilder(
                   builder: (context, c) => SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpace.xxl),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpace.xxl,
+                    ),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(minHeight: c.maxHeight),
                       child: IntrinsicHeight(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            const SizedBox(height: 10),
                             Align(
-                              alignment: AlignmentDirectional.centerStart,
+                              alignment: Alignment.centerLeft,
                               child: IconButton(
                                 tooltip: context.l10n.close,
                                 onPressed: _close,
-                                icon: Icon(Icons.close_rounded, color: p.textPrimary),
+                                icon: Icon(
+                                  Icons.close_rounded,
+                                  color: p.textSecondary,
+                                ),
                               ),
                             ),
-                            const SizedBox(height: AppSpace.sm),
+                            const SizedBox(height: AppSpace.sm + 50),
                             Center(
-                              child: Icon(Iconsax.award_copy, size: 44, color: p.primary).animate().scale(
-                                begin: const Offset(0.6, 0.6),
-                                curve: Curves.easeOutBack,
-                                duration: 500.ms,
-                              ),
+                              child:
+                                  Icon(
+                                    Iconsax.award_copy,
+                                    size: 44,
+                                    color: p.primary,
+                                  ).animate().scale(
+                                    begin: const Offset(0.6, 0.6),
+                                    curve: Curves.easeOutBack,
+                                    duration: 500.ms,
+                                  ),
                             ),
                             const SizedBox(height: AppSpace.md),
                             Text(
@@ -169,39 +250,65 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                             const SizedBox(height: AppSpace.xxl),
                             for (final (i, (icon, label)) in _benefits.indexed)
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                child: Row(
-                                  children: [
-                                    Icon(icon, size: 20, color: p.primary),
-                                    const SizedBox(width: AppSpace.lg),
-                                    Expanded(child: Text(context.tr(label), style: context.text.bodyLarge)),
-                                    const Icon(Icons.check_circle_rounded, size: 22, color: Color(0xFF22A55B)),
-                                  ],
-                                ),
-                              ).animate(delay: (50 * i).ms).fadeIn(duration: 250.ms),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(icon, size: 20, color: p.primary),
+                                        const SizedBox(width: AppSpace.lg),
+                                        Expanded(
+                                          child: Text(
+                                            context.tr(label),
+                                            style: context.text.bodyLarge,
+                                          ),
+                                        ),
+                                        const Icon(
+                                          Icons.check_circle_rounded,
+                                          size: 22,
+                                          color: Color(0xFF22A55B),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                  .animate(delay: (50 * i).ms)
+                                  .fadeIn(duration: 250.ms),
                             const Spacer(),
                             const SizedBox(height: AppSpace.xl),
                             _Plans(
                               products: products,
                               selectedId: selected?.id,
-                              onSelect: (id) => setState(() => _selectedId = id),
-                              onRetry: () => ref.invalidate(storeProductsProvider),
+                              onSelect: (id) =>
+                                  setState(() => _selectedId = id),
+                              onRetry: () =>
+                                  ref.invalidate(storeProductsProvider),
                             ),
                             const SizedBox(height: AppSpace.md),
                             if (selected != null)
                               Text(
                                 selected.isSubscription
-                                    ? context.l10n.renewsAutomaticallyUntilCancelled
+                                    ? context
+                                          .l10n
+                                          .renewsAutomaticallyUntilCancelled
                                     : context.l10n.oneTimePurchaseNo,
                                 textAlign: TextAlign.center,
                                 style: context.text.bodySmall,
                               ),
                             const SizedBox(height: AppSpace.sm),
                             GradientButton(
-                              label: context.l10n.continueAction,
+                              label: products.isLoading
+                                  ? context.l10n.loadingPrice
+                                  : (selected?.ctaText(
+                                          continueLabel:
+                                              context.l10n.continueAction,
+                                        ) ??
+                                        context.l10n.continueAction),
                               expand: true,
                               loading: _buying,
-                              onPressed: selected == null ? null : () => _purchase(selected),
+                              onPressed:
+                                  (selected == null || products.isLoading)
+                                  ? null
+                                  : () => _purchase(selected),
                             ),
                             const SizedBox(height: AppSpace.xs),
                             // One line always: it scales down instead of wrapping.
@@ -210,21 +317,23 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
+                                  _FooterLink(context.l10n.cancelAnytime, null),
+                                  Text('|', style: context.text.bodySmall),
                                   _FooterLink(
                                     context.l10n.privacyPolicy,
-                                    () => openExternal(context, AppLinks.privacyPolicy),
+                                    () => openExternal(
+                                      context,
+                                      AppLinks.privacyPolicy,
+                                    ),
                                   ),
                                   Text('|', style: context.text.bodySmall),
                                   _FooterLink(
                                     context.l10n.termsAndConditions,
                                     () => openExternal(context, AppLinks.terms),
                                   ),
-                                  Text('|', style: context.text.bodySmall),
-                                  _FooterLink(context.l10n.cancelAnytime, null),
                                 ],
                               ),
                             ),
-                            const SizedBox(height: AppSpace.sm),
                           ],
                         ),
                       ),
@@ -233,15 +342,20 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                 ),
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
 
 class _Plans extends StatelessWidget {
-  const _Plans({required this.products, required this.selectedId, required this.onSelect, required this.onRetry});
+  const _Plans({
+    required this.products,
+    required this.selectedId,
+    required this.onSelect,
+    required this.onRetry,
+  });
 
   final AsyncValue<List<StoreProduct>> products;
   final String? selectedId;
@@ -251,73 +365,111 @@ class _Plans extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return products.when(
-      skipLoadingOnRefresh: false,
-      loading: () => Center(child: Text(context.l10n.loadingPrice, style: context.text.bodySmall)),
-      error: (_, _) => Center(
-        child: TextButton(onPressed: onRetry, child: Text(context.l10n.pricesUnavailableTapTo)),
-      ),
-      data: (items) => items.isEmpty
-          ? Center(child: Text(context.l10n.noPlansAvailableRight, style: context.text.bodySmall))
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                for (final (i, product) in items.indexed) ...[
-                  if (i > 0) const SizedBox(width: AppSpace.sm),
-                  Expanded(
-                    child: _PlanOption(
-                      product: product,
-                      selected: product.id == selectedId,
-                      onTap: () => onSelect(product.id),
-                    ),
-                  ),
-                ],
-              ],
+      data: (list) {
+        if (list.isEmpty) {
+          return Center(
+            child: TextButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Iconsax.refresh_copy),
+              label: Text(context.l10n.retry),
             ),
+          );
+        }
+        return Row(
+          children: [
+            for (final (i, product) in list.indexed) ...[
+              if (i > 0) const SizedBox(width: AppSpace.md),
+              Expanded(
+                child: _PlanCard(
+                  product: product,
+                  selected: product.id == selectedId,
+                  best: false,
+                  onTap: () => onSelect(product.id),
+                ),
+              ),
+            ],
+          ],
+        );
+      },
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(AppSpace.xl),
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (_, _) => Center(
+        child: TextButton.icon(
+          onPressed: onRetry,
+          icon: const Icon(Iconsax.refresh_copy),
+          label: Text(context.l10n.retry),
+        ),
+      ),
     );
   }
 }
 
-class _PlanOption extends StatelessWidget {
-  const _PlanOption({required this.product, required this.selected, required this.onTap});
+class _PlanCard extends StatelessWidget {
+  const _PlanCard({
+    required this.product,
+    required this.selected,
+    required this.best,
+    required this.onTap,
+  });
 
   final StoreProduct product;
   final bool selected;
+  final bool best;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
-    final name = switch (product.period) {
-      PlanPeriod.weekly => context.l10n.weekly,
-      PlanPeriod.yearly => context.l10n.yearly,
-      PlanPeriod.lifetime => context.l10n.lifetime,
-    };
-    final best = product.period == PlanPeriod.yearly;
-    return Semantics(
-      selected: selected,
-      inMutuallyExclusiveGroup: true,
-      child: TapScale(
-        onTap: onTap,
-        semanticLabel: '$name, ${product.price}',
+    return TapScale(
+      onTap: onTap,
+      semanticLabel:
+          '${product.title}, ${product.price}, ${product.period.note}',
+      child: AnimatedContainer(
+        duration: AppDurations.medium,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpace.sm,
+          vertical: AppSpace.md,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? p.primaryTint : p.surface,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(
+            color: selected ? p.primary : p.divider,
+            width: selected ? 2 : 1,
+          ),
+        ),
         child: Stack(
           clipBehavior: Clip.none,
           alignment: Alignment.topCenter,
           children: [
-            AnimatedContainer(
-              duration: AppDurations.medium,
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(6, 16, 6, 12),
-              decoration: BoxDecoration(
-                color: selected ? p.primaryTint : Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: selected ? p.primary : p.divider, width: selected ? 2 : 1),
-              ),
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(name, style: context.text.labelMedium),
+                  Text(
+                    context.tr(product.period.name),
+                    style: context.text.titleSmall,
+                  ),
                   const SizedBox(height: 4),
-                  FittedBox(child: Text(product.price, style: context.text.titleLarge)),
-                  Text(context.tr(product.period.note), style: context.text.labelSmall),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      product.price,
+                      style: context.text.headlineSmall,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    context.tr(product.period.note),
+                    style: context.text.labelSmall?.copyWith(
+                      color: p.textSecondary.withValues(alpha: 0.6),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -325,12 +477,20 @@ class _PlanOption extends StatelessWidget {
               Positioned(
                 top: -10,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     gradient: AppColors.mainGradient,
                     borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
-                  child: Text(context.l10n.bestValue, style: context.text.labelSmall?.copyWith(color: Colors.white)),
+                  child: Text(
+                    context.l10n.bestValue,
+                    style: context.text.labelSmall?.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
           ],

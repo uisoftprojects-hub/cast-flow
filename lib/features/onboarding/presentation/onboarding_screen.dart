@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
+import '../../../core/l10n.dart';
 import '../../../core/widgets/ad_side_layout.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
@@ -13,10 +14,9 @@ import 'onboarding_scene.dart';
 import '../../app_flow/domain/flow_config.dart';
 import '../../app_flow/presentation/app_flow_controller.dart';
 import '../../monetization/domain/ad_models.dart';
+import '../../monetization/presentation/native_ad_manager.dart';
 import '../../monetization/presentation/native_ad_slot.dart';
 import '../../settings/presentation/settings_controller.dart';
-
-import '../../../core/l10n.dart';
 
 class _Slide {
   const _Slide(this.kind, this.title, this.body);
@@ -64,8 +64,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
-  /// Persists completion once the user finishes the last slide.
+  /// Persists completion once the user finishes the last slide
   Future<void> _finish() async {
+    ref.read(nativeAdManagerProvider).releaseOnboardingAd();
     await ref.read(settingsProvider.notifier).completeOnboarding();
     if (!mounted) return;
     final next = ref.read(appFlowProvider.notifier).advance(FlowStep.onboarding);
@@ -91,9 +92,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final controls = Padding(
       padding: EdgeInsets.fromLTRB(
         AppSpace.xxl,
-        landscape ? AppSpace.sm : AppSpace.lg,
+        landscape ? AppSpace.sm : AppSpace.sm,
         AppSpace.xxl,
-        landscape ? AppSpace.md : AppSpace.xxl,
+        landscape ? AppSpace.sm : AppSpace.sm,
       ),
       child: Row(
         children: [
@@ -128,11 +129,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
     return PopScope(
       canPop: false,
+      // Back moves forward: slide 1 -> 2 -> 3 -> Home.
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _next();
+      },
       child: Scaffold(
         body: SafeArea(
           child: landscape
-              // Landscape: slides and controls on the left, the ad in its own
-              // column on the right.
               ? AdSideLayout(
                   content: Column(
                     children: [
@@ -144,15 +147,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 )
               : Column(
                   children: [
-                    const SizedBox(height: AppSpace.xl),
+                    const SizedBox(height: AppSpace.sm),
+                    // Onboarding content
                     Expanded(child: pages),
-                    // Separate region between content and controls so the ad
-                    // never covers artwork, text, dots or navigation.
+                    // Next button / controls
+                    controls,
+                    // Medium native ad below Next button, full width, 0 horizontal padding
                     const Padding(
-                      padding: EdgeInsets.fromLTRB(AppSpace.xxl, AppSpace.md, AppSpace.xxl, 0),
+                      padding: EdgeInsets.zero,
                       child: NativeAdSlot(placement: AdPlacement.onboarding),
                     ),
-                    controls,
                   ],
                 ),
         ),
@@ -179,7 +183,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         const SizedBox(height: AppSpace.md),
         Text(context.tr(s.body), textAlign: wide ? TextAlign.start : TextAlign.center, style: context.text.bodyMedium),
         const SizedBox(height: AppSpace.lg),
-        // Every slide also tells the user hotspot works when there is no Wi-Fi.
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
           decoration: BoxDecoration(

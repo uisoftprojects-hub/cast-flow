@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -310,7 +309,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get couldntOpenTheLink => 'Tidak dapat membuka tautan.';
 
   @override
-  String get castflowLogo => 'Logo CastFlow';
+  String get castflowLogo => 'Logo Cast to TV';
 
   @override
   String get somethingWentWrong => 'Terjadi kesalahan';
@@ -340,7 +339,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get roku => 'Roku';
 
   @override
-  String get dlnaRenderer => 'DLNA renderer';
+  String get dlnaRenderer => 'Perender DLNA';
 
   @override
   String get miracast => 'Miracast';
@@ -465,7 +464,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get openDevicesInCastflow =>
-      'Buka Perangkat di CastFlow dan tunggu beberapa detik hingga TV Anda muncul.';
+      'Buka Perangkat di Cast to TV dan tunggu beberapa detik hingga TV Anda muncul.';
 
   @override
   String get tapConnect => 'Ketuk Hubungkan';
@@ -510,7 +509,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get livingRoomTv => 'TV ruang tamu';
 
   @override
-  String get allowCastflowToConnect => 'Izinkan CastFlow terhubung?';
+  String get allowCastflowToConnect => 'Izinkan Cast to TV terhubung?';
 
   @override
   String get deny => 'Tolak';
@@ -563,7 +562,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get allowCastflowToFind =>
-      'Izinkan CastFlow menemukan perangkat di jaringan Anda saat diminta.';
+      'Izinkan Cast to TV menemukan perangkat di jaringan Anda saat diminta.';
 
   @override
   String get noTvFound => 'TV tidak ditemukan';
@@ -1221,7 +1220,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get noAds => 'Tanpa iklan';
 
   @override
-  String get welcomeToCastflowPro => 'Selamat datang di CastFlow Pro!';
+  String get welcomeToCastflowPro => 'Selamat datang di Cast to TV Pro!';
 
   @override
   String get purchaseCancelled => 'Pembelian dibatalkan.';
@@ -1462,7 +1461,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get canCastflowTurnMy =>
-      'Bisakah CastFlow menyalakan TV atau mengganti input?';
+      'Bisakah Cast to TV menyalakan TV atau mengganti input?';
 
   @override
   String get onlyOnTvsThat =>
@@ -1483,7 +1482,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get noEmailAppFound => 'Aplikasi email tidak ditemukan.';
 
   @override
-  String get enjoyingCastflow => 'Suka CastFlow?';
+  String get enjoyingCastflow => 'Suka Cast to TV?';
 
   @override
   String get sorryToHearThat => 'Maaf mendengarnya';
@@ -1514,32 +1513,19 @@ class AppLocalizationsId extends AppLocalizations {
       'Beri nilai pengalaman Anda sebelum pergi.';
 
   @override
-  String get tapAStarTo => 'Ketuk bintang untuk menilai CastFlow.';
+  String get tapAStarTo => 'Ketuk bintang untuk menilai Cast to TV.';
 
   @override
   String get general => 'Umum';
 
   @override
-  String get english => 'English';
+  String get english => 'Inggris';
 
   @override
   String get defaultQuality => 'Kualitas default';
 
   @override
   String get autoConnectToLast => 'Hubungkan otomatis ke TV terakhir';
-
-  @override
-  String get hapticFeedback => 'Umpan balik haptik';
-
-  @override
-  String get clearCastingHistory => 'Hapus riwayat cast';
-
-  @override
-  String get clearCastingHistory2 => 'Hapus riwayat cast?';
-
-  @override
-  String get onlyCastflowsListIs =>
-      'Hanya daftar CastFlow yang dihapus. Media di ponsel tidak pernah dihapus.';
 
   @override
   String get appearance => 'Tampilan';
@@ -1569,13 +1555,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get version => 'Versi';
 
   @override
-  String get castflowProIsActive => 'CastFlow Pro aktif';
+  String get castflowProIsActive => 'Cast to TV Pro aktif';
 
   @override
   String get upgradeToPremium => 'Tingkatkan ke Premium';
 
   @override
-  String get castflowPremium => 'CastFlow Premium';
+  String get castflowPremium => 'Cast ke TV Premium';
 
   @override
   String get thanksForYourSupport =>
@@ -1686,4 +1672,55 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get noWifiAlertMessage =>
       'Anda sedang memakai data seluler. Hubungkan ponsel dan TV ke Wi-Fi yang sama, atau nyalakan hotspot ponsel lalu sambungkan TV ke hotspot itu.';
+
+  @override
+  String get checkingNetwork => 'Memeriksa jaringan...';
+
+  @override
+  String get discoveryStopped => 'Pencarian dihentikan';
+
+  @override
+  String get discoveryStoppedHint =>
+      'Pencarian dihentikan. Ketuk cari untuk menemukan perangkat terdekat.';
+
+  @override
+  String get search => 'Cari';
+
+  @override
+  String get permissionNeededToDiscover =>
+      'Izin lokasi diperlukan untuk menemukan perangkat di Wi-Fi.';
+
+  @override
+  String get locationServicesDisabled => 'Layanan Lokasi Dinonaktifkan';
+
+  @override
+  String get openLocationSettings => 'Buka Pengaturan Lokasi';
+
+  @override
+  String get openAppSettings => 'Buka Pengaturan Aplikasi';
+
+  @override
+  String get subscriptionExpired => 'Langganan Anda telah kedaluwarsa.';
+
+  @override
+  String get noPurchasesFound =>
+      'Tidak ada pembelian sebelumnya yang ditemukan.';
+
+  @override
+  String get restore => 'Pulihkan';
+
+  @override
+  String get permissionNeeded => 'Izin Diperlukan';
+
+  @override
+  String get permissionBlockedInSettings => 'Izin Diblokir di Pengaturan';
+
+  @override
+  String get grantPermission => 'Berikan Izin';
+
+  @override
+  String get checkAgain => 'Periksa Lagi';
+
+  @override
+  String get appName => 'Cast ke TV';
 }

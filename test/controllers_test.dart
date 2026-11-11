@@ -93,6 +93,7 @@ void main() {
     final c = await makeContainer();
     final sub = c.listen(discoveryProvider, (_, _) {});
     c.read(discoveryProvider.notifier).scan();
+    await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(c.read(discoveryProvider).scanning, isTrue);
     await Future<void>.delayed(const Duration(seconds: 5));
     expect(c.read(discoveryProvider).scanning, isFalse);

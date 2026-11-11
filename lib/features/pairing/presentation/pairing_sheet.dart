@@ -33,6 +33,7 @@ class _PairingSheetHostState extends ConsumerState<PairingSheetHost> {
     if (context == null || _open) return;
     _open = true;
     await showModalBottomSheet<void>(
+      useRootNavigator: true,
       context: context,
       isScrollControlled: true,
       useSafeArea: true,

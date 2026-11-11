@@ -66,7 +66,7 @@ class SamsungPairing implements PairingProtocol {
 
 class _SamsungSession extends _WsSession {
   _SamsungSession(CastDevice d, String? token) {
-    final name = base64.encode(utf8.encode('CastFlow'));
+    final name = base64.encode(utf8.encode('Cast to TV'));
     final query = 'name=$name${token == null || token.isEmpty ? '' : '&token=$token'}';
     open(Uri.parse('wss://${d.address}:8002/api/v2/channels/samsung.remote.control?$query'), allowSelfSigned: true);
   }
@@ -133,7 +133,7 @@ class _LgSession extends _WsSession {
           'appVersion': '1.0',
           'appId': 'com.castflow.castflow',
           'vendorId': 'com.castflow',
-          'localizedAppNames': {'': 'CastFlow'},
+          'localizedAppNames': {'': 'Cast to TV'},
           'permissions': [
             'LAUNCH',
             'CONTROL_AUDIO',

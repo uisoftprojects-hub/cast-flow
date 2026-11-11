@@ -301,6 +301,7 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
 
   Future<void> _showDetected(List<DetectedMedia> items) async {
     final picked = await showModalBottomSheet<DetectedMedia>(
+      useRootNavigator: true,
       context: context,
       useSafeArea: true,
       builder: (_) => SafeArea(top: false, child: _DetectedSheet(items: items)),

@@ -1,10 +1,11 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../premium/domain/premium_status_service.dart';
 import 'ad_manager.dart';
 
-/// Feeds real background/foreground transitions to AdManager (for App Open)
-/// and starts consent + SDK initialization once.
+/// Feeds background/foreground lifecycle transitions to AdManager (for App Open ad triggers)
+/// and initializes consent / AdMob SDK appropriately.
 class AdLifecycleHost extends ConsumerStatefulWidget {
   const AdLifecycleHost({super.key, required this.child});
 
@@ -21,10 +22,23 @@ class _AdLifecycleHostState extends ConsumerState<AdLifecycleHost> {
   void initState() {
     super.initState();
     final manager = ref.read(adManagerProvider.notifier);
-    // onHide fires only when the app is really backgrounded, not for system
-    // dialogs (those only make the app "inactive").
-    _listener = AppLifecycleListener(onHide: manager.onBackgrounded, onShow: manager.onResumed);
+
+    // Section 9: Handle resumed, inactive, paused, detached lifecycle events.
+    // Count genuine background-to-foreground transitions.
+    _listener = AppLifecycleListener(
+      onPause: manager.onBackgrounded,
+      onHide: manager.onBackgrounded,
+      onResume: _resumed,
+      onShow: _resumed,
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) => manager.ensureInitialized());
+  }
+
+  void _resumed() {
+    // Re-check the subscription (renewal, expiry, refund, return from Google Play); throttled.
+    ref.read(premiumStatusServiceProvider).refresh();
+    ref.read(adManagerProvider.notifier).onResumed();
   }
 
   @override

@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -312,7 +311,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get couldntOpenTheLink => 'لنک نہیں کھل سکا۔';
 
   @override
-  String get castflowLogo => 'CastFlow لوگو';
+  String get castflowLogo => 'Cast to TV لوگو';
 
   @override
   String get somethingWentWrong => 'کچھ غلط ہو گیا';
@@ -330,7 +329,7 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String get smartTv => 'Smart TV';
+  String get smartTv => 'اسمارٹ ٹی وی';
 
   @override
   String get chromecast => 'Chromecast';
@@ -342,7 +341,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get roku => 'Roku';
 
   @override
-  String get dlnaRenderer => 'DLNA renderer';
+  String get dlnaRenderer => 'ڈی ایل این اے رینڈرر';
 
   @override
   String get miracast => 'Miracast';
@@ -467,7 +466,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get openDevicesInCastflow =>
-      'CastFlow میں آلات کھولیں اور ٹی وی ظاہر ہونے تک چند سیکنڈ انتظار کریں۔';
+      'Cast to TV میں آلات کھولیں اور ٹی وی ظاہر ہونے تک چند سیکنڈ انتظار کریں۔';
 
   @override
   String get tapConnect => 'منسلک کریں پر ٹیپ کریں';
@@ -512,7 +511,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get livingRoomTv => 'لونگ روم کا ٹی وی';
 
   @override
-  String get allowCastflowToConnect => 'CastFlow کو منسلک ہونے کی اجازت دیں؟';
+  String get allowCastflowToConnect => 'Cast to TV کو منسلک ہونے کی اجازت دیں؟';
 
   @override
   String get deny => 'مسترد کریں';
@@ -565,7 +564,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get allowCastflowToFind =>
-      'پوچھے جانے پر CastFlow کو اپنے نیٹ ورک پر آلات تلاش کرنے دیں۔';
+      'پوچھے جانے پر Cast to TV کو اپنے نیٹ ورک پر آلات تلاش کرنے دیں۔';
 
   @override
   String get noTvFound => 'کوئی ٹی وی نہیں ملا';
@@ -993,7 +992,7 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String get tv => 'TV';
+  String get tv => 'ٹی وی';
 
   @override
   String get screenMirroringSession => 'اسکرین مررنگ سیشن';
@@ -1224,7 +1223,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get noAds => 'کوئی اشتہار نہیں';
 
   @override
-  String get welcomeToCastflowPro => 'CastFlow Pro میں خوش آمدید!';
+  String get welcomeToCastflowPro => 'Cast to TV Pro میں خوش آمدید!';
 
   @override
   String get purchaseCancelled => 'خریداری منسوخ ہو گئی۔';
@@ -1469,7 +1468,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get canCastflowTurnMy =>
-      'کیا CastFlow میرا ٹی وی آن کر سکتا ہے یا ان پٹ بدل سکتا ہے؟';
+      'کیا Cast to TV میرا ٹی وی آن کر سکتا ہے یا ان پٹ بدل سکتا ہے؟';
 
   @override
   String get onlyOnTvsThat =>
@@ -1490,7 +1489,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get noEmailAppFound => 'کوئی ای میل ایپ نہیں ملی۔';
 
   @override
-  String get enjoyingCastflow => 'کیا آپ کو CastFlow پسند آ رہا ہے؟';
+  String get enjoyingCastflow => 'کیا آپ کو Cast to TV پسند آ رہا ہے؟';
 
   @override
   String get sorryToHearThat => 'یہ سن کر افسوس ہوا';
@@ -1520,32 +1519,19 @@ class AppLocalizationsUr extends AppLocalizations {
   String get rateYourExperienceBefore => 'جانے سے پہلے اپنے تجربے کو ریٹ کریں۔';
 
   @override
-  String get tapAStarTo => 'CastFlow کو ریٹ کرنے کے لیے ستارے پر ٹیپ کریں۔';
+  String get tapAStarTo => 'Cast to TV کو ریٹ کرنے کے لیے ستارے پر ٹیپ کریں۔';
 
   @override
   String get general => 'عمومی';
 
   @override
-  String get english => 'English';
+  String get english => 'انگریزی';
 
   @override
   String get defaultQuality => 'ڈیفالٹ معیار';
 
   @override
   String get autoConnectToLast => 'آخری ٹی وی سے خودکار کنکشن';
-
-  @override
-  String get hapticFeedback => 'ہیپٹک فیڈ بیک';
-
-  @override
-  String get clearCastingHistory => 'کاسٹنگ ہسٹری صاف کریں';
-
-  @override
-  String get clearCastingHistory2 => 'کاسٹنگ ہسٹری صاف کریں؟';
-
-  @override
-  String get onlyCastflowsListIs =>
-      'صرف CastFlow کی فہرست صاف ہوتی ہے۔ آپ کے فون کا میڈیا کبھی حذف نہیں ہوتا۔';
 
   @override
   String get appearance => 'ظاہری شکل';
@@ -1575,13 +1561,13 @@ class AppLocalizationsUr extends AppLocalizations {
   String get version => 'ورژن';
 
   @override
-  String get castflowProIsActive => 'CastFlow Pro فعال ہے';
+  String get castflowProIsActive => 'Cast to TV Pro فعال ہے';
 
   @override
   String get upgradeToPremium => 'پریمیم میں اپ گریڈ کریں';
 
   @override
-  String get castflowPremium => 'CastFlow پریمیم';
+  String get castflowPremium => 'ٹی وی پر کاسٹ پریمیم';
 
   @override
   String get thanksForYourSupport =>
@@ -1692,4 +1678,54 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String get noWifiAlertMessage =>
       'آپ موبائل ڈیٹا استعمال کر رہے ہیں۔ فون اور ٹی وی کو ایک ہی وائی فائی سے جوڑیں، یا فون کا ہاٹ اسپاٹ آن کر کے ٹی وی سے اس سے جڑیں۔';
+
+  @override
+  String get checkingNetwork => 'نیٹ ورک چیک ہو رہا ہے...';
+
+  @override
+  String get discoveryStopped => 'تلاش رک گئی';
+
+  @override
+  String get discoveryStoppedHint =>
+      'تلاش رک گئی۔ قریبی ڈیوائسز تلاش کرنے کے لیے تلاش پر ٹیپ کریں۔';
+
+  @override
+  String get search => 'تلاش کریں';
+
+  @override
+  String get permissionNeededToDiscover =>
+      'وائی فائی پر ڈیوائسز تلاش کرنے کے لیے لوکیشن کی اجازت درکار ہے۔';
+
+  @override
+  String get locationServicesDisabled => 'لوکیشن سروسز غیر فعال ہیں';
+
+  @override
+  String get openLocationSettings => 'لوکیشن کی ترتیبات کھولیں';
+
+  @override
+  String get openAppSettings => 'ایپ کی ترتیبات کھولیں';
+
+  @override
+  String get subscriptionExpired => 'آپ کی رکنیت ختم ہو گئی ہے۔';
+
+  @override
+  String get noPurchasesFound => 'کوئی سابقہ خریداری نہیں ملی۔';
+
+  @override
+  String get restore => 'بحال کریں';
+
+  @override
+  String get permissionNeeded => 'اجازت درکار ہے';
+
+  @override
+  String get permissionBlockedInSettings => 'ترتیبات میں اجازت بلاک ہے';
+
+  @override
+  String get grantPermission => 'اجازت دیں';
+
+  @override
+  String get checkAgain => 'دوبارہ چیک کریں';
+
+  @override
+  String get appName => 'ٹی وی پر کاسٹ';
 }

@@ -53,13 +53,3 @@ class MirrorState {
     );
   }
 }
-
-/// Wraps Android MediaProjection + Miracast/Cast and the iOS ReplayKit
-/// broadcast extension behind one interface.
-abstract interface class MirroringService {
-  Future<void> start({required String deviceId, required MirrorQuality quality, required bool audio});
-  Future<void> stop();
-
-  /// Round-trip latency samples while live.
-  Stream<int> latency();
-}

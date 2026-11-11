@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -301,7 +300,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get couldntOpenTheLink => '无法打开链接。';
 
   @override
-  String get castflowLogo => 'CastFlow 标志';
+  String get castflowLogo => 'Cast to TV 标志';
 
   @override
   String get somethingWentWrong => '出了点问题';
@@ -318,7 +317,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get smartTv => 'Smart TV';
+  String get smartTv => '智能电视';
 
   @override
   String get chromecast => 'Chromecast';
@@ -330,7 +329,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roku => 'Roku';
 
   @override
-  String get dlnaRenderer => 'DLNA renderer';
+  String get dlnaRenderer => 'DLNA 渲染器';
 
   @override
   String get miracast => 'Miracast';
@@ -452,7 +451,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get scanForDevices => '扫描设备';
 
   @override
-  String get openDevicesInCastflow => '在 CastFlow 中打开“设备”，等待几秒，电视就会出现。';
+  String get openDevicesInCastflow => '在 Cast to TV 中打开“设备”，等待几秒，电视就会出现。';
 
   @override
   String get tapConnect => '点按“连接”';
@@ -496,7 +495,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get livingRoomTv => '客厅电视';
 
   @override
-  String get allowCastflowToConnect => '允许 CastFlow 连接吗？';
+  String get allowCastflowToConnect => '允许 Cast to TV 连接吗？';
 
   @override
   String get deny => '拒绝';
@@ -545,7 +544,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get localNetworkAccess => '本地网络访问';
 
   @override
-  String get allowCastflowToFind => '在系统询问时，允许 CastFlow 查找您网络中的设备。';
+  String get allowCastflowToFind => '在系统询问时，允许 Cast to TV 查找您网络中的设备。';
 
   @override
   String get noTvFound => '未找到电视';
@@ -944,7 +943,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get tv => 'TV';
+  String get tv => '电视';
 
   @override
   String get screenMirroringSession => '屏幕镜像会话';
@@ -1164,7 +1163,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noAds => '无广告';
 
   @override
-  String get welcomeToCastflowPro => '欢迎使用 CastFlow Pro！';
+  String get welcomeToCastflowPro => '欢迎使用 Cast to TV Pro！';
 
   @override
   String get purchaseCancelled => '购买已取消。';
@@ -1392,7 +1391,7 @@ class AppLocalizationsZh extends AppLocalizations {
       '每种接收器支持的命令不同。Chromecast 和 DLNA 仅支持播放和音量；Miracast 没有遥控通道。';
 
   @override
-  String get canCastflowTurnMy => 'CastFlow 可以打开我的电视或切换输入吗？';
+  String get canCastflowTurnMy => 'Cast to TV 可以打开我的电视或切换输入吗？';
 
   @override
   String get onlyOnTvsThat => '仅限通过网络提供这些命令的电视。不支持的按钮会被禁用，而不是假装可用。';
@@ -1412,7 +1411,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noEmailAppFound => '未找到电子邮件应用。';
 
   @override
-  String get enjoyingCastflow => '喜欢 CastFlow 吗？';
+  String get enjoyingCastflow => '喜欢 Cast to TV 吗？';
 
   @override
   String get sorryToHearThat => '很抱歉听到这个';
@@ -1442,31 +1441,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get rateYourExperienceBefore => '离开前，请为您的体验评分。';
 
   @override
-  String get tapAStarTo => '点按星星为 CastFlow 评分。';
+  String get tapAStarTo => '点按星星为 Cast to TV 评分。';
 
   @override
   String get general => '通用';
 
   @override
-  String get english => 'English';
+  String get english => '英语';
 
   @override
   String get defaultQuality => '默认画质';
 
   @override
   String get autoConnectToLast => '自动连接到上一台电视';
-
-  @override
-  String get hapticFeedback => '触感反馈';
-
-  @override
-  String get clearCastingHistory => '清除投放历史记录';
-
-  @override
-  String get clearCastingHistory2 => '清除投放历史记录？';
-
-  @override
-  String get onlyCastflowsListIs => '仅清除 CastFlow 的列表。手机上的媒体不会被删除。';
 
   @override
   String get appearance => '外观';
@@ -1496,13 +1483,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get version => '版本';
 
   @override
-  String get castflowProIsActive => 'CastFlow Pro 已启用';
+  String get castflowProIsActive => 'Cast to TV Pro 已启用';
 
   @override
   String get upgradeToPremium => '升级到 Premium';
 
   @override
-  String get castflowPremium => 'CastFlow Premium';
+  String get castflowPremium => '投屏到电视 高级版';
 
   @override
   String get thanksForYourSupport => '感谢您的支持。尽享无广告投放。';
@@ -1607,4 +1594,52 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get noWifiAlertMessage =>
       '您正在使用移动数据。请将手机和电视连接到同一 Wi-Fi，或打开手机热点并让电视连接该热点。';
+
+  @override
+  String get checkingNetwork => '正在检查网络...';
+
+  @override
+  String get discoveryStopped => '搜索已停止';
+
+  @override
+  String get discoveryStoppedHint => '搜索已停止。点击搜索以查找附近的设备。';
+
+  @override
+  String get search => '搜索';
+
+  @override
+  String get permissionNeededToDiscover => '在 Wi-Fi 上发现设备需要位置权限。';
+
+  @override
+  String get locationServicesDisabled => '位置服务已停用';
+
+  @override
+  String get openLocationSettings => '打开位置设置';
+
+  @override
+  String get openAppSettings => '打开应用设置';
+
+  @override
+  String get subscriptionExpired => '您的订阅已过期。';
+
+  @override
+  String get noPurchasesFound => '未找到之前的购买记录。';
+
+  @override
+  String get restore => '恢复';
+
+  @override
+  String get permissionNeeded => '需要权限';
+
+  @override
+  String get permissionBlockedInSettings => '权限在设置中被阻止';
+
+  @override
+  String get grantPermission => '授予权限';
+
+  @override
+  String get checkAgain => '再次检查';
+
+  @override
+  String get appName => '投屏到电视';
 }

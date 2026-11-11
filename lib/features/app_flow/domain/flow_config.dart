@@ -1,8 +1,8 @@
 /// Steps of the startup journey. Each maps to exactly one route.
 enum FlowStep {
   language('/language'),
-  onboarding('/onboarding'),
   paywall('/paywall?slot=first'),
+  onboarding('/onboarding'),
   paywallReturning('/paywall?slot=returning'),
   home('/home');
 
@@ -20,11 +20,11 @@ class FlowConfig {
   final bool returningPaywall;
 }
 
-/// Builds the ordered steps for this launch. Every screen appears at most
-/// once:
+/// Builds the ordered steps for this launch:
 ///
-/// First run:  Language → Onboarding → Paywall → Home
-/// Returning:  Paywall → Home
+/// Flow A (First-time non-premium): Splash → Language → Paywall → Onboarding → Home
+/// Flow B (Returning non-premium):   Splash → Paywall → Home
+/// Flow C (Premium user):            Splash → Home
 ///
 /// Finished milestones are skipped, so an interrupted first run resumes at
 /// the next unfinished step.
@@ -35,13 +35,19 @@ List<FlowStep> buildFlow({
   required bool languageChosen,
   required bool isPremium,
 }) {
-  return [
-    if (!firstLaunchCompleted) ...[
+  // Verified Premium (e.g. restored after a reinstall) still completes
+  // language + onboarding once, but never sees a paywall.
+  if (!firstLaunchCompleted) {
+    return [
       if (!languageChosen) FlowStep.language,
-      if (!onboardingDone) FlowStep.onboarding,
       if (config.firstRunPaywall && !isPremium) FlowStep.paywall,
-    ] else if (config.returningPaywall && !isPremium)
-      FlowStep.paywallReturning,
-    FlowStep.home,
-  ];
+      if (!onboardingDone) FlowStep.onboarding,
+      FlowStep.home,
+    ];
+  } else {
+    return [
+      if (config.returningPaywall && !isPremium) FlowStep.paywallReturning,
+      FlowStep.home,
+    ];
+  }
 }

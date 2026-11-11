@@ -18,7 +18,6 @@ class SettingsRepository {
   static const _onboarding = 'onboarding_done';
   static const _firstLaunch = 'first_launch_completed';
   static const _premium = 'is_premium';
-  static const _haptics = 'haptics_enabled';
   static const _buttonSound = 'button_sound';
   static const _remoteLayout = 'remote_layout';
   static const _lastDevice = 'last_device_id';
@@ -36,18 +35,19 @@ class SettingsRepository {
   }
 
   AppSettings load() {
+    final languageChosen = _prefs.getBool(_languageChosen) ?? false;
     return AppSettings(
-      themeMode: _enum(ThemeMode.values, _theme, ThemeMode.light),
+      themeMode: _enum(ThemeMode.values, _theme, ThemeMode.system),
       defaultQuality: _enum(MirrorQuality.values, _quality, MirrorQuality.auto),
       autoConnect: _prefs.getBool(_autoConnect) ?? true,
       connectionPreference: _enum(ConnectionPreference.values, _connection, ConnectionPreference.auto),
       audioOutput: _enum(AudioOutput.values, _audio, AudioOutput.tv),
-      languageCode: _prefs.getString(_language) ?? 'en',
-      languageChosen: _prefs.getBool(_languageChosen) ?? false,
+      // Until the user confirms a language, follow the device language (if supported).
+      languageCode: languageChosen ? (_prefs.getString(_language) ?? systemLanguageCode()) : systemLanguageCode(),
+      languageChosen: languageChosen,
       onboardingDone: _prefs.getBool(_onboarding) ?? false,
       firstLaunchCompleted: _prefs.getBool(_firstLaunch) ?? false,
       isPremium: _prefs.getBool(_premium) ?? false,
-      hapticsEnabled: _prefs.getBool(_haptics) ?? true,
       buttonSound: _prefs.getBool(_buttonSound) ?? false,
       remoteLayout: _enum(RemoteLayout.values, _remoteLayout, RemoteLayout.dpad),
       lastDeviceId: _prefs.getString(_lastDevice),
@@ -68,7 +68,6 @@ class SettingsRepository {
       _prefs.setBool(_onboarding, s.onboardingDone),
       _prefs.setBool(_firstLaunch, s.firstLaunchCompleted),
       _prefs.setBool(_premium, s.isPremium),
-      _prefs.setBool(_haptics, s.hapticsEnabled),
       _prefs.setBool(_buttonSound, s.buttonSound),
       _prefs.setInt(_remoteLayout, s.remoteLayout.index),
       if (s.lastDeviceId != null) _prefs.setString(_lastDevice, s.lastDeviceId!),

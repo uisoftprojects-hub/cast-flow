@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../../features/monetization/domain/ad_suppression.dart';
+
 /// Native helpers implemented in MainActivity.kt (Android only; no-ops
 /// elsewhere).
 abstract final class NetworkChannel {
@@ -27,12 +29,21 @@ abstract final class NetworkChannel {
 
   static Future<bool> openWifiSettings() async {
     if (!_android) return false;
+    AdSuppression.suppressNextAppOpen();
     return await _channel.invokeMethod<bool>('openWifiSettings').catchError((_) => false) ?? false;
+  }
+
+  /// Opens the system location settings screen.
+  static Future<bool> openLocationSettings() async {
+    if (!_android) return false;
+    AdSuppression.suppressNextAppOpen();
+    return await _channel.invokeMethod<bool>('openLocationSettings').catchError((_) => false) ?? false;
   }
 
   /// System tethering screen (falls back to wireless settings).
   static Future<bool> openHotspotSettings() async {
     if (!_android) return false;
+    AdSuppression.suppressNextAppOpen();
     return await _channel.invokeMethod<bool>('openHotspotSettings').catchError((_) => false) ?? false;
   }
 
@@ -47,6 +58,7 @@ abstract final class NetworkChannel {
   /// Opens the system Cast / Smart View screen. Returns false if none exists.
   static Future<bool> openCastSettings() async {
     if (!_android) return false;
+    AdSuppression.suppressNextAppOpen();
     return await _channel.invokeMethod<bool>('openCastSettings').catchError((_) => false) ?? false;
   }
 }

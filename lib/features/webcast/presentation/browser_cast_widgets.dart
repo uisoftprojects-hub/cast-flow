@@ -199,6 +199,7 @@ class VideoFoundBanner extends StatelessWidget {
 /// "Videos found (N)" sheet. Pops with the picked video.
 Future<WebVideo?> showVideosSheet(BuildContext context, List<WebVideo> videos) {
   return showModalBottomSheet<WebVideo>(
+    useRootNavigator: true,
     context: context,
     useSafeArea: true,
     isScrollControlled: true,

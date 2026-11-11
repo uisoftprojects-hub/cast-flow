@@ -19,6 +19,7 @@ import '../features/monetization/presentation/ad_diagnostics_screen.dart';
 import '../features/monetization/presentation/ad_manager.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/player/presentation/now_playing_screen.dart';
+import '../features/premium/domain/premium_status_service.dart';
 import '../features/premium/presentation/paywall_screen.dart';
 import '../features/remote/presentation/remote_screen.dart';
 import '../features/settings/presentation/faq_screen.dart';
@@ -68,6 +69,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final done = ref.read(settingsProvider).firstLaunchCompleted;
       if (!done && !_flowRoutes.contains(state.uri.path)) return '/splash';
+      // Never send an active subscriber to a paywall.
+      final premium = ref.read(premiumEntitlementProvider);
+      if (premium.isPremium && (state.uri.path == '/paywall' || state.uri.path == '/premium')) {
+        return done ? '/home' : null;
+      }
       return null;
     },
     routes: [

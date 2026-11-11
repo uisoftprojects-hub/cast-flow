@@ -39,35 +39,48 @@ enum RemoteLayout {
   final String label;
 }
 
-/// The 20 most widely used app languages, in display order.
+/// Supported app languages, in display order.
 /// Value: (native name, English name, flag). Arabic, Urdu and Persian are RTL.
 const supportedLanguages = <String, (String, String, String)>{
   'en': ('English', 'English', '🇺🇸'),
-  'es': ('Español', 'Spanish', '🇪🇸'),
-  'hi': ('हिन्दी', 'Hindi', '🇮🇳'),
   'ar': ('العربية', 'Arabic', '🇸🇦'),
-  'pt': ('Português', 'Portuguese', '🇧🇷'),
-  'bn': ('বাংলা', 'Bengali', '🇧🇩'),
-  'ru': ('Русский', 'Russian', '🇷🇺'),
-  'ur': ('اردو', 'Urdu', '🇵🇰'),
-  'id': ('Bahasa Indonesia', 'Indonesian', '🇮🇩'),
+  'bn': ('বাংলা', 'Bangla', '🇧🇩'),
+  'zh': ('汉语', 'Chinese', '🇨🇳'),
   'fr': ('Français', 'French', '🇫🇷'),
   'de': ('Deutsch', 'German', '🇩🇪'),
-  'ja': ('日本語', 'Japanese', '🇯🇵'),
-  'zh': ('中文', 'Chinese', '🇨🇳'),
-  'tr': ('Türkçe', 'Turkish', '🇹🇷'),
-  'ko': ('한국어', 'Korean', '🇰🇷'),
-  'vi': ('Tiếng Việt', 'Vietnamese', '🇻🇳'),
+  'hi': ('हिन्दी', 'Hindi', '🇮🇳'),
+  'id': ('Bahasa Indonesia', 'Indonesian', '🇮🇩'),
   'it': ('Italiano', 'Italian', '🇮🇹'),
+  'ms': ('Melayu', 'Malay', '🇲🇾'),
+  'nl': ('Nederlands', 'Dutch', '🇳🇱'),
+  'ru': ('Русский', 'Russian', '🇷🇺'),
+  'es': ('Español', 'Spanish', '🇪🇸'),
+  'tr': ('Türkçe', 'Turkish', '🇹🇷'),
+  'uk': ('Українська', 'Ukrainian', '🇺🇦'),
+  'pt': ('Português', 'Portuguese', '🇧🇷'),
+  'ko': ('한국어', 'Korean', '🇰🇷'),
   'th': ('ไทย', 'Thai', '🇹🇭'),
-  'fa': ('فارسی', 'Persian', '🇮🇷'),
+  'ja': ('日本語', 'Japanese', '🇯🇵'),
+  'vi': ('Tiếng Việt', 'Vietnamese', '🇻🇳'),
+  'uz': ('Oʻzbek', 'Uzbek', '🇺🇿'),
   'pl': ('Polski', 'Polish', '🇵🇱'),
+  'af': ('Afrikaans', 'Afrikaans', '🇿🇦'),
+  'fa': ('فارسی', 'Persian', '🇮🇷'),
+  'ur': ('اردو', 'Urdu', '🇵🇰'),
+  'fil': ('Filipino', 'Filipino', '🇵🇭'),
 };
+
+/// The device language when the app supports it, otherwise English.
+String systemLanguageCode() {
+  final code = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+  final normalized = code == 'tl' ? 'fil' : (code == 'in' ? 'id' : code);
+  return supportedLanguages.containsKey(normalized) ? normalized : 'en';
+}
 
 @immutable
 class AppSettings {
   const AppSettings({
-    this.themeMode = ThemeMode.light,
+    this.themeMode = ThemeMode.system,
     this.defaultQuality = MirrorQuality.auto,
     this.autoConnect = true,
     this.connectionPreference = ConnectionPreference.auto,
@@ -77,7 +90,6 @@ class AppSettings {
     this.onboardingDone = false,
     this.firstLaunchCompleted = false,
     this.isPremium = false,
-    this.hapticsEnabled = true,
     this.buttonSound = false,
     this.remoteLayout = RemoteLayout.dpad,
     this.lastDeviceId,
@@ -95,7 +107,6 @@ class AppSettings {
   final bool onboardingDone;
   final bool firstLaunchCompleted;
   final bool isPremium;
-  final bool hapticsEnabled;
   final bool buttonSound;
   final RemoteLayout remoteLayout;
   final String? lastDeviceId;
@@ -113,7 +124,6 @@ class AppSettings {
     bool? onboardingDone,
     bool? firstLaunchCompleted,
     bool? isPremium,
-    bool? hapticsEnabled,
     bool? buttonSound,
     RemoteLayout? remoteLayout,
     String? lastDeviceId,
@@ -131,7 +141,6 @@ class AppSettings {
       onboardingDone: onboardingDone ?? this.onboardingDone,
       firstLaunchCompleted: firstLaunchCompleted ?? this.firstLaunchCompleted,
       isPremium: isPremium ?? this.isPremium,
-      hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
       buttonSound: buttonSound ?? this.buttonSound,
       remoteLayout: remoteLayout ?? this.remoteLayout,
       lastDeviceId: lastDeviceId ?? this.lastDeviceId,

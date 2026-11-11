@@ -194,22 +194,17 @@ class NetworkDeviceRepository implements DeviceRepository {
   Future<void> _mdns(void Function(CastDevice) add, {String? interfaceIp}) async {
     final client = MDnsClient(
       // Android doesn't support SO_REUSEPORT on these sockets.
-      rawDatagramSocketFactory: (
-        dynamic host,
-        int port, {
-        bool reuseAddress = true,
-        bool reusePort = false,
-        int ttl = 1,
-      }) => RawDatagramSocket.bind(host, port, reuseAddress: true, reusePort: false, ttl: ttl),
+      rawDatagramSocketFactory:
+          (dynamic host, int port, {bool reuseAddress = true, bool reusePort = false, int ttl = 1}) =>
+              RawDatagramSocket.bind(host, port, reuseAddress: true, reusePort: false, ttl: ttl),
     );
     await client.start(
       // On the hotspot, query only on the AP interface.
       interfacesFactory: interfaceIp == null
           ? null
-          : (type) async =>
-                (await NetworkInterface.list(type: InternetAddressType.IPv4))
-                    .where((i) => i.addresses.any((a) => a.address == interfaceIp))
-                    .toList(),
+          : (type) async => (await NetworkInterface.list(
+              type: InternetAddressType.IPv4,
+            )).where((i) => i.addresses.any((a) => a.address == interfaceIp)).toList(),
     );
     try {
       for (final entry in _mdnsServices.entries) {
@@ -351,6 +346,10 @@ class NetworkDeviceRepository implements DeviceRepository {
   /// Confirms the receiver is reachable on its control port.
   @override
   Future<void> connect(CastDevice device) async {
+    if (device.type == DeviceType.miracast) return;
+    if (device.address.isEmpty) {
+      throw SocketException('${device.name} has no valid network address.');
+    }
     final port =
         device.port ??
         switch (device.type) {
@@ -361,7 +360,7 @@ class NetworkDeviceRepository implements DeviceRepository {
     try {
       final s = await Socket.connect(device.address, port, timeout: const Duration(seconds: 4));
       s.destroy();
-    } on SocketException {
+    } catch (_) {
       throw SocketException('${device.name} isn’t reachable. Make sure it’s on and on the same Wi-Fi.');
     }
   }

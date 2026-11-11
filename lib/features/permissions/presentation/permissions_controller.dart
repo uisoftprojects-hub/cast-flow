@@ -1,43 +1,64 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/app_providers.dart';
+import '../data/device_discovery_permission_service.dart';
 import '../domain/app_permission.dart';
 
-class FakePermissionService implements PermissionService {
-  FakePermissionService(this._mode);
-
-  final PreviewMode Function() _mode;
-
-  @override
-  Future<PermissionStatus> request(AppPermission permission) async {
-    await Future<void>.delayed(const Duration(milliseconds: 700));
-    return _mode() == PreviewMode.error ? PermissionStatus.denied : PermissionStatus.granted;
-  }
-}
-
-final permissionServiceProvider = Provider<PermissionService>(
-  (ref) => FakePermissionService(() => ref.read(previewModeProvider)),
+final discoveryPermissionServiceProvider = Provider<DiscoveryPermissionService>(
+  (ref) => DeviceDiscoveryPermissionService(),
 );
 
-class PermissionsController extends Notifier<Map<AppPermission, PermissionStatus>> {
-  @override
-  Map<AppPermission, PermissionStatus> build() => {
-    for (final p in AppPermission.values) p: PermissionStatus.notRequested,
-  };
+class FakeDiscoveryPermissionService implements DiscoveryPermissionService {
+  FakeDiscoveryPermissionService({
+    DiscoveryPermissionStatus initialStatus = DiscoveryPermissionStatus.granted,
+    this.requiresLocation = false,
+    this.locationServiceEnabled = true,
+  }) : _status = initialStatus;
 
-  Future<void> request(AppPermission p) async {
-    state = {...state, p: PermissionStatus.requesting};
-    final result = await ref.read(permissionServiceProvider).request(p);
-    state = {...state, p: result};
+  DiscoveryPermissionStatus _status;
+  final bool requiresLocation;
+  bool locationServiceEnabled;
+  int requestCallCount = 0;
+  int checkCallCount = 0;
+  bool openedSettings = false;
+  bool openedLocationSettings = false;
+
+  void setStatus(DiscoveryPermissionStatus s) {
+    _status = s;
   }
 
-  Future<void> requestAll() async {
-    for (final p in AppPermission.values) {
-      if (state[p] != PermissionStatus.granted) await request(p);
+  @override
+  Future<DiscoveryPermissionStatus> checkStatus() async {
+    checkCallCount++;
+    if (_status == DiscoveryPermissionStatus.granted && requiresLocation && !locationServiceEnabled) {
+      return DiscoveryPermissionStatus.locationServiceDisabled;
     }
+    return _status;
+  }
+
+  @override
+  Future<bool> isLocationRequired() async => requiresLocation;
+
+  @override
+  Future<bool> isLocationServiceEnabled() async => locationServiceEnabled;
+
+  @override
+  Future<DiscoveryPermissionStatus> requestPermission() async {
+    requestCallCount++;
+    if (_status == DiscoveryPermissionStatus.granted && requiresLocation && !locationServiceEnabled) {
+      return DiscoveryPermissionStatus.locationServiceDisabled;
+    }
+    return _status;
+  }
+
+  @override
+  Future<bool> openAppSettings() async {
+    openedSettings = true;
+    return true;
+  }
+
+  @override
+  Future<bool> openLocationSettings() async {
+    openedLocationSettings = true;
+    return true;
   }
 }
-
-final permissionsProvider = NotifierProvider<PermissionsController, Map<AppPermission, PermissionStatus>>(
-  PermissionsController.new,
-);

@@ -21,7 +21,6 @@ import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
-import '../../media/presentation/asset_thumbnail.dart';
 import '../domain/cast_media.dart';
 import 'player_controller.dart';
 
@@ -128,9 +127,7 @@ class _Preview extends StatelessWidget {
     final wide = media.kind != CastKind.music;
     final url = media.url ?? '';
     final Widget image;
-    if (url.startsWith('asset:')) {
-      image = AssetThumbnail(assetId: url.substring(6), radius: AppRadius.xl);
-    } else if (!kIsWeb && media.kind == CastKind.photo && url.isNotEmpty && File(url).existsSync()) {
+    if (!kIsWeb && media.kind == CastKind.photo && url.isNotEmpty && File(url).existsSync()) {
       image = ClipRRect(
         borderRadius: BorderRadius.circular(AppRadius.xl),
         child: Image.file(File(url), fit: BoxFit.cover),
@@ -278,6 +275,7 @@ class _QueueBar extends StatelessWidget {
     final next = state.hasNext ? state.queue[state.index + 1] : null;
     return TapScale(
       onTap: () => showModalBottomSheet<void>(
+        useRootNavigator: true,
         context: context,
         isScrollControlled: true,
         useSafeArea: true,
@@ -403,7 +401,6 @@ class _QueueSheet extends ConsumerWidget {
                 itemBuilder: (context, i) {
                   final m = s.queue[i];
                   final current = i == s.index;
-                  final url = m.url ?? '';
                   return TapScale(
                     onTap: current ? null : () => ctrl.jumpTo(i),
                     semanticLabel: l.play2(m.title),
@@ -418,9 +415,7 @@ class _QueueSheet extends ConsumerWidget {
                         children: [
                           SizedBox.square(
                             dimension: 52,
-                            child: url.startsWith('asset:')
-                                ? AssetThumbnail(assetId: url.substring(6), radius: AppRadius.sm)
-                                : MediaArt(seed: m.seed, icon: m.kind.icon, iconSize: 20, radius: AppRadius.sm),
+                            child: MediaArt(seed: m.seed, icon: m.kind.icon, iconSize: 20, radius: AppRadius.sm),
                           ),
                           const SizedBox(width: AppSpace.md),
                           Expanded(

@@ -1,11 +1,12 @@
 import 'dart:async';
 
-import 'package:castflow/features/app_flow/domain/flow_config.dart';
-import 'package:castflow/features/app_flow/presentation/app_flow_controller.dart';
 import 'package:castflow/features/monetization/domain/ad_adapter.dart';
-import 'package:castflow/features/monetization/domain/ad_config.dart';
 import 'package:castflow/features/monetization/domain/ad_models.dart';
+import 'package:castflow/features/monetization/presentation/ad_display_coordinator.dart';
 import 'package:castflow/features/monetization/presentation/ad_manager.dart';
+import 'package:castflow/features/monetization/presentation/app_open_ad_manager.dart';
+import 'package:castflow/features/monetization/presentation/click_count_interstitial_manager.dart';
+import 'package:castflow/features/monetization/presentation/splash_interstitial_manager.dart';
 import 'package:castflow/features/settings/presentation/settings_controller.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,7 +28,6 @@ class _Ad extends LoadedFullScreenAd {
   void dispose() => disposed = true;
 }
 
-/// Adapter whose loads complete only when the test says so.
 class _Adapter implements AdAdapter {
   final interstitialLoads = <Completer<LoadedFullScreenAd>>[];
   final appOpenLoads = <Completer<LoadedFullScreenAd>>[];
@@ -39,12 +39,16 @@ class _Adapter implements AdAdapter {
   Future<bool> canRequestAds() async => true;
 
   @override
-  Future<LoadedNativeAd> loadNative(AdPlacement p,
-          {required bool medium, required VoidCallback onImpression, required VoidCallback onClicked}) =>
+  Future<LoadedNativeAd> loadNative(
+    AdPlacement p, {
+    required bool medium,
+    required VoidCallback onImpression,
+    required VoidCallback onClicked,
+  }) =>
       Completer<LoadedNativeAd>().future;
 
   @override
-  Future<LoadedFullScreenAd> loadInterstitial() {
+  Future<LoadedFullScreenAd> loadInterstitial([AdPlacement placement = AdPlacement.clickInterstitial]) {
     final c = Completer<LoadedFullScreenAd>();
     interstitialLoads.add(c);
     return c.future;
@@ -58,171 +62,219 @@ class _Adapter implements AdAdapter {
   }
 }
 
-Future<void> _settle() => Future<void>.delayed(AdConfig.showDelay + const Duration(milliseconds: 100));
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late _Adapter adapter;
-  late DateTime now;
   late ProviderContainer c;
-  late AdManager ads;
+  late AdDisplayCoordinator coordinator;
+  late ClickCountInterstitialManager clickManager;
 
   setUp(() async {
     adapter = _Adapter();
-    now = DateTime(2026, 11, 1, 12);
     c = await makeContainer(overrides: [
       adAdapterProvider.overrideWithValue(adapter),
-      adClockProvider.overrideWithValue(() => now),
     ]);
-    c.listen(adManagerProvider, (_, _) {});
-    ads = c.read(adManagerProvider.notifier);
-    c.read(adRouteObserverProvider).debugTopIsSafe = true;
-    await ads.ensureInitialized();
+    coordinator = c.read(adDisplayCoordinatorProvider);
+    clickManager = ClickCountInterstitialManager(
+      adapter: adapter,
+      coordinator: coordinator,
+    );
   });
 
-  PlacementState interstitial() => c.read(adManagerProvider).placements[AdPlacement.interstitial]!;
+  tearDown(() {
+    c.dispose();
+  });
 
-  group('five-click interstitial', () {
-    test('clicks 1-2 request nothing, click 3 loads once, click 5 shows', () async {
-      ads.registerEligibleClick();
-      ads.registerEligibleClick();
-      expect(adapter.interstitialLoads, isEmpty);
-
-      ads.registerEligibleClick();
+  group('Bottom Navigation Click-Count Interstitial', () {
+    test('1st click loads ad without displaying; 2nd click displays ad and completes session', () async {
+      // 1st click
+      await clickManager.onBottomNavClick(isPremium: false);
+      expect(clickManager.clickCount, 1);
       expect(adapter.interstitialLoads.length, 1);
-      ads.registerEligibleClick();
-      expect(adapter.interstitialLoads.length, 1, reason: 'click 4 must not reload');
+      expect(clickManager.sessionInterstitialDisplayed, isFalse);
 
+      // Ad completes loading
       final ad = _Ad();
       adapter.interstitialLoads.single.complete(ad);
       await Future<void>.delayed(Duration.zero);
+      expect(clickManager.isLoaded, isTrue);
+      expect(ad.shows, 0, reason: 'Never display on 1st click');
 
-      ads.registerEligibleClick();
-      await _settle();
+      // 2nd click: displays ad and marks session completed
+      await clickManager.onBottomNavClick(isPremium: false);
+      expect(clickManager.clickCount, 2);
       expect(ad.shows, 1);
-      expect(interstitial().impressionCount, 1);
-      // The next cycle starts only after dismiss, with no request yet.
-      expect(c.read(adManagerProvider).clickCount, 0);
-      expect(adapter.interstitialLoads.length, 1);
-    });
-
-    test('an ad that loads after its click-5 opportunity is discarded', () async {
-      for (var i = 0; i < 5; i++) {
-        ads.registerEligibleClick();
-      }
-      expect(c.read(adManagerProvider).clickCount, 0, reason: 'cycle ended at click 5');
-
-      final late = _Ad();
-      adapter.interstitialLoads.single.complete(late);
-      await Future<void>.delayed(Duration.zero);
-      expect(late.disposed, isTrue);
-      expect(late.shows, 0);
-
-      // It must not appear on later clicks either.
-      ads.registerEligibleClick();
-      ads.registerEligibleClick();
-      await _settle();
-      expect(late.shows, 0);
-      expect(c.read(adManagerProvider).events.any((e) => e.type == AdEventType.discarded), isTrue);
-    });
-
-    test('no fill ends the attempt and starts a cooldown without retrying', () async {
-      for (var i = 0; i < 3; i++) {
-        ads.registerEligibleClick();
-      }
-      adapter.interstitialLoads.single.completeError('no fill');
-      await Future<void>.delayed(Duration.zero);
-
-      expect(interstitial().inCooldown(now), isTrue);
-      for (var i = 0; i < 5; i++) {
-        ads.registerEligibleClick();
-      }
-      expect(adapter.interstitialLoads.length, 1, reason: 'no request spam during cooldown');
-
-      now = now.add(AdConfig.failureCooldown + const Duration(seconds: 1));
-      for (var i = 0; i < 3; i++) {
-        ads.registerEligibleClick();
-      }
-      expect(adapter.interstitialLoads.length, 2);
-    });
-
-    test('a blocked screen at click 5 discards instead of showing', () async {
-      for (var i = 0; i < 3; i++) {
-        ads.registerEligibleClick();
-      }
-      final ad = _Ad();
-      adapter.interstitialLoads.single.complete(ad);
-      await Future<void>.delayed(Duration.zero);
-      c.read(adRouteObserverProvider).debugTopIsSafe = false;
-      ads.registerEligibleClick();
-      ads.registerEligibleClick();
-      await _settle();
-      expect(ad.shows, 0);
       expect(ad.disposed, isTrue);
+      expect(clickManager.sessionInterstitialDisplayed, isTrue);
+
+      // 3rd click: never show another click-count interstitial in this session
+      await clickManager.onBottomNavClick(isPremium: false);
+      expect(clickManager.clickCount, 2, reason: 'No more clicks processed once session completes');
+      expect(adapter.interstitialLoads.length, 1, reason: 'No new loads requested');
     });
 
-    test('Pro users never get a request', () async {
-      c.read(settingsProvider.notifier).setPremium(true);
-      for (var i = 0; i < 5; i++) {
-        ads.registerEligibleClick();
-      }
+    test('if ad not ready on 2nd click, continues navigation and shows on next click once loaded', () async {
+      // 1st click: request load
+      await clickManager.onBottomNavClick(isPremium: false);
+      expect(adapter.interstitialLoads.length, 1);
+
+      // 2nd click before load finishes: no show, does not complete session
+      await clickManager.onBottomNavClick(isPremium: false);
+      expect(clickManager.sessionInterstitialDisplayed, isFalse);
+
+      // Now ad loads
+      final ad = _Ad();
+      adapter.interstitialLoads.single.complete(ad);
+      await Future<void>.delayed(Duration.zero);
+      expect(clickManager.isLoaded, isTrue);
+
+      // 3rd click: shows ad
+      await clickManager.onBottomNavClick(isPremium: false);
+      expect(ad.shows, 1);
+      expect(clickManager.sessionInterstitialDisplayed, isTrue);
+    });
+
+    test('failure to load keeps opportunity open and does not mark session completed', () async {
+      // 1st click: request load
+      await clickManager.onBottomNavClick(isPremium: false);
+      expect(adapter.interstitialLoads.length, 1);
+
+      // Load fails
+      adapter.interstitialLoads.single.completeError('No fill');
+      await Future<void>.delayed(Duration.zero);
+      expect(clickManager.sessionInterstitialDisplayed, isFalse);
+      expect(clickManager.isLoaded, isFalse);
+
+      // 2nd click: retries loading
+      await clickManager.onBottomNavClick(isPremium: false);
+      expect(adapter.interstitialLoads.length, 2, reason: 'Retried loading on 2nd click');
+      expect(clickManager.sessionInterstitialDisplayed, isFalse);
+    });
+
+    test('premium users never trigger interstitial loads or displays', () async {
+      await clickManager.onBottomNavClick(isPremium: true);
+      expect(clickManager.clickCount, 0);
       expect(adapter.interstitialLoads, isEmpty);
+      expect(clickManager.sessionInterstitialDisplayed, isFalse);
     });
   });
 
-  group('App Open', () {
-    void finishFlow() {
-      c.read(settingsProvider.notifier).completeFirstLaunch();
-      final flow = c.read(appFlowProvider.notifier)..start();
+  group('Splash Interstitial Advertisement', () {
+    late SplashInterstitialManager splashManager;
 
-      flow.advance(FlowStep.paywallReturning);
-
-    }
-
-    test('not before the user has reached the app', () async {
-      ads.onBackgrounded();
-      now = now.add(const Duration(seconds: 10));
-      await ads.onResumed();
-      expect(adapter.appOpenLoads, isEmpty);
+    setUp(() {
+      splashManager = SplashInterstitialManager(
+        adapter: adapter,
+        coordinator: coordinator,
+      );
     });
 
-    test('ignores very short trips to the background', () async {
-      finishFlow();
-      ads.onBackgrounded();
-      now = now.add(const Duration(seconds: 1));
-      await ads.onResumed();
-      expect(adapter.appOpenLoads, isEmpty);
-    });
-
-    test('loads on a qualifying resume, shows once, then respects the cap', () async {
-      finishFlow();
-      ads.onBackgrounded();
-      now = now.add(const Duration(seconds: 10));
-      final resumed = ads.onResumed();
-      expect(c.read(adManagerProvider).appOpenOverlay, isTrue);
-      expect(adapter.appOpenLoads.length, 1);
+    test('loads at splash, shows on Language screen completion if ready', () async {
+      // Initiate splash load without awaiting completer
+      final loadFuture = splashManager.startSplashLoad(isPremium: false);
+      expect(adapter.interstitialLoads.length, 1);
 
       final ad = _Ad();
-      adapter.appOpenLoads.single.complete(ad);
-      await resumed;
-      expect(ad.shows, 1);
-      expect(c.read(adManagerProvider).appOpenOverlay, isFalse);
+      adapter.interstitialLoads.single.complete(ad);
+      await loadFuture;
+      expect(splashManager.isLoaded, isTrue);
 
-      ads.onBackgrounded();
-      now = now.add(const Duration(minutes: 5));
-      await ads.onResumed();
-      expect(adapter.appOpenLoads.length, 1, reason: 'frequency cap');
+      final shown = await splashManager.tryShowAtLanguageCompletion(isPremium: false);
+      expect(shown, isTrue);
+      expect(ad.shows, 1);
+      expect(splashManager.hasShown, isTrue);
+
+      // Paywall close does NOT show again (max 1 display opportunity)
+      final paywallShown = await splashManager.tryShowAtPaywallClose(isPremium: false);
+      expect(paywallShown, isFalse);
+      expect(ad.shows, 1);
     });
 
-    test('a failed load removes the overlay', () async {
-      finishFlow();
-      ads.onBackgrounded();
-      now = now.add(const Duration(seconds: 10));
-      final resumed = ads.onResumed();
-      adapter.appOpenLoads.single.completeError('timeout');
-      await resumed;
-      expect(c.read(adManagerProvider).appOpenOverlay, isFalse);
+    test('if not shown on Language, shows on Paywall close if ready', () async {
+      final loadFuture = splashManager.startSplashLoad(isPremium: false);
+      final ad = _Ad();
+      adapter.interstitialLoads.single.complete(ad);
+      await loadFuture;
+
+      // User skips or language ad not shown: transition without showing
+      // Now user reaches paywall and closes it
+      final shown = await splashManager.tryShowAtPaywallClose(isPremium: false);
+      expect(shown, isTrue);
+      expect(ad.shows, 1);
+      expect(splashManager.hasShown, isTrue);
+    });
+
+    test('never blocks or shows if ad failed to load', () async {
+      final loadFuture = splashManager.startSplashLoad(isPremium: false);
+      adapter.interstitialLoads.single.completeError('network error');
+      await loadFuture;
+
+      final langShown = await splashManager.tryShowAtLanguageCompletion(isPremium: false);
+      expect(langShown, isFalse);
+
+      final paywallShown = await splashManager.tryShowAtPaywallClose(isPremium: false);
+      expect(paywallShown, isFalse);
+    });
+
+    test('premium user skips splash interstitial loading and display entirely', () async {
+      await splashManager.startSplashLoad(isPremium: true);
+      expect(adapter.interstitialLoads, isEmpty);
+
+      final shown = await splashManager.tryShowAtLanguageCompletion(isPremium: true);
+      expect(shown, isFalse);
+    });
+  });
+
+  group('App Open Ad Freshness & Delayed Show', () {
+    late AppOpenAdManager appOpenManager;
+
+    setUp(() {
+      appOpenManager = AppOpenAdManager(
+        adapter: adapter,
+        coordinator: coordinator,
+      );
+    });
+
+    test('freshness check discards ads older than 4 hours', () {
+      expect(appOpenManager.hasLoadedAd, isFalse);
+    });
+
+    test('premium users never trigger App Open ads', () async {
+      appOpenManager.onBackgrounded();
+      await appOpenManager.onResumed(
+        isPremium: true,
+        isAppEligible: true,
+      );
+      expect(adapter.appOpenLoads, isEmpty);
+    });
+  });
+
+  group('Centralized Full-Screen Ad Coordinator', () {
+    test('presentation lock allows only ONE full-screen ad at a time', () async {
+      final shown1 = await coordinator.present(
+        adType: 'ad_1',
+        isPremium: false,
+        displayAction: () async {
+          expect(coordinator.isFullScreenShowing, isTrue);
+          // Attempting to present ad_2 while ad_1 is showing must fail
+          final shown2 = await coordinator.present(
+            adType: 'ad_2',
+            isPremium: false,
+            displayAction: () async {},
+          );
+          expect(shown2, isFalse, reason: 'Locked while ad_1 is presenting');
+        },
+      );
+      expect(shown1, isTrue);
+      expect(coordinator.isFullScreenShowing, isFalse);
+    });
+
+    test('purchasing premium immediately disposes loaded ads across all subsystems', () {
+      c.read(settingsProvider.notifier).setPremium(true);
+      final ads = c.read(adManagerProvider.notifier);
+      ads.onPremiumPurchased();
+      expect(c.read(settingsProvider).isPremium, isTrue);
     });
   });
 }

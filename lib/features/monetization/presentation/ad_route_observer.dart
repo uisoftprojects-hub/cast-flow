@@ -25,10 +25,7 @@ class AdRouteObserver extends NavigatorObserver {
     '/paywall',
     '/premium',
     '/language',
-    '/settings/language',
     '/onboarding',
-    '/connect',
-    '/mirror',
     '/ad-loading',
   };
 
@@ -43,8 +40,6 @@ class AdRouteObserver extends NavigatorObserver {
     if (debugTopIsSafe != null) return debugTopIsSafe!;
     if (_stack.isEmpty) return false;
     final top = _stack.last;
-    // Dialogs, bottom sheets and system-style popups (permission prompts).
-    if (top is PopupRoute) return false;
     final name = top.settings.name;
     return name == null || !blockedRoutes.contains(name);
   }

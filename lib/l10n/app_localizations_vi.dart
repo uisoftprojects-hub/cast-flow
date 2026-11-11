@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -310,7 +309,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get couldntOpenTheLink => 'Không thể mở liên kết.';
 
   @override
-  String get castflowLogo => 'Logo CastFlow';
+  String get castflowLogo => 'Logo Cast to TV';
 
   @override
   String get somethingWentWrong => 'Đã xảy ra lỗi';
@@ -340,7 +339,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get roku => 'Roku';
 
   @override
-  String get dlnaRenderer => 'DLNA renderer';
+  String get dlnaRenderer => 'Trình kết xuất DLNA';
 
   @override
   String get miracast => 'Miracast';
@@ -465,7 +464,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get openDevicesInCastflow =>
-      'Mở Thiết bị trong CastFlow và đợi vài giây để TV xuất hiện.';
+      'Mở Thiết bị trong Cast to TV và đợi vài giây để TV xuất hiện.';
 
   @override
   String get tapConnect => 'Chạm Kết nối';
@@ -510,7 +509,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get livingRoomTv => 'TV phòng khách';
 
   @override
-  String get allowCastflowToConnect => 'Cho phép CastFlow kết nối?';
+  String get allowCastflowToConnect => 'Cho phép Cast to TV kết nối?';
 
   @override
   String get deny => 'Từ chối';
@@ -562,7 +561,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get allowCastflowToFind =>
-      'Cho phép CastFlow tìm thiết bị trên mạng của bạn khi được hỏi.';
+      'Cho phép Cast to TV tìm thiết bị trên mạng của bạn khi được hỏi.';
 
   @override
   String get noTvFound => 'Không tìm thấy TV';
@@ -1221,7 +1220,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get noAds => 'Không quảng cáo';
 
   @override
-  String get welcomeToCastflowPro => 'Chào mừng đến với CastFlow Pro!';
+  String get welcomeToCastflowPro => 'Chào mừng đến với Cast to TV Pro!';
 
   @override
   String get purchaseCancelled => 'Đã hủy giao dịch mua.';
@@ -1461,7 +1460,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get canCastflowTurnMy =>
-      'CastFlow có thể bật TV hoặc đổi đầu vào không?';
+      'Cast to TV có thể bật TV hoặc đổi đầu vào không?';
 
   @override
   String get onlyOnTvsThat =>
@@ -1482,7 +1481,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get noEmailAppFound => 'Không tìm thấy ứng dụng email.';
 
   @override
-  String get enjoyingCastflow => 'Bạn thích CastFlow chứ?';
+  String get enjoyingCastflow => 'Bạn thích Cast to TV chứ?';
 
   @override
   String get sorryToHearThat => 'Chúng tôi rất tiếc';
@@ -1513,32 +1512,19 @@ class AppLocalizationsVi extends AppLocalizations {
       'Hãy đánh giá trải nghiệm trước khi rời đi.';
 
   @override
-  String get tapAStarTo => 'Chạm một ngôi sao để đánh giá CastFlow.';
+  String get tapAStarTo => 'Chạm một ngôi sao để đánh giá Cast to TV.';
 
   @override
   String get general => 'Chung';
 
   @override
-  String get english => 'English';
+  String get english => 'Tiếng Anh';
 
   @override
   String get defaultQuality => 'Chất lượng mặc định';
 
   @override
   String get autoConnectToLast => 'Tự động kết nối TV gần nhất';
-
-  @override
-  String get hapticFeedback => 'Phản hồi xúc giác';
-
-  @override
-  String get clearCastingHistory => 'Xóa lịch sử truyền';
-
-  @override
-  String get clearCastingHistory2 => 'Xóa lịch sử truyền?';
-
-  @override
-  String get onlyCastflowsListIs =>
-      'Chỉ danh sách của CastFlow bị xóa. Phương tiện trên điện thoại không bao giờ bị xóa.';
 
   @override
   String get appearance => 'Giao diện';
@@ -1568,13 +1554,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get version => 'Phiên bản';
 
   @override
-  String get castflowProIsActive => 'CastFlow Pro đang hoạt động';
+  String get castflowProIsActive => 'Cast to TV Pro đang hoạt động';
 
   @override
   String get upgradeToPremium => 'Nâng cấp lên Premium';
 
   @override
-  String get castflowPremium => 'CastFlow Premium';
+  String get castflowPremium => 'Truyền lên TV Premium';
 
   @override
   String get thanksForYourSupport =>
@@ -1686,4 +1672,54 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get noWifiAlertMessage =>
       'Bạn đang dùng dữ liệu di động. Hãy kết nối điện thoại và TV vào cùng một Wi-Fi, hoặc bật điểm phát sóng của điện thoại rồi kết nối TV vào đó.';
+
+  @override
+  String get checkingNetwork => 'Đang kiểm tra mạng...';
+
+  @override
+  String get discoveryStopped => 'Đã dừng tìm kiếm';
+
+  @override
+  String get discoveryStoppedHint =>
+      'Đã dừng tìm kiếm. Nhấn vào tìm kiếm để tìm các thiết bị lân cận.';
+
+  @override
+  String get search => 'Tìm kiếm';
+
+  @override
+  String get permissionNeededToDiscover =>
+      'Cần có quyền vị trí để phát hiện thiết bị trên Wi-Fi.';
+
+  @override
+  String get locationServicesDisabled => 'Dịch vụ vị trí bị vô hiệu hóa';
+
+  @override
+  String get openLocationSettings => 'Mở cài đặt vị trí';
+
+  @override
+  String get openAppSettings => 'Mở cài đặt ứng dụng';
+
+  @override
+  String get subscriptionExpired => 'Gói đăng ký của bạn đã hết hạn.';
+
+  @override
+  String get noPurchasesFound => 'Không tìm thấy giao dịch mua trước đó.';
+
+  @override
+  String get restore => 'Khôi phục';
+
+  @override
+  String get permissionNeeded => 'Cần có quyền';
+
+  @override
+  String get permissionBlockedInSettings => 'Quyền bị chặn trong Cài đặt';
+
+  @override
+  String get grantPermission => 'Cấp quyền';
+
+  @override
+  String get checkAgain => 'Kiểm tra lại';
+
+  @override
+  String get appName => 'Truyền lên TV';
 }

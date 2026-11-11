@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
+import '../../../../core/l10n.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_tokens.dart';
 import '../../../../core/widgets/buttons.dart';
@@ -11,7 +12,7 @@ import '../../../../core/widgets/soft_card.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../domain/cast_device.dart';
 import '../device_providers.dart';
-import '../../../../core/l10n.dart';
+import 'discovery_permission_cards.dart';
 import 'network_widgets.dart';
 import 'no_devices_found.dart';
 import 'tv_radar.dart';
@@ -19,6 +20,7 @@ import 'tv_radar.dart';
 /// Opens the quick "Find your TV" sheet used by the Home connection bar.
 Future<void> showFindTvSheet(BuildContext context) {
   return showModalBottomSheet<void>(
+    useRootNavigator: true,
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -34,35 +36,50 @@ class FindTvSheet extends ConsumerStatefulWidget {
 }
 
 class _FindTvSheetState extends ConsumerState<FindTvSheet> {
+  AppLifecycleListener? _lifecycle;
+
   @override
   void initState() {
     super.initState();
+    _lifecycle = AppLifecycleListener(onResume: () => ref.read(discoveryProvider.notifier).recheckPermissions());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final conn = ref.read(connectionProvider);
       final d = ref.read(discoveryProvider);
-      // Start finding TVs as soon as the sheet opens.
-      if (!conn.isConnected && !d.scanning) ref.read(discoveryProvider.notifier).scan();
+      if (!conn.isConnected && !d.scanning && d.phase == DiscoveryPhase.initial) {
+        ref.read(discoveryProvider.notifier).checkPermissionsAndStart(userInitiatedRequest: false);
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _lifecycle?.dispose();
+    super.dispose();
   }
 
   Future<void> _connect(CastDevice device) async {
     final ok = await ref.read(connectionProvider.notifier).connect(device);
     if (!mounted) return;
     if (ok) {
-      // Let the connected pulse play, then close.
       await Future<void>.delayed(const Duration(milliseconds: 900));
       if (mounted) Navigator.of(context).pop();
     }
-    // Failure is shown inline by ConnectFailedCard.
   }
 
   @override
   Widget build(BuildContext context) {
     final discovery = ref.watch(discoveryProvider);
     final conn = ref.watch(connectionProvider);
-    final scan = ref.read(discoveryProvider.notifier).scan;
+    final notifier = ref.read(discoveryProvider.notifier);
+    final scan = notifier.scan;
     final l = context.l10n;
+
+    final isPermissionBlocked =
+        discovery.phase == DiscoveryPhase.permissionRequired ||
+        discovery.phase == DiscoveryPhase.permissionDenied ||
+        discovery.phase == DiscoveryPhase.permissionPermanentlyDenied ||
+        discovery.phase == DiscoveryPhase.locationServicesDisabled;
 
     final Widget body;
     if (conn.isConnected) {
@@ -71,14 +88,33 @@ class _FindTvSheetState extends ConsumerState<FindTvSheet> {
       body = ConnectFailedCard(onRetry: () => _connect(conn.device!), onScanAgain: scan);
     } else if (discovery.networkRequired) {
       body = const NetworkRequiredCard();
+    } else if (isPermissionBlocked) {
+      body = DiscoveryPermissionCard(
+        phase: discovery.phase,
+        requiresLocation: discovery.requiresLocation,
+        onGrant: notifier.grantPermission,
+        onOpenSettings: notifier.openSettings,
+        onOpenLocationSettings: notifier.openLocationSettings,
+        onRecheck: notifier.recheckPermissions,
+      );
     } else if (discovery.error != null) {
       body = ErrorState(message: discovery.error, onRetry: scan);
-    } else if (!discovery.scanning && discovery.devices.isEmpty) {
+    } else if (!discovery.scanning && discovery.devices.isEmpty && discovery.phase != DiscoveryPhase.stopped) {
       body = NoDevicesFound(onRetry: scan, compact: true);
     } else {
-      final status = discovery.devices.isNotEmpty
-          ? l.devicesFound(discovery.devices.length)
-          : (discovery.hotspot ? l.waitingForTvOnHotspot : l.searchingDevices);
+      final String status;
+      if (discovery.phase == DiscoveryPhase.checkingConnectivity) {
+        status = l.checkingNetwork;
+      } else if (discovery.phase == DiscoveryPhase.stopped) {
+        status = l.discoveryStopped;
+      } else if (discovery.devices.isNotEmpty) {
+        status = l.devicesFound(discovery.devices.length);
+      } else if (discovery.hotspot) {
+        status = l.waitingForTvOnHotspot;
+      } else {
+        status = l.searchingDevices;
+      }
+
       body = Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -119,9 +155,20 @@ class _FindTvSheetState extends ConsumerState<FindTvSheet> {
               child: _DeviceRow(device: d, connection: conn, onConnect: () => _connect(d)),
             ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.15, end: 0),
           const SizedBox(height: AppSpace.sm),
-          TintedButton(label: l.retry, icon: Iconsax.refresh_copy, onPressed: scan),
-          // Once the search is done, hotspot help sits at the bottom.
-          if (!discovery.scanning && !discovery.hotspot) ...[
+          Row(
+            children: [
+              if (discovery.scanning) ...[
+                Expanded(
+                  child: TintedButton(label: l.stop, icon: Iconsax.stop_circle_copy, onPressed: notifier.stop),
+                ),
+                const SizedBox(width: AppSpace.sm),
+              ],
+              Expanded(
+                child: TintedButton(label: l.retry, icon: Iconsax.refresh_copy, onPressed: scan),
+              ),
+            ],
+          ),
+          if (!discovery.scanning && !discovery.hotspot && discovery.devices.isEmpty) ...[
             const SizedBox(height: AppSpace.lg),
             const StillCantFindCard(),
           ],

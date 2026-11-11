@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,10 +12,20 @@ import 'core/storage/local_store.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
+  );
+  // Independent startup work runs in parallel so the first frame appears sooner.
+  final firebaseFuture = FirebaseAnalyticsSink.tryCreate();
+  final prefsFuture = SharedPreferences.getInstance();
   await Hive.initFlutter();
   final store = await LocalStore.open();
-  final firebase = await FirebaseAnalyticsSink.tryCreate();
+  final prefs = await prefsFuture;
+  final firebase = await firebaseFuture;
   await purgeDemoDevices(
     store,
     lastDeviceId: prefs.getString('last_device_id'),

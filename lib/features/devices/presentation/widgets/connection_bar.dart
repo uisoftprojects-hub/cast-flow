@@ -112,33 +112,24 @@ class ConnectionBar extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              // Mini radar while searching; device icon otherwise.
-              PulseRipple(
-                size: 40,
-                rings: 2,
-                active: state == _BarState.searching || state == _BarState.connecting,
-                color: tone,
-                duration: const Duration(milliseconds: 1400),
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: tone.withValues(alpha: state == _BarState.connected ? 1 : 0.14),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    state == _BarState.searching
-                        ? Iconsax.radar_2_copy
-                        : (conn.device?.type.icon ?? Iconsax.monitor_copy),
-                    size: 17,
-                    color: state == _BarState.connected ? Colors.white : tone,
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpace.sm),
+              // Mini radar while searching; a plain icon (no extra halo space) otherwise.
+              if (state == _BarState.searching || state == _BarState.connecting)
+                PulseRipple(
+                  size: 40,
+                  rings: 2,
+                  color: tone,
+                  duration: const Duration(milliseconds: 1400),
+                  child: _icon(conn, state, tone),
+                )
+              else
+                _icon(conn, state, tone),
+              const SizedBox(width: 10),
               Expanded(
                 child: AnimatedSwitcher(
                   duration: AppDurations.medium,
+                  // Default is centred, which pushed the text away from the icon.
+                  layoutBuilder: (current, previous) =>
+                      Stack(alignment: AlignmentDirectional.centerStart, children: [...previous, ?current]),
                   child: Column(
                     key: ValueKey('$state$title'),
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,3 +168,17 @@ class _Pill extends StatelessWidget {
     child: child,
   );
 }
+
+Widget _icon(CastConnection conn, _BarState state, Color tone) => Container(
+  width: 32,
+  height: 32,
+  decoration: BoxDecoration(
+    color: tone.withValues(alpha: state == _BarState.connected ? 1 : 0.14),
+    borderRadius: BorderRadius.circular(10),
+  ),
+  child: Icon(
+    state == _BarState.searching ? Iconsax.radar_2_copy : (conn.device?.type.icon ?? Iconsax.monitor_copy),
+    size: 17,
+    color: state == _BarState.connected ? Colors.white : tone,
+  ),
+);

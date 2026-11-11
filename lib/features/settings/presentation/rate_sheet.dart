@@ -18,6 +18,7 @@ import '../../../core/l10n.dart';
 /// are cleared. 1–3 stars → feedback, 4–5 stars → store rating.
 Future<void> showRateSheet(BuildContext context, {bool exit = false}) {
   return showModalBottomSheet<void>(
+    useRootNavigator: true,
     context: context,
     useSafeArea: true,
     isScrollControlled: true,

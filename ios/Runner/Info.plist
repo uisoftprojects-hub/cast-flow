@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>CastFlow</string>
+	<string>Cast to TV</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -75,10 +75,17 @@
 		<string>mailto</string>
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>CastFlow finds TVs and streaming devices on your Wi-Fi.</string>
+	<string>Cast to TV finds TVs and streaming devices on your Wi-Fi.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Cast to TV uses location access to discover nearby Wi-Fi devices and verify network connectivity.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Cast to TV uses Bluetooth to discover and connect to nearby TVs.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Cast to TV uses Bluetooth to discover and connect to nearby TVs.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_googlecast._tcp</string>
+		<string>_androidtvremote2._tcp</string>
 	</array>
 </dict>
 </plist>

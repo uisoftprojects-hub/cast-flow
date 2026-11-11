@@ -1,7 +1,18 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    // Firebase: reads android/app/google-services.json
+    id("com.google.gms.google-services")
+}
+
+// Release signing: android/key.properties (git-ignored). Keystore path is relative to android/app.
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
 }
 
 android {
@@ -15,8 +26,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.castflow.castflow"
+        applicationId = "com.smarttvcast.screenmirror"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24
@@ -29,11 +39,74 @@ android {
         versionName = flutter.versionName
     }
 
+    buildFeatures {
+        buildConfig = true
+        resValues = true
+    }
+
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+            }
+        }
+    }
+
     buildTypes {
+        debug {
+            // Official Google AdMob test IDs for debug mode - NEVER use production IDs in debug
+            val testAppId = "ca-app-pub-3940256099942544~3347511713"
+            val testAppOpenId = "ca-app-pub-3940256099942544/9257395921"
+            val testNativeId = "ca-app-pub-3940256099942544/2247696110"
+            val testInterstitialId = "ca-app-pub-3940256099942544/1033173712"
+
+            manifestPlaceholders["admobAppId"] = testAppId
+            resValue("string", "admob_app_id", testAppId)
+            resValue("string", "admob_app_open_id", testAppOpenId)
+            resValue("string", "admob_language_native_id", testNativeId)
+            resValue("string", "admob_onboarding_native_id", testNativeId)
+            resValue("string", "admob_splash_interstitial_first_id", testInterstitialId)
+            resValue("string", "admob_splash_interstitial_second_id", testInterstitialId)
+            resValue("string", "admob_click_interstitial_id", testInterstitialId)
+            resValue("string", "admob_home_native_id", testNativeId)
+            // Aliases for backward compatibility
+            resValue("string", "admob_interstitial_id", testInterstitialId)
+            resValue("string", "admob_native_id", testNativeId)
+        }
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+
+            // Real Production AdMob Credentials for Cast to TV (com.smarttvcast.screenmirror)
+            val prodAppId = "ca-app-pub-3116238716336403~3352823507"
+            val prodAppOpenId = "ca-app-pub-3116238716336403/1820249985"
+            val prodLanguageNativeId = "ca-app-pub-3116238716336403/7288199082"
+            val prodOnboardingNativeId = "ca-app-pub-3116238716336403/4343692730"
+            val prodSplashInterstitialFirstId = "ca-app-pub-3116238716336403/9914362422"
+            val prodSplashInterstitialSecondId = "ca-app-pub-3116238716336403/5787415153"
+            val prodClickInterstitialId = "ca-app-pub-3116238716336403/9252192456"
+            val prodHomeNativeId = "ca-app-pub-3116238716336403/2742624427"
+
+            manifestPlaceholders["admobAppId"] = prodAppId
+            resValue("string", "admob_app_id", prodAppId)
+            resValue("string", "admob_app_open_id", prodAppOpenId)
+            resValue("string", "admob_language_native_id", prodLanguageNativeId)
+            resValue("string", "admob_onboarding_native_id", prodOnboardingNativeId)
+            resValue("string", "admob_splash_interstitial_first_id", prodSplashInterstitialFirstId)
+            resValue("string", "admob_splash_interstitial_second_id", prodSplashInterstitialSecondId)
+            resValue("string", "admob_click_interstitial_id", prodClickInterstitialId)
+            resValue("string", "admob_home_native_id", prodHomeNativeId)
+            // Aliases for backward compatibility
+            resValue("string", "admob_interstitial_id", prodClickInterstitialId)
+            resValue("string", "admob_native_id", prodLanguageNativeId)
         }
     }
 }

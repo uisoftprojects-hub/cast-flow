@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Raw palette for the CastFlow soft theme.
+/// Raw palette for the Cast to TV soft theme.
 abstract final class AppColors {
   static const primary = Color(0xFF4F46E5);
   static const primaryDark = Color(0xFF818CF8);

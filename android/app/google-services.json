@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "152049772854",
+    "project_id": "cast-to-tv-4f3b3",
+    "storage_bucket": "cast-to-tv-4f3b3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:152049772854:android:3a9b849b046a6ccebdab97",
+        "android_client_info": {
+          "package_name": "com.smarttvcast.screenmirror"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUZcRfR6Nd0yfgJg8o_6InGY99jtc3RIY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

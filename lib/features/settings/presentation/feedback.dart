@@ -2,6 +2,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../monetization/domain/ad_suppression.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -43,8 +44,9 @@ Future<void> sendFeedback(BuildContext context, WidgetRef ref, {int? rating}) as
   final uri = Uri(
     scheme: 'mailto',
     path: AppLinks.supportEmail,
-    query: 'subject=${Uri.encodeComponent('CastFlow feedback')}&body=${Uri.encodeComponent(body)}',
+    query: 'subject=${Uri.encodeComponent('Cast to TV feedback')}&body=${Uri.encodeComponent(body)}',
   );
+  AdSuppression.suppressNextAppOpen();
   final ok = await launchUrl(uri).catchError((_) => false);
   if (!ok) messenger.showSnackBar(SnackBar(content: Text(noEmailApp)));
 }
@@ -54,7 +56,7 @@ Future<void> rateOnStore(BuildContext context, WidgetRef ref) async {
   ref.read(settingsProvider.notifier).markReviewPrompted();
   final review = InAppReview.instance;
   if (!kIsWeb && await review.isAvailable()) {
-    await review.requestReview();
+    await AdSuppression.around(review.requestReview);
   } else if (context.mounted) {
     await openExternal(context, storeListingUrl);
   }

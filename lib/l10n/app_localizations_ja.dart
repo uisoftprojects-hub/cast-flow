@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -304,7 +303,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get couldntOpenTheLink => 'リンクを開けませんでした。';
 
   @override
-  String get castflowLogo => 'CastFlowのロゴ';
+  String get castflowLogo => 'Cast to TVのロゴ';
 
   @override
   String get somethingWentWrong => '問題が発生しました';
@@ -321,7 +320,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get smartTv => 'Smart TV';
+  String get smartTv => 'スマートTV';
 
   @override
   String get chromecast => 'Chromecast';
@@ -333,7 +332,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get roku => 'Roku';
 
   @override
-  String get dlnaRenderer => 'DLNA renderer';
+  String get dlnaRenderer => 'DLNAレンダラー';
 
   @override
   String get miracast => 'Miracast';
@@ -455,7 +454,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scanForDevices => 'デバイスをスキャン';
 
   @override
-  String get openDevicesInCastflow => 'CastFlowで［デバイス］を開き、テレビが表示されるまで数秒待ちます。';
+  String get openDevicesInCastflow => 'Cast to TVで［デバイス］を開き、テレビが表示されるまで数秒待ちます。';
 
   @override
   String get tapConnect => '［接続］をタップ';
@@ -499,7 +498,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get livingRoomTv => 'リビングのテレビ';
 
   @override
-  String get allowCastflowToConnect => 'CastFlowの接続を許可しますか？';
+  String get allowCastflowToConnect => 'Cast to TVの接続を許可しますか？';
 
   @override
   String get deny => '拒否';
@@ -550,7 +549,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get allowCastflowToFind =>
-      '求められたら、CastFlowがネットワーク上のデバイスを見つけることを許可してください。';
+      '求められたら、Cast to TVがネットワーク上のデバイスを見つけることを許可してください。';
 
   @override
   String get noTvFound => 'テレビが見つかりません';
@@ -1177,7 +1176,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noAds => '広告なし';
 
   @override
-  String get welcomeToCastflowPro => 'CastFlow Proへようこそ！';
+  String get welcomeToCastflowPro => 'Cast to TV Proへようこそ！';
 
   @override
   String get purchaseCancelled => '購入がキャンセルされました。';
@@ -1409,7 +1408,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'レシーバーごとに対応コマンドが異なります。ChromecastとDLNAは再生と音量のみ対応で、Miracastにはリモコンチャネルがありません。';
 
   @override
-  String get canCastflowTurnMy => 'CastFlowでテレビの電源オンや入力切り替えはできますか？';
+  String get canCastflowTurnMy => 'Cast to TVでテレビの電源オンや入力切り替えはできますか？';
 
   @override
   String get onlyOnTvsThat =>
@@ -1430,7 +1429,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noEmailAppFound => 'メールアプリが見つかりません。';
 
   @override
-  String get enjoyingCastflow => 'CastFlowを楽しんでいますか？';
+  String get enjoyingCastflow => 'Cast to TVを楽しんでいますか？';
 
   @override
   String get sorryToHearThat => '申し訳ありません';
@@ -1460,32 +1459,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get rateYourExperienceBefore => '終了する前に使い心地を評価してください。';
 
   @override
-  String get tapAStarTo => '星をタップしてCastFlowを評価してください。';
+  String get tapAStarTo => '星をタップしてCast to TVを評価してください。';
 
   @override
   String get general => '一般';
 
   @override
-  String get english => 'English';
+  String get english => '英語';
 
   @override
   String get defaultQuality => 'デフォルトの画質';
 
   @override
   String get autoConnectToLast => '最後のテレビに自動接続';
-
-  @override
-  String get hapticFeedback => '触覚フィードバック';
-
-  @override
-  String get clearCastingHistory => 'キャスト履歴を消去';
-
-  @override
-  String get clearCastingHistory2 => 'キャスト履歴を消去しますか？';
-
-  @override
-  String get onlyCastflowsListIs =>
-      'CastFlowの一覧のみ消去されます。スマートフォン内のメディアは削除されません。';
 
   @override
   String get appearance => '外観';
@@ -1515,13 +1501,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get version => 'バージョン';
 
   @override
-  String get castflowProIsActive => 'CastFlow Proは有効です';
+  String get castflowProIsActive => 'Cast to TV Proは有効です';
 
   @override
   String get upgradeToPremium => 'プレミアムにアップグレード';
 
   @override
-  String get castflowPremium => 'CastFlow プレミアム';
+  String get castflowPremium => 'テレビにキャスト プレミアム';
 
   @override
   String get thanksForYourSupport => 'ご支援ありがとうございます。広告なしでキャストをお楽しみください。';
@@ -1627,4 +1613,52 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get noWifiAlertMessage =>
       'モバイルデータを使用中です。スマホとテレビを同じWi-Fiに接続するか、スマホのテザリングをオンにしてテレビから接続してください。';
+
+  @override
+  String get checkingNetwork => 'ネットワークを確認中...';
+
+  @override
+  String get discoveryStopped => '検出が停止しました';
+
+  @override
+  String get discoveryStoppedHint => '検出が停止しました。検索をタップして近くのデバイスを検出してください。';
+
+  @override
+  String get search => '検索';
+
+  @override
+  String get permissionNeededToDiscover => 'Wi-Fi上のデバイスを検出するには位置情報の許可が必要です。';
+
+  @override
+  String get locationServicesDisabled => '位置情報サービスが無効です';
+
+  @override
+  String get openLocationSettings => '位置情報の設定を開く';
+
+  @override
+  String get openAppSettings => 'アプリの設定を開く';
+
+  @override
+  String get subscriptionExpired => 'サブスクリプションの有効期限が切れました。';
+
+  @override
+  String get noPurchasesFound => '以前の購入は見つかりませんでした。';
+
+  @override
+  String get restore => '復元';
+
+  @override
+  String get permissionNeeded => '許可が必要です';
+
+  @override
+  String get permissionBlockedInSettings => '設定で許可がブロックされています';
+
+  @override
+  String get grantPermission => '許可を与える';
+
+  @override
+  String get checkAgain => '再確認';
+
+  @override
+  String get appName => 'テレビにキャスト';
 }

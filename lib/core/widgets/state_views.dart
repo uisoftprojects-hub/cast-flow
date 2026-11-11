@@ -196,6 +196,7 @@ class AsyncView<T> extends StatelessWidget {
     required this.data,
     this.loading,
     this.onRetry,
+    this.errorBuilder,
     this.isEmpty,
     this.empty,
   });
@@ -204,6 +205,9 @@ class AsyncView<T> extends StatelessWidget {
   final Widget Function(T data) data;
   final Widget? loading;
   final VoidCallback? onRetry;
+
+  /// Custom view for specific errors (return null to use the default one).
+  final Widget? Function(Object error)? errorBuilder;
   final bool Function(T data)? isEmpty;
   final Widget? empty;
 
@@ -216,7 +220,7 @@ class AsyncView<T> extends StatelessWidget {
         loading: () => KeyedSubtree(key: const ValueKey('loading'), child: loading ?? const ShimmerList()),
         error: (e, _) => KeyedSubtree(
           key: const ValueKey('error'),
-          child: ErrorState(onRetry: onRetry),
+          child: errorBuilder?.call(e) ?? ErrorState(onRetry: onRetry),
         ),
         data: (d) {
           if (empty != null && (isEmpty?.call(d) ?? false)) {

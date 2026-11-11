@@ -5,24 +5,30 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_af.dart';
 import 'app_localizations_ar.dart';
 import 'app_localizations_bn.dart';
 import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
 import 'app_localizations_fa.dart';
+import 'app_localizations_fil.dart';
 import 'app_localizations_fr.dart';
 import 'app_localizations_hi.dart';
 import 'app_localizations_id.dart';
 import 'app_localizations_it.dart';
 import 'app_localizations_ja.dart';
 import 'app_localizations_ko.dart';
+import 'app_localizations_ms.dart';
+import 'app_localizations_nl.dart';
 import 'app_localizations_pl.dart';
 import 'app_localizations_pt.dart';
 import 'app_localizations_ru.dart';
 import 'app_localizations_th.dart';
 import 'app_localizations_tr.dart';
+import 'app_localizations_uk.dart';
 import 'app_localizations_ur.dart';
+import 'app_localizations_uz.dart';
 import 'app_localizations_vi.dart';
 import 'app_localizations_zh.dart';
 
@@ -112,24 +118,30 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('af'),
     Locale('ar'),
     Locale('bn'),
     Locale('de'),
     Locale('en'),
     Locale('es'),
     Locale('fa'),
+    Locale('fil'),
     Locale('fr'),
     Locale('hi'),
     Locale('id'),
     Locale('it'),
     Locale('ja'),
     Locale('ko'),
+    Locale('ms'),
+    Locale('nl'),
     Locale('pl'),
     Locale('pt'),
     Locale('ru'),
     Locale('th'),
     Locale('tr'),
+    Locale('uk'),
     Locale('ur'),
+    Locale('uz'),
     Locale('vi'),
     Locale('zh'),
   ];
@@ -653,7 +665,7 @@ abstract class AppLocalizations {
   /// No description provided for @castflowLogo.
   ///
   /// In en, this message translates to:
-  /// **'CastFlow logo'**
+  /// **'Cast to TV logo'**
   String get castflowLogo;
 
   /// No description provided for @somethingWentWrong.
@@ -929,7 +941,7 @@ abstract class AppLocalizations {
   /// No description provided for @openDevicesInCastflow.
   ///
   /// In en, this message translates to:
-  /// **'Open Devices in CastFlow and wait a few seconds for your TV to appear.'**
+  /// **'Open Devices in Cast to TV and wait a few seconds for your TV to appear.'**
   String get openDevicesInCastflow;
 
   /// No description provided for @tapConnect.
@@ -1013,7 +1025,7 @@ abstract class AppLocalizations {
   /// No description provided for @allowCastflowToConnect.
   ///
   /// In en, this message translates to:
-  /// **'Allow CastFlow to connect?'**
+  /// **'Allow Cast to TV to connect?'**
   String get allowCastflowToConnect;
 
   /// No description provided for @deny.
@@ -1103,7 +1115,7 @@ abstract class AppLocalizations {
   /// No description provided for @allowCastflowToFind.
   ///
   /// In en, this message translates to:
-  /// **'Allow CastFlow to find devices on your network when asked.'**
+  /// **'Allow Cast to TV to find devices on your network when asked.'**
   String get allowCastflowToFind;
 
   /// No description provided for @noTvFound.
@@ -2267,7 +2279,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeToCastflowPro.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to CastFlow Pro!'**
+  /// **'Welcome to Cast to TV Pro!'**
   String get welcomeToCastflowPro;
 
   /// No description provided for @purchaseCancelled.
@@ -2699,7 +2711,7 @@ abstract class AppLocalizations {
   /// No description provided for @canCastflowTurnMy.
   ///
   /// In en, this message translates to:
-  /// **'Can CastFlow turn my TV on or change inputs?'**
+  /// **'Can Cast to TV turn my TV on or change inputs?'**
   String get canCastflowTurnMy;
 
   /// No description provided for @onlyOnTvsThat.
@@ -2735,7 +2747,7 @@ abstract class AppLocalizations {
   /// No description provided for @enjoyingCastflow.
   ///
   /// In en, this message translates to:
-  /// **'Enjoying CastFlow?'**
+  /// **'Enjoying Cast to TV?'**
   String get enjoyingCastflow;
 
   /// No description provided for @sorryToHearThat.
@@ -2795,7 +2807,7 @@ abstract class AppLocalizations {
   /// No description provided for @tapAStarTo.
   ///
   /// In en, this message translates to:
-  /// **'Tap a star to rate CastFlow.'**
+  /// **'Tap a star to rate Cast to TV.'**
   String get tapAStarTo;
 
   /// No description provided for @general.
@@ -2821,30 +2833,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Auto-connect to last TV'**
   String get autoConnectToLast;
-
-  /// No description provided for @hapticFeedback.
-  ///
-  /// In en, this message translates to:
-  /// **'Haptic feedback'**
-  String get hapticFeedback;
-
-  /// No description provided for @clearCastingHistory.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear casting history'**
-  String get clearCastingHistory;
-
-  /// No description provided for @clearCastingHistory2.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear casting history?'**
-  String get clearCastingHistory2;
-
-  /// No description provided for @onlyCastflowsListIs.
-  ///
-  /// In en, this message translates to:
-  /// **'Only CastFlow’s list is cleared. Media on your phone is never deleted.'**
-  String get onlyCastflowsListIs;
 
   /// No description provided for @appearance.
   ///
@@ -2903,7 +2891,7 @@ abstract class AppLocalizations {
   /// No description provided for @castflowProIsActive.
   ///
   /// In en, this message translates to:
-  /// **'CastFlow Pro is active'**
+  /// **'Cast to TV Pro is active'**
   String get castflowProIsActive;
 
   /// No description provided for @upgradeToPremium.
@@ -2915,7 +2903,7 @@ abstract class AppLocalizations {
   /// No description provided for @castflowPremium.
   ///
   /// In en, this message translates to:
-  /// **'CastFlow Premium'**
+  /// **'Cast to TV Premium'**
   String get castflowPremium;
 
   /// No description provided for @thanksForYourSupport.
@@ -3115,6 +3103,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You’re on mobile data. Connect your phone and TV to the same Wi-Fi, or turn on your phone’s hotspot and join it from the TV.'**
   String get noWifiAlertMessage;
+
+  /// No description provided for @checkingNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking network...'**
+  String get checkingNetwork;
+
+  /// No description provided for @discoveryStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery stopped'**
+  String get discoveryStopped;
+
+  /// No description provided for @discoveryStoppedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery stopped. Tap search to find nearby devices.'**
+  String get discoveryStoppedHint;
+
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
+  /// No description provided for @permissionNeededToDiscover.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission is required to discover devices on Wi-Fi.'**
+  String get permissionNeededToDiscover;
+
+  /// No description provided for @locationServicesDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Services Disabled'**
+  String get locationServicesDisabled;
+
+  /// No description provided for @openLocationSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Location Settings'**
+  String get openLocationSettings;
+
+  /// No description provided for @openAppSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open App Settings'**
+  String get openAppSettings;
+
+  /// No description provided for @subscriptionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your subscription has expired.'**
+  String get subscriptionExpired;
+
+  /// No description provided for @noPurchasesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No previous purchases found.'**
+  String get noPurchasesFound;
+
+  /// No description provided for @restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restore;
+
+  /// No description provided for @permissionNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission Needed'**
+  String get permissionNeeded;
+
+  /// No description provided for @permissionBlockedInSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission Blocked in Settings'**
+  String get permissionBlockedInSettings;
+
+  /// No description provided for @grantPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant Permission'**
+  String get grantPermission;
+
+  /// No description provided for @checkAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Check Again'**
+  String get checkAgain;
+
+  /// No description provided for @appName.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast to TV'**
+  String get appName;
 }
 
 class _AppLocalizationsDelegate
@@ -3128,24 +3212,30 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) => <String>[
+    'af',
     'ar',
     'bn',
     'de',
     'en',
     'es',
     'fa',
+    'fil',
     'fr',
     'hi',
     'id',
     'it',
     'ja',
     'ko',
+    'ms',
+    'nl',
     'pl',
     'pt',
     'ru',
     'th',
     'tr',
+    'uk',
     'ur',
+    'uz',
     'vi',
     'zh',
   ].contains(locale.languageCode);
@@ -3157,6 +3247,8 @@ class _AppLocalizationsDelegate
 AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'af':
+      return AppLocalizationsAf();
     case 'ar':
       return AppLocalizationsAr();
     case 'bn':
@@ -3169,6 +3261,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsEs();
     case 'fa':
       return AppLocalizationsFa();
+    case 'fil':
+      return AppLocalizationsFil();
     case 'fr':
       return AppLocalizationsFr();
     case 'hi':
@@ -3181,6 +3275,10 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsJa();
     case 'ko':
       return AppLocalizationsKo();
+    case 'ms':
+      return AppLocalizationsMs();
+    case 'nl':
+      return AppLocalizationsNl();
     case 'pl':
       return AppLocalizationsPl();
     case 'pt':
@@ -3191,8 +3289,12 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsTh();
     case 'tr':
       return AppLocalizationsTr();
+    case 'uk':
+      return AppLocalizationsUk();
     case 'ur':
       return AppLocalizationsUr();
+    case 'uz':
+      return AppLocalizationsUz();
     case 'vi':
       return AppLocalizationsVi();
     case 'zh':

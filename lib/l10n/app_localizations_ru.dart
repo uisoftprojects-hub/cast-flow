@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -315,7 +314,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get couldntOpenTheLink => 'Не удалось открыть ссылку.';
 
   @override
-  String get castflowLogo => 'Логотип CastFlow';
+  String get castflowLogo => 'Логотип Cast to TV';
 
   @override
   String get somethingWentWrong => 'Что-то пошло не так';
@@ -333,7 +332,7 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get smartTv => 'Smart TV';
+  String get smartTv => 'Смарт ТВ';
 
   @override
   String get chromecast => 'Chromecast';
@@ -345,7 +344,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get roku => 'Roku';
 
   @override
-  String get dlnaRenderer => 'DLNA renderer';
+  String get dlnaRenderer => 'Рендерер DLNA';
 
   @override
   String get miracast => 'Miracast';
@@ -470,7 +469,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get openDevicesInCastflow =>
-      'Откройте «Устройства» в CastFlow и подождите несколько секунд, пока появится телевизор.';
+      'Откройте «Устройства» в Cast to TV и подождите несколько секунд, пока появится телевизор.';
 
   @override
   String get tapConnect => 'Нажмите «Подключить»';
@@ -516,7 +515,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get livingRoomTv => 'Телевизор в гостиной';
 
   @override
-  String get allowCastflowToConnect => 'Разрешить CastFlow подключиться?';
+  String get allowCastflowToConnect => 'Разрешить Cast to TV подключиться?';
 
   @override
   String get deny => 'Запретить';
@@ -569,7 +568,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get allowCastflowToFind =>
-      'Разрешите CastFlow искать устройства в вашей сети, когда он попросит.';
+      'Разрешите Cast to TV искать устройства в вашей сети, когда он попросит.';
 
   @override
   String get noTvFound => 'Телевизор не найден';
@@ -1002,7 +1001,7 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get tv => 'TV';
+  String get tv => 'ТВ';
 
   @override
   String get screenMirroringSession => 'Сеанс зеркалирования экрана';
@@ -1233,7 +1232,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get noAds => 'Без рекламы';
 
   @override
-  String get welcomeToCastflowPro => 'Добро пожаловать в CastFlow Pro!';
+  String get welcomeToCastflowPro => 'Добро пожаловать в Cast to TV Pro!';
 
   @override
   String get purchaseCancelled => 'Покупка отменена.';
@@ -1481,7 +1480,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get canCastflowTurnMy =>
-      'Может ли CastFlow включить телевизор или сменить вход?';
+      'Может ли Cast to TV включить телевизор или сменить вход?';
 
   @override
   String get onlyOnTvsThat =>
@@ -1502,7 +1501,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get noEmailAppFound => 'Почтовое приложение не найдено.';
 
   @override
-  String get enjoyingCastflow => 'Нравится CastFlow?';
+  String get enjoyingCastflow => 'Нравится Cast to TV?';
 
   @override
   String get sorryToHearThat => 'Жаль это слышать';
@@ -1532,32 +1531,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get rateYourExperienceBefore => 'Оцените приложение, прежде чем уйти.';
 
   @override
-  String get tapAStarTo => 'Нажмите на звезду, чтобы оценить CastFlow.';
+  String get tapAStarTo => 'Нажмите на звезду, чтобы оценить Cast to TV.';
 
   @override
   String get general => 'Общие';
 
   @override
-  String get english => 'English';
+  String get english => 'Английский';
 
   @override
   String get defaultQuality => 'Качество по умолчанию';
 
   @override
   String get autoConnectToLast => 'Автоподключение к последнему ТВ';
-
-  @override
-  String get hapticFeedback => 'Тактильный отклик';
-
-  @override
-  String get clearCastingHistory => 'Очистить историю трансляций';
-
-  @override
-  String get clearCastingHistory2 => 'Очистить историю трансляций?';
-
-  @override
-  String get onlyCastflowsListIs =>
-      'Очищается только список CastFlow. Медиафайлы на телефоне не удаляются.';
 
   @override
   String get appearance => 'Оформление';
@@ -1587,13 +1573,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get version => 'Версия';
 
   @override
-  String get castflowProIsActive => 'CastFlow Pro активен';
+  String get castflowProIsActive => 'Cast to TV Pro активен';
 
   @override
   String get upgradeToPremium => 'Перейти на Premium';
 
   @override
-  String get castflowPremium => 'CastFlow Premium';
+  String get castflowPremium => 'Трансляция на ТВ Премиум';
 
   @override
   String get thanksForYourSupport =>
@@ -1706,4 +1692,55 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get noWifiAlertMessage =>
       'Вы используете мобильный интернет. Подключите телефон и телевизор к одной сети Wi-Fi или включите точку доступа на телефоне и подключите к ней телевизор.';
+
+  @override
+  String get checkingNetwork => 'Проверка сети...';
+
+  @override
+  String get discoveryStopped => 'Поиск остановлен';
+
+  @override
+  String get discoveryStoppedHint =>
+      'Поиск остановлен. Нажмите поиск, чтобы найти устройства рядом.';
+
+  @override
+  String get search => 'Поиск';
+
+  @override
+  String get permissionNeededToDiscover =>
+      'Для поиска устройств по Wi-Fi требуется разрешение на геолокацию.';
+
+  @override
+  String get locationServicesDisabled => 'Службы геолокации отключены';
+
+  @override
+  String get openLocationSettings => 'Открыть настройки геолокации';
+
+  @override
+  String get openAppSettings => 'Открыть настройки приложения';
+
+  @override
+  String get subscriptionExpired => 'Срок действия вашей подписки истек.';
+
+  @override
+  String get noPurchasesFound => 'Предыдущих покупок не найдено.';
+
+  @override
+  String get restore => 'Восстановить';
+
+  @override
+  String get permissionNeeded => 'Требуется разрешение';
+
+  @override
+  String get permissionBlockedInSettings =>
+      'Разрешение заблокировано в настройках';
+
+  @override
+  String get grantPermission => 'Предоставить разрешение';
+
+  @override
+  String get checkAgain => 'Проверить снова';
+
+  @override
+  String get appName => 'Трансляция на ТВ';
 }

@@ -30,7 +30,7 @@ abstract interface class AdAdapter {
     required VoidCallback onClicked,
   });
 
-  Future<LoadedFullScreenAd> loadInterstitial();
+  Future<LoadedFullScreenAd> loadInterstitial([AdPlacement placement = AdPlacement.clickInterstitial]);
 
   Future<LoadedFullScreenAd> loadAppOpen();
 }

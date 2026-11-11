@@ -13,7 +13,7 @@ import '../../../core/widgets/selectors.dart';
 import '../../../core/widgets/soft_card.dart';
 import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
-import '../../history/presentation/history_controller.dart';
+import '../../premium/domain/premium_status_service.dart';
 import '../domain/app_settings.dart';
 import 'feedback.dart';
 import 'rate_sheet.dart';
@@ -21,31 +21,13 @@ import 'settings_controller.dart';
 
 import '../../../core/l10n.dart';
 
-
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
-
-  Future<bool> _confirm(BuildContext context, String title, String body, String action) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(body),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l10n.cancel)),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(action, style: TextStyle(color: context.palette.error)),
-          ),
-        ],
-      ),
-    );
-    return ok == true;
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(settingsProvider);
+    final showPromo = ref.watch(shouldShowPremiumPromotionProvider);
     final ctrl = ref.read(settingsProvider.notifier);
 
     return Scaffold(
@@ -53,8 +35,8 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, navBottomPadding(context)),
         children: [
-          _PremiumCard(active: s.isPremium),
-          const SizedBox(height: AppSpace.xxl),
+          // Section 2: Hide premium upgrade card for premium users and remove empty space naturally
+          if (showPromo) ...[const _PremiumCard(active: false), const SizedBox(height: AppSpace.xxl)],
           _GroupTitle(context.l10n.general),
           _Group(
             children: [
@@ -83,26 +65,6 @@ class SettingsScreen extends ConsumerWidget {
                 trailing: Switch(value: s.autoConnect, onChanged: ctrl.setAutoConnect),
                 onTap: () => ctrl.setAutoConnect(!s.autoConnect),
               ),
-              _Tile(
-                icon: Iconsax.mobile_copy,
-                title: context.l10n.hapticFeedback,
-                trailing: Switch(value: s.hapticsEnabled, onChanged: ctrl.setHaptics),
-                onTap: () => ctrl.setHaptics(!s.hapticsEnabled),
-              ),
-              _Tile(
-                icon: Iconsax.clock_copy,
-                title: context.l10n.clearCastingHistory,
-                onTap: () async {
-                  if (await _confirm(
-                    context,
-                    context.l10n.clearCastingHistory2,
-                    context.l10n.onlyCastflowsListIs,
-                    context.l10n.clear,
-                  )) {
-                    await ref.read(historyProvider.notifier).clear();
-                  }
-                },
-              ),
             ],
           ),
           const SizedBox(height: AppSpace.xxl),
@@ -126,6 +88,7 @@ class SettingsScreen extends ConsumerWidget {
                 title: context.l10n.howToConnect,
                 onTap: () => context.push('/guide'),
               ),
+              _Tile(icon: Iconsax.info_circle_copy, title: context.l10n.helpFaq, onTap: () => context.push('/faq')),
               _Tile(icon: Iconsax.star_1_copy, title: context.l10n.rateApp, onTap: () => showRateDialog(context)),
               _Tile(
                 icon: Iconsax.message_edit_copy,
@@ -158,6 +121,7 @@ class SettingsScreen extends ConsumerWidget {
     required ValueChanged<T> onSelected,
   }) async {
     final picked = await showModalBottomSheet<T>(
+      useRootNavigator: true,
       context: context,
       useSafeArea: true,
       builder: (context) => SafeArea(
@@ -194,53 +158,75 @@ class SettingsScreen extends ConsumerWidget {
 class _PremiumCard extends StatelessWidget {
   const _PremiumCard({required this.active});
 
-  /// Reflects an active entitlement instead of upselling.
   final bool active;
 
   @override
   Widget build(BuildContext context) {
+    final card = Container(
+      padding: const EdgeInsets.all(AppSpace.lg),
+      decoration: BoxDecoration(
+        gradient: AppColors.mainGradient,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: AppShadows.glow(AppColors.primary),
+      ),
+      child: Row(
+        children: [
+          Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.22), shape: BoxShape.circle),
+                child: const Icon(Iconsax.crown_1_copy, color: Colors.white, size: 24),
+              )
+              .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
+              .rotate(begin: -0.02, end: 0.02, duration: 1400.ms),
+          const SizedBox(width: AppSpace.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // One line always: the title shrinks a little instead of wrapping.
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    active ? context.l10n.castflowProIsActive : context.l10n.castflowPremium,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: context.text.titleLarge?.copyWith(color: Colors.white),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  active ? context.l10n.thanksForYourSupport : context.l10n.noAds1080pMirroring,
+                  style: context.text.bodySmall?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpace.sm),
+          if (!active)
+            SoftBadge(context.l10n.upgrade)
+                .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
+                .scale(
+                  begin: const Offset(1.0, 1.0),
+                  end: const Offset(1.14, 1.14),
+                  duration: 850.ms,
+                  curve: Curves.easeInOut,
+                ),
+        ],
+      ),
+    );
+
+    final shimmeringCard = active
+        ? card
+        : card
+              .animate(onPlay: (c) => context.loopMotion(c))
+              .shimmer(duration: 2200.ms, delay: 800.ms, color: Colors.white.withValues(alpha: 0.35), angle: 0.25);
+
     return TapScale(
       onTap: active ? null : () => context.push('/premium?from=settings_banner'),
       semanticLabel: active ? context.l10n.castflowProIsActive : context.l10n.upgradeToPremium,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpace.xl),
-        decoration: BoxDecoration(
-          gradient: AppColors.mainGradient,
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          boxShadow: AppShadows.glow(AppColors.primary),
-        ),
-        child: Row(
-          children: [
-            Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.22), shape: BoxShape.circle),
-                  child: const Icon(Iconsax.crown_1_copy, color: Colors.white, size: 28),
-                )
-                .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
-                .rotate(begin: -0.02, end: 0.02, duration: 1400.ms),
-            const SizedBox(width: AppSpace.lg),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    active ? context.l10n.castflowProIsActive : context.l10n.castflowPremium,
-                    style: context.text.titleLarge?.copyWith(color: Colors.white),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    active ? context.l10n.thanksForYourSupport : context.l10n.noAds1080pMirroring,
-                    style: context.text.bodySmall?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSpace.sm),
-            if (!active) SoftBadge(context.l10n.upgrade),
-          ],
-        ),
-      ),
+      child: shimmeringCard,
     );
   }
 }

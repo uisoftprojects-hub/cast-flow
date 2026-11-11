@@ -22,26 +22,36 @@ List<FlowStep> _flow({
 
 void main() {
   group('buildFlow', () {
-    test('first run: language, onboarding, paywall, home — each once', () {
-      expect(_flow(), [FlowStep.language, FlowStep.onboarding, FlowStep.paywall, FlowStep.home]);
+    test('Flow A (first run): Splash → Language → Paywall → Onboarding → Home', () {
+      expect(_flow(), [
+        FlowStep.language,
+        FlowStep.paywall,
+        FlowStep.onboarding,
+        FlowStep.home,
+      ]);
     });
 
-    test('returning user: paywall, home', () {
-      expect(_flow(firstLaunchCompleted: true, onboardingDone: true, languageChosen: true),
-          [FlowStep.paywallReturning, FlowStep.home]);
+    test('Flow B (returning non-premium): Splash → Paywall → Home', () {
+      expect(
+        _flow(firstLaunchCompleted: true, onboardingDone: true, languageChosen: true),
+        [FlowStep.paywallReturning, FlowStep.home],
+      );
     });
 
-    test('Pro users skip the paywall', () {
-      expect(_flow(isPremium: true), [FlowStep.language, FlowStep.onboarding, FlowStep.home]);
+    test('Flow C (premium user): Splash → Home (skips language, onboarding, paywalls)', () {
+      expect(_flow(isPremium: true), [FlowStep.home]);
       expect(_flow(firstLaunchCompleted: true, isPremium: true), [FlowStep.home]);
     });
 
     test('paywall slots can be turned off', () {
-      expect(_flow(config: const FlowConfig(firstRunPaywall: false)), [FlowStep.language, FlowStep.onboarding, FlowStep.home]);
+      expect(
+        _flow(config: const FlowConfig(firstRunPaywall: false)),
+        [FlowStep.language, FlowStep.onboarding, FlowStep.home],
+      );
     });
 
     test('an interrupted first run resumes at the next unfinished step', () {
-      expect(_flow(languageChosen: true), [FlowStep.onboarding, FlowStep.paywall, FlowStep.home]);
+      expect(_flow(languageChosen: true), [FlowStep.paywall, FlowStep.onboarding, FlowStep.home]);
       expect(_flow(languageChosen: true, onboardingDone: true), [FlowStep.paywall, FlowStep.home]);
     });
   });
@@ -51,21 +61,22 @@ void main() {
     final flow = c.read(appFlowProvider.notifier);
 
     expect(flow.start(), '/language');
-    expect(flow.advance(FlowStep.language), '/onboarding');
+    expect(flow.advance(FlowStep.language), '/paywall?slot=first');
     // A stale/double tap on the previous step is ignored.
     expect(flow.advance(FlowStep.language), isNull);
-    expect(flow.advance(FlowStep.onboarding), '/paywall?slot=first');
+    expect(flow.advance(FlowStep.paywall), '/onboarding');
     expect(c.read(settingsProvider).firstLaunchCompleted, isFalse);
-    expect(flow.advance(FlowStep.paywall), '/home');
+    expect(flow.advance(FlowStep.onboarding), '/home');
     expect(c.read(settingsProvider).firstLaunchCompleted, isTrue);
     expect(c.read(appFlowProvider).finished, isTrue);
   });
 
-  test('buying Pro mid-flow skips the paywall', () async {
+  test('buying Pro mid-flow on paywall continues to onboarding then home without ads', () async {
     final c = await makeContainer();
     final flow = c.read(appFlowProvider.notifier)..start();
-    flow.advance(FlowStep.language);
+    expect(flow.advance(FlowStep.language), '/paywall?slot=first');
     c.read(settingsProvider.notifier).setPremium(true);
+    expect(flow.advance(FlowStep.paywall), '/onboarding');
     expect(flow.advance(FlowStep.onboarding), '/home');
   });
 }

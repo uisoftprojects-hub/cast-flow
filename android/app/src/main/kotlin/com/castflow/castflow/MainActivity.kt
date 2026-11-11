@@ -5,21 +5,185 @@ import android.content.Context
 import android.content.Intent
 import android.hardware.display.DisplayManager
 import android.view.Display
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
 import java.net.Inet4Address
 import java.net.NetworkInterface
+import android.os.Build
+import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
+import com.google.android.gms.ads.nativead.NativeAd
+import com.google.android.gms.ads.nativead.NativeAdView
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugins.googlemobileads.GoogleMobileAdsPlugin
+import io.flutter.plugins.googlemobileads.NativeAdFactory
+
+/** Re-colours already-loaded native ads in place, so a theme change needs no new ad request. */
+object NativeAdTheme {
+    private val views = java.util.Collections.newSetFromMap(java.util.WeakHashMap<NativeAdView, Boolean>())
+
+    fun register(view: NativeAdView) {
+        synchronized(views) { views.add(view) }
+    }
+
+    fun apply(view: NativeAdView, dark: Boolean) {
+        view.setBackgroundResource(if (dark) R.drawable.native_ad_bg_dark else R.drawable.native_ad_bg_light)
+        view.findViewById<TextView>(R.id.ad_headline)
+            ?.setTextColor(android.graphics.Color.parseColor(if (dark) "#FFFFFF" else "#111827"))
+        view.findViewById<TextView>(R.id.ad_body)
+            ?.setTextColor(android.graphics.Color.parseColor(if (dark) "#9CA3AF" else "#6B7280"))
+    }
+
+    fun setDark(dark: Boolean) {
+        val snapshot = synchronized(views) { views.toList() }
+        snapshot.forEach { apply(it, dark) }
+    }
+}
+
+class CustomNativeAdFactory(private val layoutInflater: LayoutInflater) : NativeAdFactory {
+    companion object {
+        private const val TAG = "AdMob"
+    }
+
+    override fun createNativeAd(
+        nativeAd: NativeAd,
+        customOptions: Map<String, Any>?
+    ): NativeAdView {
+        val isDark = customOptions?.get("isDark") as? Boolean ?: false
+        Log.d(TAG, "[NativeAdFactory] STATE: INFLATING_LAYOUT | isDark: $isDark | headline: ${nativeAd.headline}")
+        val layoutId = if (isDark) R.layout.custom_native_ad_dark else R.layout.custom_native_ad
+        val nativeAdView = layoutInflater.inflate(layoutId, null) as NativeAdView
+
+        val iconView = nativeAdView.findViewById<ImageView>(R.id.ad_app_icon)
+        val headlineView = nativeAdView.findViewById<TextView>(R.id.ad_headline)
+        val bodyView = nativeAdView.findViewById<TextView>(R.id.ad_body)
+        val ctaView = nativeAdView.findViewById<Button>(R.id.ad_call_to_action)
+
+        nativeAd.icon?.let {
+            iconView.setImageDrawable(it.drawable)
+            iconView.visibility = View.VISIBLE
+            nativeAdView.iconView = iconView
+            Log.v(TAG, "[NativeAdFactory] STATE: ICON_BOUND")
+        } ?: run {
+            iconView.visibility = View.GONE
+        }
+
+        headlineView.text = nativeAd.headline
+        nativeAdView.headlineView = headlineView
+
+        nativeAd.body?.let {
+            bodyView.text = it
+            bodyView.visibility = View.VISIBLE
+            nativeAdView.bodyView = bodyView
+            Log.v(TAG, "[NativeAdFactory] STATE: BODY_BOUND | text: $it")
+        } ?: run {
+            bodyView.visibility = View.GONE
+        }
+
+        nativeAd.callToAction?.let {
+            ctaView.text = it
+            ctaView.visibility = View.VISIBLE
+            nativeAdView.callToActionView = ctaView
+            Log.v(TAG, "[NativeAdFactory] STATE: CTA_BOUND | text: $it")
+        } ?: run {
+            ctaView.visibility = View.GONE
+        }
+
+        nativeAdView.setNativeAd(nativeAd)
+        NativeAdTheme.register(nativeAdView)
+        Log.i(TAG, "[NativeAdFactory] STATE: NATIVE_AD_RENDERED | headline: ${nativeAd.headline}")
+        return nativeAdView
+    }
+}
 
 class MainActivity : FlutterActivity() {
     private var multicastLock: WifiManager.MulticastLock? = null
+    private val nativeAdFactoryId = "castflow_native_ad"
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isStatusBarContrastEnforced = false
+            window.isNavigationBarContrastEnforced = false
+        }
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        // Register custom native ad factory with GoogleMobileAdsPlugin
+        GoogleMobileAdsPlugin.registerNativeAdFactory(
+            flutterEngine,
+            nativeAdFactoryId,
+            CustomNativeAdFactory(layoutInflater)
+        )
+
+        // AdMob configuration channel exposing native build-specific AdMob parameters
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "castflow/admob_config").setMethodCallHandler { call, result ->
+            when (call.method) {
+                "getAdConfig" -> {
+                    result.success(
+                        mapOf(
+                            "isRelease" to !BuildConfig.DEBUG,
+                            "appId" to getString(R.string.admob_app_id),
+                            "appOpenId" to getString(R.string.admob_app_open_id),
+                            "languageNativeId" to getString(R.string.admob_language_native_id),
+                            "onboardingNativeId" to getString(R.string.admob_onboarding_native_id),
+                            "splashInterstitialFirstId" to getString(R.string.admob_splash_interstitial_first_id),
+                            "splashInterstitialSecondId" to getString(R.string.admob_splash_interstitial_second_id),
+                            "clickInterstitialId" to getString(R.string.admob_click_interstitial_id),
+                            "homeNativeId" to getString(R.string.admob_home_native_id),
+                            // Legacy aliases for backward compatibility
+                            "interstitialId" to getString(R.string.admob_interstitial_id),
+                            "nativeId" to getString(R.string.admob_native_id)
+                        )
+                    )
+                }
+                else -> result.notImplemented()
+            }
+        }
+
+        // Live theme switch for native ads that are already loaded (no re-request).
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "castflow/native_ad_theme").setMethodCallHandler { call, result ->
+            when (call.method) {
+                "setDark" -> {
+                    NativeAdTheme.setDark(call.argument<Boolean>("dark") ?: false)
+                    result.success(true)
+                }
+                else -> result.notImplemented()
+            }
+        }
+
+        // Native Android Logcat channel for advertising state transitions
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "castflow/ad_logger").setMethodCallHandler { call, result ->
+            when (call.method) {
+                "log" -> {
+                    val tag = call.argument<String>("tag") ?: "AdMob"
+                    val level = call.argument<String>("level") ?: "DEBUG"
+                    val message = call.argument<String>("message") ?: ""
+                    when (level.uppercase()) {
+                        "VERBOSE" -> Log.v(tag, message)
+                        "DEBUG" -> Log.d(tag, message)
+                        "INFO" -> Log.i(tag, message)
+                        "WARN" -> Log.w(tag, message)
+                        "ERROR" -> Log.e(tag, message)
+                        else -> Log.d(tag, message)
+                    }
+                    result.success(true)
+                }
+                else -> result.notImplemented()
+            }
+        }
+
         flutterEngine.platformViewsController.registry
             .registerViewFactory("castflow/webview", CastWebViewFactory(flutterEngine.dartExecutor.binaryMessenger))
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "castflow/network").setMethodCallHandler { call, result ->
@@ -79,6 +243,7 @@ class MainActivity : FlutterActivity() {
                     result.success(mapOf("active" to (display != null), "name" to display?.name))
                 }
                 "openWifiSettings" -> result.success(launch(Intent(Settings.ACTION_WIFI_SETTINGS)))
+                "openLocationSettings" -> result.success(launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)))
                 // Hotspot can't be enabled programmatically on modern Android, so
                 // open the system tethering screen instead.
                 "openHotspotSettings" -> {
@@ -90,6 +255,11 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, nativeAdFactoryId)
+        super.cleanUpFlutterEngine(flutterEngine)
     }
 
     private fun launch(intent: Intent): Boolean = try {

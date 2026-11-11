@@ -9,7 +9,10 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/buttons.dart';
 import '../../../core/widgets/effects.dart';
 import '../domain/ad_adapter.dart';
+import '../domain/ad_config.dart';
+import '../domain/ad_logger.dart';
 import '../domain/ad_models.dart';
+import '../presentation/native_ad_card.dart';
 
 /// Simulated ad network for previews (web, desktop) and tests. Follows the
 /// current [PreviewMode]: "Error states" makes every load fail (no fill).
@@ -19,13 +22,35 @@ class FakeAdAdapter implements AdAdapter {
   final GlobalKey<NavigatorState> _navigator;
   final PreviewMode Function() _mode;
 
-  Future<void> _load(Duration d) async {
+  Future<void> _load(Duration d, {required String adType, AdPlacement? placement}) async {
+    AdLogger.i(
+      AdState.requestStart,
+      placement: placement,
+      adType: adType,
+      message: 'Simulating $adType load (delay: ${d.inMilliseconds}ms)',
+    );
     await Future<void>.delayed(d);
-    if (_mode() != PreviewMode.live) throw const FakeServiceException('No fill (preview mode)');
+    if (_mode() != PreviewMode.live) {
+      AdLogger.w(
+        AdState.loadFailed,
+        placement: placement,
+        adType: adType,
+        message: 'FakeAdAdapter simulated No fill (preview mode)',
+      );
+      throw const FakeServiceException('No fill (preview mode)');
+    }
+    AdLogger.i(
+      AdState.loaded,
+      placement: placement,
+      adType: adType,
+      message: 'FakeAdAdapter simulated ad loaded successfully',
+    );
   }
 
   @override
-  Future<void> initialize() async {}
+  Future<void> initialize() async {
+    AdLogger.i(AdState.sdkInitSuccess, adType: 'FakeAdAdapter', message: 'FakeAdAdapter initialized.');
+  }
 
   @override
   Future<bool> canRequestAds() async => true;
@@ -37,102 +62,107 @@ class FakeAdAdapter implements AdAdapter {
     required VoidCallback onImpression,
     required VoidCallback onClicked,
   }) async {
-    await _load(const Duration(milliseconds: 900));
-    return _FakeNative(medium, onImpression, onClicked);
+    await _load(const Duration(milliseconds: 900), adType: 'Native', placement: placement);
+    return _FakeNative(medium, onImpression, onClicked, placement);
   }
 
   @override
-  Future<LoadedFullScreenAd> loadInterstitial() async {
-    await _load(const Duration(milliseconds: 1500));
-    return _FakeFullScreen(_navigator, 'Test interstitial');
+  Future<LoadedFullScreenAd> loadInterstitial([AdPlacement placement = AdPlacement.clickInterstitial]) async {
+    await _load(const Duration(milliseconds: 1500), adType: 'Interstitial', placement: placement);
+    return _FakeFullScreen(_navigator, 'Test interstitial (${placement.name})', placement);
   }
 
   @override
   Future<LoadedFullScreenAd> loadAppOpen() async {
-    await _load(const Duration(milliseconds: 1200));
-    return _FakeFullScreen(_navigator, 'Test App Open ad');
+    await _load(const Duration(milliseconds: 1200), adType: 'AppOpen', placement: AdPlacement.appOpen);
+    return _FakeFullScreen(_navigator, 'Test App Open ad', AdPlacement.appOpen);
   }
 }
 
 class _FakeNative extends LoadedNativeAd {
-  _FakeNative(this.medium, this.onImpression, this.onClicked);
+  _FakeNative(this.medium, this.onImpression, this.onClicked, this.placement);
   final bool medium;
   final VoidCallback onImpression;
   final VoidCallback onClicked;
+  final AdPlacement placement;
   bool _impressed = false;
 
   @override
   Widget build(BuildContext context) {
     if (!_impressed) {
       _impressed = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) => onImpression());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        AdLogger.i(
+          AdState.impression,
+          placement: placement,
+          adType: 'Native',
+          message: 'FakeNative ad impression recorded',
+        );
+        onImpression();
+      });
     }
-    final row = Row(
-      children: [
-        const SizedBox.square(dimension: 44, child: MediaArt(seed: 77, icon: Iconsax.star_1_copy, iconSize: 18)),
-        const SizedBox(width: AppSpace.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Sample advertiser', style: context.text.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
-              Text(
-                'Test native ad · ${medium ? 'medium' : 'small'}',
-                style: context.text.bodySmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-        TintedButton(label: 'Open', compact: true, onPressed: onClicked),
-      ],
-    );
-    if (!medium) return Padding(padding: const EdgeInsets.all(AppSpace.md), child: row);
-    return Padding(
-      padding: const EdgeInsets.all(AppSpace.md),
-      child: Column(
-        children: [
-          const Expanded(child: MediaArt(seed: 78, icon: Iconsax.image_copy, iconSize: 32)),
-          const SizedBox(height: AppSpace.md),
-          row,
-        ],
-      ),
+    return NativeAdCard(
+      title: 'Test AD: Smart Screen Mirroring & TV Cast',
+      description: 'Stream movies, videos, photos and music straight to your TV.',
+      ctaText: 'Learn More',
+      height: medium ? AdMobConfig.nativeMediumHeight : AdMobConfig.nativeSmallHeight,
+      onCtaPressed: () {
+        AdLogger.i(AdState.clicked, placement: placement, adType: 'Native', message: 'FakeNative ad clicked');
+        onClicked();
+      },
+      iconWidget: const Center(child: MediaArt(seed: 78, icon: Iconsax.image_copy, iconSize: 36)),
     );
   }
 
   @override
-  void dispose() {}
+  void dispose() {
+    AdLogger.d(AdState.disposed, placement: placement, adType: 'Native', message: 'FakeNative ad disposed');
+  }
 }
 
 class _FakeFullScreen extends LoadedFullScreenAd {
-  _FakeFullScreen(this._navigator, this.title);
+  _FakeFullScreen(this._navigator, this.title, this.placement);
   final GlobalKey<NavigatorState> _navigator;
   final String title;
+  final AdPlacement placement;
 
   @override
   Future<void> show({required VoidCallback onImpression, VoidCallback? onClicked}) async {
     final nav = _navigator.currentState;
     if (nav == null) return;
+    AdLogger.i(
+      AdState.showing,
+      placement: placement,
+      adType: 'FullScreen',
+      message: 'Showing FakeFullScreen ad: $title',
+    );
     onImpression();
     await nav.push(
       PageRouteBuilder<void>(
         opaque: true,
-        pageBuilder: (context, _, _) => _FakeAdPage(title: title, onClicked: onClicked),
+        pageBuilder: (context, _, _) => _FakeAdPage(title: title, onClicked: onClicked, placement: placement),
         transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),
       ),
+    );
+    AdLogger.i(
+      AdState.dismissed,
+      placement: placement,
+      adType: 'FullScreen',
+      message: 'FakeFullScreen ad dismissed: $title',
     );
   }
 
   @override
-  void dispose() {}
+  void dispose() {
+    AdLogger.d(AdState.disposed, placement: placement, adType: 'FullScreen', message: 'FakeFullScreen ad disposed');
+  }
 }
 
 class _FakeAdPage extends StatefulWidget {
-  const _FakeAdPage({required this.title, this.onClicked});
+  const _FakeAdPage({required this.title, this.onClicked, this.placement});
   final String title;
   final VoidCallback? onClicked;
+  final AdPlacement? placement;
 
   @override
   State<_FakeAdPage> createState() => _FakeAdPageState();
@@ -182,7 +212,18 @@ class _FakeAdPageState extends State<_FakeAdPage> {
                         style: context.text.bodyMedium?.copyWith(color: Colors.white70),
                       ),
                       const SizedBox(height: AppSpace.xl),
-                      GradientButton(label: 'Learn more', onPressed: widget.onClicked),
+                      GradientButton(
+                        label: 'Learn more',
+                        onPressed: () {
+                          AdLogger.i(
+                            AdState.clicked,
+                            placement: widget.placement,
+                            adType: 'FullScreen',
+                            message: 'FakeFullScreen CTA clicked',
+                          );
+                          widget.onClicked?.call();
+                        },
+                      ),
                     ],
                   ),
                 ),

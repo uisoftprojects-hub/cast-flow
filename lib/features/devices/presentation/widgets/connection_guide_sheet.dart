@@ -25,7 +25,7 @@ const _steps = [
   (
     Iconsax.radar_2_copy,
     'Scan for devices',
-    'Open Devices in CastFlow and wait a few seconds for your TV to appear.',
+    'Open Devices in Cast to TV and wait a few seconds for your TV to appear.',
     _ScanVisual(),
   ),
   (
@@ -38,6 +38,7 @@ const _steps = [
 
 Future<void> showConnectionGuide(BuildContext context) {
   return showModalBottomSheet<void>(
+    useRootNavigator: true,
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -409,7 +410,7 @@ class _TvSettingVisual extends StatelessWidget {
   }
 }
 
-// Step 3: CastFlow scanning, with the TV showing up in the list.
+// Step 3: Cast to TV scanning, with the TV showing up in the list.
 class _ScanVisual extends StatelessWidget {
   const _ScanVisual();
 

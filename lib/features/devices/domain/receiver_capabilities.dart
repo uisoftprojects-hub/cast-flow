@@ -37,24 +37,20 @@ enum RemoteCommand {
 /// - Fire TV / smart TVs (Tizen, webOS, Android TV): full key set.
 /// - Miracast: a display sink with no control channel.
 const receiverCapabilities = <DeviceType, Set<RemoteCommand>>{
-  DeviceType.chromecast: {...RemoteCommand.playback, ...RemoteCommand.sound},
-  DeviceType.dlna: {...RemoteCommand.playback, ...RemoteCommand.sound},
+  // No key channel implemented for these, so the remote does not pretend.
+  DeviceType.chromecast: {},
+  DeviceType.dlna: {},
+  DeviceType.fireTv: {},
   DeviceType.roku: {
     ...RemoteCommand.navigation,
     RemoteCommand.back,
     RemoteCommand.home,
     RemoteCommand.menu,
+    RemoteCommand.input,
     ...RemoteCommand.playback,
     ...RemoteCommand.sound,
   },
-  DeviceType.fireTv: {
-    ...RemoteCommand.navigation,
-    RemoteCommand.back,
-    RemoteCommand.home,
-    RemoteCommand.menu,
-    ...RemoteCommand.playback,
-    ...RemoteCommand.sound,
-  },
+  // Android TV (paired) and Samsung (paired) have the full key set.
   DeviceType.smartTv: {...RemoteCommand.values},
   DeviceType.miracast: {},
 };

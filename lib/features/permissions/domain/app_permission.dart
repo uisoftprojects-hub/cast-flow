@@ -1,21 +1,22 @@
-import 'package:flutter/widgets.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
+/// Result of checking or requesting the permissions needed to discover TVs.
+enum DiscoveryPermissionStatus { granted, denied, permanentlyDenied, locationServiceDisabled, notDetermined }
 
-enum AppPermission {
-  localNetwork('Local Network', 'Find TVs and streaming devices on your Wi-Fi.', Iconsax.wifi_copy),
-  notifications('Notifications', 'Show casting controls while you use other apps.', Iconsax.notification_copy),
-  media('Photos, Videos & Music', 'Pick what you want to cast from your gallery and library.', Iconsax.gallery_copy),
-  screenCapture('Screen Capture', 'Mirror your screen. You’ll confirm each session.', Iconsax.screenmirroring_copy);
+abstract interface class DiscoveryPermissionService {
+  /// Checks whether required discovery permissions and services are already satisfied.
+  Future<DiscoveryPermissionStatus> checkStatus();
 
-  const AppPermission(this.title, this.description, this.icon);
-  final String title;
-  final String description;
-  final IconData icon;
-}
+  /// Whether location permission specifically is required by the OS version / technology.
+  Future<bool> isLocationRequired();
 
-enum PermissionStatus { notRequested, requesting, granted, denied }
+  /// Requests the appropriate runtime permission(s) from the user.
+  Future<DiscoveryPermissionStatus> requestPermission();
 
-/// Wraps permission_handler (and the MediaProjection prompt) in production.
-abstract interface class PermissionService {
-  Future<PermissionStatus> request(AppPermission permission);
+  /// Checks if location services (GPS/master switch) are enabled when required.
+  Future<bool> isLocationServiceEnabled();
+
+  /// Opens application settings.
+  Future<bool> openAppSettings();
+
+  /// Opens system location settings.
+  Future<bool> openLocationSettings();
 }

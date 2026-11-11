@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n.dart';
 import '../../../core/widgets/ad_side_layout.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
@@ -13,13 +13,13 @@ import '../../app_flow/domain/flow_config.dart';
 import '../../app_flow/presentation/app_flow_controller.dart';
 import '../../monetization/domain/ad_models.dart';
 import '../../monetization/presentation/native_ad_slot.dart';
+import '../../monetization/presentation/splash_interstitial_manager.dart';
+import '../../premium/domain/premium_status_service.dart';
 import '../../settings/domain/app_settings.dart';
 import '../../settings/presentation/settings_controller.dart';
 
-import '../../../core/l10n.dart';
-
-/// Same screen for first-run setup and Settings → Language. The selection
-/// is applied only when the user taps the Done icon.
+/// Language screen for first-run setup and Settings → Language.
+/// Selection is applied when user taps the check icon.
 class LanguageScreen extends ConsumerStatefulWidget {
   const LanguageScreen({super.key, this.fromSettings = false});
 
@@ -33,11 +33,22 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
   late String _selected = ref.read(settingsProvider).languageCode;
 
   Future<void> _done() async {
-    await ref.read(settingsProvider.notifier).confirmLanguage(_selected);
-    if (!mounted) return;
     if (widget.fromSettings) {
+      // Leave the screen first, then switch the locale, so the whole app does not
+      // rebuild around this screen (and its native ad view) while it is closing.
+      final notifier = ref.read(settingsProvider.notifier);
+      final code = _selected;
       context.pop();
+      Future<void>.delayed(const Duration(milliseconds: 400), () => notifier.confirmLanguage(code));
     } else {
+      await ref.read(settingsProvider.notifier).confirmLanguage(_selected);
+      if (!mounted) return;
+      // First run: Splash Interstitial Opportunity 1
+      final isPremium = ref.read(isPremiumProvider);
+      if (!isPremium) {
+        await ref.read(splashInterstitialManagerProvider).tryShowAtLanguageCompletion(isPremium: isPremium);
+      }
+      if (!mounted) return;
       final next = ref.read(appFlowProvider.notifier).advance(FlowStep.language);
       if (next != null) context.go(next);
     }
@@ -47,10 +58,14 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
   Widget build(BuildContext context) {
     final canGoBack = widget.fromSettings && context.canPop();
     return PopScope(
-      // First run can't go back to a finished step.
       canPop: widget.fromSettings,
+      // First run: back acts like Continue (shows the splash ad if ready, then moves on).
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && !widget.fromSettings) _done();
+      },
       child: Scaffold(
         appBar: AppBar(
+          systemOverlayStyle: context.systemOverlayStyle(),
           toolbarHeight: 68,
           clipBehavior: Clip.none,
           automaticallyImplyLeading: false,
@@ -60,10 +75,7 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
                   padding: const EdgeInsetsDirectional.only(start: 12),
                   child: Center(
                     child: IconButton(
-                      icon: Icon(
-                        Directionality.of(context) == TextDirection.rtl ? Iconsax.arrow_right_copy : Iconsax.arrow_left_copy,
-                        size: 26,
-                      ),
+                      icon: const Icon(Icons.arrow_back_rounded, size: 26),
                       tooltip: context.l10n.browserBack,
                       onPressed: () => context.pop(),
                     ),
@@ -100,12 +112,11 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
               ).animate(delay: ((i > 10 ? 10 : i) * 30).ms).fadeIn(duration: 250.ms);
             },
           ),
+          // Medium native ad at bottom, full available width, ZERO horizontal padding
           ad: SafeArea(
             top: false,
             child: Padding(
-              padding: isLandscape(context)
-                  ? EdgeInsets.zero
-                  : const EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, AppSpace.md),
+              padding: EdgeInsets.zero,
               child: NativeAdSlot(
                 placement: widget.fromSettings ? AdPlacement.languageSettings : AdPlacement.languageFirstRun,
               ),

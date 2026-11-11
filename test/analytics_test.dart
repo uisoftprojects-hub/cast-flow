@@ -47,7 +47,7 @@ class _Adapter implements AdAdapter {
   }
 
   @override
-  Future<LoadedFullScreenAd> loadInterstitial() => Completer<LoadedFullScreenAd>().future;
+  Future<LoadedFullScreenAd> loadInterstitial([AdPlacement placement = AdPlacement.clickInterstitial]) => Completer<LoadedFullScreenAd>().future;
 
   @override
   Future<LoadedFullScreenAd> loadAppOpen() => Completer<LoadedFullScreenAd>().future;
@@ -101,17 +101,17 @@ void main() {
     final flow = c.read(appFlowProvider.notifier)..splashShown();
     flow.start();
     flow.advance(FlowStep.language);
-    flow.advance(FlowStep.onboarding);
     flow.advance(FlowStep.paywall);
+    flow.advance(FlowStep.onboarding);
 
     expect(sink.names, [
       'app_launch',
       'funnel_splash_view',
       'funnel_language_view',
       'funnel_language_done',
+      'funnel_paywall_view',
       'funnel_onboarding_view',
       'funnel_onboarding_done',
-      'funnel_paywall_view',
       'funnel_home_view',
     ]);
     expect(sink.last('app_launch')!['first_open'], 1);
@@ -156,9 +156,9 @@ void main() {
     final c = await makeContainer(overrides: [analyticsSinkProvider.overrideWithValue(sink)]);
     c.listen(entitlementProvider, (_, _) {});
     final products = await c.read(storeProductsProvider.future);
-    await c.read(entitlementProvider.notifier).buy(products[1], source: 'home_pro_button');
+    await c.read(entitlementProvider.notifier).buy(products.first, source: 'home_pro_button');
     expect(sink.names, containsAllInOrder(['purchase_start', 'purchase_success']));
-    expect(sink.last('purchase_success')!['product_id'], BillingConfig.yearly);
+    expect(sink.last('purchase_success')!['product_id'], BillingConfig.weekly);
     expect(sink.last('purchase_success')!['source'], 'home_pro_button');
   });
 

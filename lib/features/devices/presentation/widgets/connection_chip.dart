@@ -154,6 +154,7 @@ class CastAppBar extends StatelessWidget implements PreferredSizeWidget {
     final path = GoRouterState.of(context).uri.path;
     final showBack = context.canPop() || !_tabRoots.contains(path);
     return AppBar(
+      systemOverlayStyle: context.systemOverlayStyle(),
       toolbarHeight: 68,
       // Lets the round buttons' shadows show instead of being cut off square.
       clipBehavior: Clip.none,
@@ -164,10 +165,7 @@ class CastAppBar extends StatelessWidget implements PreferredSizeWidget {
               padding: const EdgeInsetsDirectional.only(start: 12),
               child: Center(
                 child: IconButton(
-                  icon: Icon(
-                    Directionality.of(context) == TextDirection.rtl ? Iconsax.arrow_right_copy : Iconsax.arrow_left_copy,
-                    size: 26,
-                  ),
+                  icon: const Icon(Icons.arrow_back_rounded, size: 26),
                   tooltip: context.l10n.browserBack,
                   onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
                 ),

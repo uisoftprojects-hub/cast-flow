@@ -9,7 +9,6 @@ import '../../../core/analytics/analytics_events.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
-import '../../../core/utils/format.dart';
 import '../../../core/widgets/buttons.dart';
 import '../../../core/widgets/illustrations.dart';
 import '../../../core/widgets/soft_card.dart';
@@ -17,7 +16,7 @@ import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../devices/presentation/widgets/connection_bar.dart';
 import '../../devices/presentation/widgets/network_widgets.dart';
-import '../../settings/presentation/settings_controller.dart';
+import '../../premium/domain/premium_status_service.dart';
 
 import '../../../core/l10n.dart';
 
@@ -48,7 +47,7 @@ class HomeScreen extends ConsumerWidget {
           children: [
             // Fixed header: never scrolls with the content.
             const Padding(
-              padding: EdgeInsets.fromLTRB(AppSpace.page, AppSpace.lg, AppSpace.page, AppSpace.md),
+              padding: EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, AppSpace.sm),
               child: _Header(),
             ),
             Expanded(
@@ -83,7 +82,7 @@ class _Header extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final premium = ref.watch(settingsProvider.select((s) => s.isPremium));
+    final showPromo = ref.watch(shouldShowPremiumPromotionProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -93,12 +92,11 @@ class _Header extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(context.tr(greeting()), style: context.text.bodyMedium),
-                  Text('CastFlow', style: context.text.headlineLarge, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(context.l10n.appName, style: context.text.headlineMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
-            if (!premium)
+            if (showPromo)
               TapScale(
                 onTap: () => context.push('/premium?from=home_pro_button'),
                 semanticLabel: context.l10n.goPro,
@@ -115,7 +113,7 @@ class _Header extends ConsumerWidget {
               ),
           ],
         ),
-        const SizedBox(height: AppSpace.md),
+        const SizedBox(height: AppSpace.sm),
         // TV bar: its connection status is on the right edge of the bar.
         const ConnectionBar(),
       ],

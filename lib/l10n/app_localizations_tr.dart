@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -311,7 +310,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get couldntOpenTheLink => 'Bağlantı açılamadı.';
 
   @override
-  String get castflowLogo => 'CastFlow logosu';
+  String get castflowLogo => 'Cast to TV logosu';
 
   @override
   String get somethingWentWrong => 'Bir şeyler ters gitti';
@@ -329,7 +328,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get smartTv => 'Smart TV';
+  String get smartTv => 'Akıllı TV';
 
   @override
   String get chromecast => 'Chromecast';
@@ -341,7 +340,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get roku => 'Roku';
 
   @override
-  String get dlnaRenderer => 'DLNA renderer';
+  String get dlnaRenderer => 'DLNA Oluşturucu';
 
   @override
   String get miracast => 'Miracast';
@@ -466,7 +465,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get openDevicesInCastflow =>
-      'CastFlow\'da Cihazlar\'ı açın ve TV\'nizin görünmesi için birkaç saniye bekleyin.';
+      'Cast to TV\'da Cihazlar\'ı açın ve TV\'nizin görünmesi için birkaç saniye bekleyin.';
 
   @override
   String get tapConnect => 'Bağlan\'a dokunun';
@@ -512,7 +511,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get allowCastflowToConnect =>
-      'CastFlow\'un bağlanmasına izin verilsin mi?';
+      'Cast to TV\'un bağlanmasına izin verilsin mi?';
 
   @override
   String get deny => 'Reddet';
@@ -565,7 +564,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get allowCastflowToFind =>
-      'İstendiğinde CastFlow\'un ağınızdaki cihazları bulmasına izin verin.';
+      'İstendiğinde Cast to TV\'un ağınızdaki cihazları bulmasına izin verin.';
 
   @override
   String get noTvFound => 'TV bulunamadı';
@@ -1224,7 +1223,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noAds => 'Reklam yok';
 
   @override
-  String get welcomeToCastflowPro => 'CastFlow Pro\'ya hoş geldiniz!';
+  String get welcomeToCastflowPro => 'Cast to TV Pro\'ya hoş geldiniz!';
 
   @override
   String get purchaseCancelled => 'Satın alma iptal edildi.';
@@ -1469,7 +1468,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get canCastflowTurnMy =>
-      'CastFlow TV\'mi açabilir veya girişi değiştirebilir mi?';
+      'Cast to TV TV\'mi açabilir veya girişi değiştirebilir mi?';
 
   @override
   String get onlyOnTvsThat =>
@@ -1490,7 +1489,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noEmailAppFound => 'E-posta uygulaması bulunamadı.';
 
   @override
-  String get enjoyingCastflow => 'CastFlow\'u beğendiniz mi?';
+  String get enjoyingCastflow => 'Cast to TV\'u beğendiniz mi?';
 
   @override
   String get sorryToHearThat => 'Bunu duyduğumuza üzüldük';
@@ -1522,32 +1521,19 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get tapAStarTo =>
-      'CastFlow\'u değerlendirmek için bir yıldıza dokunun.';
+      'Cast to TV\'u değerlendirmek için bir yıldıza dokunun.';
 
   @override
   String get general => 'Genel';
 
   @override
-  String get english => 'English';
+  String get english => 'İngilizce';
 
   @override
   String get defaultQuality => 'Varsayılan kalite';
 
   @override
   String get autoConnectToLast => 'Son TV\'ye otomatik bağlan';
-
-  @override
-  String get hapticFeedback => 'Dokunsal geri bildirim';
-
-  @override
-  String get clearCastingHistory => 'Yayın geçmişini temizle';
-
-  @override
-  String get clearCastingHistory2 => 'Yayın geçmişi temizlensin mi?';
-
-  @override
-  String get onlyCastflowsListIs =>
-      'Yalnızca CastFlow\'un listesi temizlenir. Telefonunuzdaki medya asla silinmez.';
 
   @override
   String get appearance => 'Görünüm';
@@ -1577,13 +1563,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get version => 'Sürüm';
 
   @override
-  String get castflowProIsActive => 'CastFlow Pro etkin';
+  String get castflowProIsActive => 'Cast to TV Pro etkin';
 
   @override
   String get upgradeToPremium => 'Premium\'a yükselt';
 
   @override
-  String get castflowPremium => 'CastFlow Premium';
+  String get castflowPremium => 'TV\'ye Yansıt Premium';
 
   @override
   String get thanksForYourSupport =>
@@ -1694,4 +1680,54 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get noWifiAlertMessage =>
       'Mobil veri kullanıyorsunuz. Telefonu ve TV\'yi aynı Wi-Fi ağına bağlayın ya da telefonun hotspot\'unu açıp TV\'yi ona bağlayın.';
+
+  @override
+  String get checkingNetwork => 'Ağ kontrol ediliyor...';
+
+  @override
+  String get discoveryStopped => 'Arama durduruldu';
+
+  @override
+  String get discoveryStoppedHint =>
+      'Arama durduruldu. Yakındaki cihazları bulmak için ara düğmesine dokunun.';
+
+  @override
+  String get search => 'Ara';
+
+  @override
+  String get permissionNeededToDiscover =>
+      'Wi-Fi üzerindeki cihazları keşfetmek için konum izni gereklidir.';
+
+  @override
+  String get locationServicesDisabled => 'Konum Servisleri Devre Dışı';
+
+  @override
+  String get openLocationSettings => 'Konum Ayarlarını Aç';
+
+  @override
+  String get openAppSettings => 'Uygulama Ayarlarını Aç';
+
+  @override
+  String get subscriptionExpired => 'Aboneliğinizin süresi doldu.';
+
+  @override
+  String get noPurchasesFound => 'Önceki satın alma bulunamadı.';
+
+  @override
+  String get restore => 'Geri yükle';
+
+  @override
+  String get permissionNeeded => 'İzin Gerekli';
+
+  @override
+  String get permissionBlockedInSettings => 'Ayarlarda İzin Engellendi';
+
+  @override
+  String get grantPermission => 'İzin Ver';
+
+  @override
+  String get checkAgain => 'Tekrar Kontrol Et';
+
+  @override
+  String get appName => 'TV\'ye Yansıt';
 }

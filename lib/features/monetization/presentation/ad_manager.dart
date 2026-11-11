@@ -1,25 +1,27 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/analytics.dart';
 import '../../../core/analytics/analytics_events.dart';
 import '../../../core/app_providers.dart';
 import '../../../core/navigation.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../app_flow/presentation/app_flow_controller.dart';
-import '../../devices/presentation/device_providers.dart';
-import '../../mirroring/presentation/mirroring_controller.dart';
+import '../../premium/domain/premium_status_service.dart';
 import '../../settings/presentation/settings_controller.dart';
 import '../data/ad_adapter_factory.dart';
 import '../domain/ad_adapter.dart';
 import '../domain/ad_config.dart';
+import '../domain/ad_logger.dart';
 import '../domain/ad_models.dart';
+import '../domain/consent_manager.dart';
+import 'ad_display_coordinator.dart';
 import 'ad_route_observer.dart';
-
-import '../../../core/l10n.dart';
+import 'app_open_ad_manager.dart';
+import 'click_count_interstitial_manager.dart';
+import 'native_ad_manager.dart';
+import 'splash_interstitial_manager.dart';
 
 final adAdapterProvider = Provider<AdAdapter>(
   (ref) => createAdAdapter(rootNavigatorKey, () => ref.read(previewModeProvider)),
@@ -27,28 +29,22 @@ final adAdapterProvider = Provider<AdAdapter>(
 
 final adRouteObserverProvider = Provider<AdRouteObserver>((ref) => AdRouteObserver());
 
-/// Injectable clock so the cooldown rules can be tested.
+/// Injectable clock so timing and cooldown rules can be tested cleanly.
 final adClockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
 
-/// Owns every ad decision: eligibility, one request per placement, the
-/// five-click interstitial cycle, App Open on resume, cooldowns and the
-/// local event log. Screens never create ad objects themselves.
+final consentManagerProvider = Provider<ConsentManager>((ref) => ConsentManager());
+
+/// Centralized AdManager acting as the top-level orchestration layer for all monetization subsystems:
+/// - Enforces global Premium User Protection (Rule 1 priority).
+/// - Splash Interstitial Manager.
+/// - Native Ad Manager (Language & Onboarding).
+/// - Click-Count Interstitial Manager (Bottom Navigation, max 1 per session).
+/// - App Open Ad Manager (7-second transparent loading overlay, delayed show, freshness).
+/// - AdDisplayCoordinator (Single full-screen ad presentation lock).
 class AdManager extends Notifier<AdDiagnostics> {
   late AdAdapter _adapter;
-  late AdRouteObserver _routes;
   late DateTime Function() _now;
   Future<void>? _init;
-
-  // Interstitial cycle.
-  LoadedFullScreenAd? _interstitial;
-  bool _interstitialLoading = false;
-  int _cycle = 0;
-
-  // Full-screen / App Open.
-  bool _fullScreenActive = false;
-  bool _foreground = true;
-  DateTime? _backgroundedAt;
-  Route<void>? _overlayRoute;
 
   static const _clickKey = 'ad_click_count';
   static String _key(AdPlacement p) => 'ad_state_${p.name}';
@@ -56,14 +52,13 @@ class AdManager extends Notifier<AdDiagnostics> {
   @override
   AdDiagnostics build() {
     _adapter = ref.watch(adAdapterProvider);
-    _routes = ref.watch(adRouteObserverProvider)
-      ..onEligiblePush = (_) => Future.microtask(() {
-        // Route pushes are reported while the navigator builds; providers
-        // can't change then, so count the click right after.
-        if (ref.mounted) registerEligibleClick();
-      });
     _now = ref.watch(adClockProvider);
-    ref.onDispose(() => _interstitial?.dispose());
+
+    ref.listen<bool>(settingsProvider.select((s) => s.isPremium), (prev, isPremium) {
+      if (isPremium) {
+        onPremiumPurchased();
+      }
+    });
 
     final prefs = ref.read(sharedPrefsProvider);
     PlacementState load(AdPlacement p) {
@@ -71,42 +66,54 @@ class AdManager extends Notifier<AdDiagnostics> {
       return raw == null ? const PlacementState() : PlacementState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
     }
 
-    // A load that was in flight cannot survive a restart, so a cycle that had
-    // already reached click 3 starts over.
     final clicks = prefs.getInt(_clickKey) ?? 0;
-    return AdDiagnostics(
-      placements: {for (final p in AdPlacement.values) p: load(p)},
-      clickCount: clicks >= AdConfig.loadAtClick ? 0 : clicks,
-    );
+    return AdDiagnostics(placements: {for (final p in AdPlacement.values) p: load(p)}, clickCount: clicks);
   }
 
-  bool get _adsAllowed => !ref.read(settingsProvider).isPremium && state.consentAllowsAds;
+  bool get _isPremium => ref.read(settingsProvider).isPremium || ref.read(premiumStatusServiceProvider).isPremium;
 
-  /// Gathers consent and initializes the SDK once.
+  bool get _adsAllowed => !_isPremium && state.consentAllowsAds;
+
+  /// Authoritative initialization of consent and SDK.
+  /// Premium users skip ad requests and consent flows.
   Future<void> ensureInitialized() => _init ??= () async {
+    await AdMobConfig.initializeNativeConfig();
+
+    if (_isPremium) {
+      state = state.copyWith(consentAllowsAds: false);
+      return;
+    }
+
+    final consent = ref.read(consentManagerProvider);
+    final ok = await consent.gatherConsentAndInitialize(isPremium: _isPremium);
+
     try {
       await _adapter.initialize();
     } catch (_) {}
-    final ok = await _adapter.canRequestAds().catchError((_) => false);
+
     state = state.copyWith(consentAllowsAds: ok);
   }();
 
-  // ---------------------------------------------------------------- native
+  // ---------------------------------------------------------------- Native
 
-  /// Loads the native ad for [placement]. Call only from the screen that
-  /// shows it, once per visit; returns null when not eligible or no fill.
+  /// Loads native ad for [placement].
+  /// Never loads if user is premium.
   Future<LoadedNativeAd?> loadNative(AdPlacement placement) async {
+    if (_isPremium) {
+      return _skip(placement, 'premium user protected');
+    }
     await ensureInitialized();
     final ps = state.placements[placement]!;
-    if (!_adsAllowed) return _skip(placement, 'not eligible');
+    if (!_adsAllowed) return _skip(placement, 'ads not allowed');
     if (ps.inCooldown(_now())) return _skip(placement, 'cooldown');
-    if (ps.requestState == AdRequestState.loading) return _skip(placement, 'request already in flight');
+    if (ps.requestState == AdRequestState.loading) return _skip(placement, 'request in flight');
 
     _setPlacement(
       placement,
       (s) => s.copyWith(requestState: AdRequestState.loading, requestCount: s.requestCount + 1, lastRequestAt: _now()),
     );
     _log(placement, AdEventType.request);
+
     try {
       final ad = await _adapter.loadNative(
         placement,
@@ -118,192 +125,70 @@ class AdManager extends Notifier<AdDiagnostics> {
       _log(placement, AdEventType.loaded);
       return ad;
     } catch (e) {
-      _fail(placement, e, AdConfig.nativeFailureCooldown);
+      _fail(placement, e, AdMobConfig.nativeFailureCooldown);
       return null;
     }
   }
 
-  /// Disposes a screen's native ad when the screen is left.
   void releaseNative(AdPlacement placement, LoadedNativeAd? ad) {
     ad?.dispose();
     if (!ref.mounted) return;
     _setPlacement(placement, (s) => s.copyWith(requestState: AdRequestState.idle));
   }
 
-  // ---------------------------------------------------------- interstitial
-
-  /// Counts an eligible user action. Click 3 starts exactly one load; click 5
-  /// shows it only if it is ready at that moment, otherwise it is discarded.
-  void registerEligibleClick() {
-    if (!_adsAllowed || _fullScreenActive) return;
-    const p = AdPlacement.interstitial;
-    if (state.placements[p]!.inCooldown(_now())) return;
-
-    final clicks = state.clickCount + 1;
-    _setClicks(clicks);
-
-    if (clicks == AdConfig.loadAtClick && _interstitial == null && !_interstitialLoading) {
-      _loadInterstitial(_cycle);
-    }
-    if (clicks >= AdConfig.showAtClick) _fifthClick(_cycle);
-  }
-
-  Future<void> _loadInterstitial(int cycle) async {
-    const p = AdPlacement.interstitial;
-    _interstitialLoading = true;
-    _setPlacement(
-      p,
-      (s) => s.copyWith(requestState: AdRequestState.loading, requestCount: s.requestCount + 1, lastRequestAt: _now()),
-    );
-    _log(p, AdEventType.request, 'click ${AdConfig.loadAtClick}');
-    try {
-      final ad = await _adapter.loadInterstitial();
-      _interstitialLoading = false;
-      if (!ref.mounted) return ad.dispose();
-      if (cycle != _cycle) {
-        // Its click-5 opportunity already passed: never show it later.
-        ad.dispose();
-        _setPlacement(p, (s) => s.copyWith(requestState: AdRequestState.idle));
-        _log(p, AdEventType.discarded, 'loaded after its click-5 opportunity');
-        return;
-      }
-      _interstitial = ad;
-      _setPlacement(p, (s) => s.copyWith(requestState: AdRequestState.ready));
-      _log(p, AdEventType.loaded);
-    } catch (e) {
-      _interstitialLoading = false;
-      if (!ref.mounted) return;
-      _fail(p, e, AdConfig.failureCooldown);
-      // End this attempt; the next cycle starts after the cooldown.
-      if (cycle == _cycle) _endCycle();
-    }
-  }
-
-  Future<void> _fifthClick(int cycle) async {
-    const p = AdPlacement.interstitial;
-    final ad = _interstitial;
-    if (ad == null) {
-      _log(p, AdEventType.discarded, 'not ready at click ${AdConfig.showAtClick}');
-      _endCycle();
-      return;
-    }
-    // Let the click's navigation settle, then re-check the show policy.
-    await Future<void>.delayed(AdConfig.showDelay);
-    if (!ref.mounted || cycle != _cycle) return;
-    if (!_canShowFullScreen()) {
-      ad.dispose();
-      _log(p, AdEventType.discarded, 'blocked by current screen');
-      _endCycle();
-      return;
-    }
-    _interstitial = null;
-    _fullScreenActive = true;
-    _setPlacement(p, (s) => s.copyWith(requestState: AdRequestState.showing));
-    await ad.show(onImpression: () => _impression(p), onClicked: () => _log(p, AdEventType.clicked));
-    ad.dispose();
-    _fullScreenActive = false;
-    if (!ref.mounted) return;
-    _log(p, AdEventType.dismissed);
-    // The next cycle begins only now, after dismiss; no request here.
-    _endCycle();
-  }
-
-  void _endCycle() {
-    _cycle++;
-    _interstitial?.dispose();
-    _interstitial = null;
-    _setClicks(0);
-    _setPlacement(AdPlacement.interstitial, (s) => s.copyWith(requestState: AdRequestState.idle));
-  }
-
-  bool _canShowFullScreen() {
-    if (_fullScreenActive || state.appOpenOverlay) return false;
-    if (!_routes.topIsSafe) return false;
-    if (ref.read(connectionProvider).isConnecting) return false;
-    if (ref.read(mirroringProvider).isBusy) return false;
-    return true;
-  }
-
   // -------------------------------------------------------------- App Open
 
   void onBackgrounded() {
-    _foreground = false;
-    _backgroundedAt = _now();
+    ref.read(appOpenAdManagerProvider).onBackgrounded();
   }
 
-  /// Called on a background → foreground transition only (never on route
-  /// changes or system dialogs).
   Future<void> onResumed() async {
-    _foreground = true;
-    final since = _backgroundedAt;
-    _backgroundedAt = null;
-    const p = AdPlacement.appOpen;
-    if (since == null || _now().difference(since) < AdConfig.appOpenMinBackground) return;
-    if (!_adsAllowed) return;
-    // Not before the user has reached the usable app.
-    if (!ref.read(settingsProvider).firstLaunchCompleted || !ref.read(appFlowProvider).finished) return;
-    final last = state.placements[p]!.lastImpressionAt;
-    if (last != null && _now().difference(last) < AdConfig.appOpenMinInterval) {
-      _skip(p, 'frequency cap');
-      return;
-    }
-    if (!_canShowFullScreen()) return;
-
-    _setOverlay(true);
-    _setPlacement(
-      p,
-      (s) => s.copyWith(requestState: AdRequestState.loading, requestCount: s.requestCount + 1, lastRequestAt: _now()),
-    );
-    _log(p, AdEventType.request, 'resume');
-    LoadedFullScreenAd ad;
-    try {
-      ad = await _adapter.loadAppOpen().timeout(AdConfig.appOpenLoadTimeout);
-    } catch (e) {
-      if (!ref.mounted) return;
-      _fail(p, e, Duration.zero);
-      _setOverlay(false);
-      return;
-    }
-    if (!ref.mounted) return ad.dispose();
-    if (!_foreground) {
-      ad.dispose();
-      _setOverlay(false);
-      _log(p, AdEventType.discarded, 'app left foreground');
-      return;
-    }
-    _fullScreenActive = true;
-    _setPlacement(p, (s) => s.copyWith(requestState: AdRequestState.showing));
-    await ad.show(onImpression: () => _impression(p), onClicked: () => _log(p, AdEventType.clicked));
-    ad.dispose();
-    _fullScreenActive = false;
-    if (!ref.mounted) return;
-    _setPlacement(p, (s) => s.copyWith(requestState: AdRequestState.idle));
-    _log(p, AdEventType.dismissed);
-    _setOverlay(false);
-  }
-
-  /// "Ad is loading" surface above the current screen. Back is blocked only
-  /// while it is up; it is always removed on success, failure or timeout.
-  void _setOverlay(bool on) {
-    state = state.copyWith(appOpenOverlay: on);
-    final nav = rootNavigatorKey.currentState;
-    if (on && nav != null && _overlayRoute == null) {
-      _overlayRoute = PageRouteBuilder<void>(
-        settings: const RouteSettings(name: '/ad-loading'),
-        opaque: false,
-        transitionDuration: const Duration(milliseconds: 150),
-        pageBuilder: (context, _, _) => const _AdLoadingOverlay(),
-        transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),
+    if (_isPremium) return;
+    // Only once the user has actually landed on Home (never during the
+    // splash -> language/onboarding/paywall -> home journey), and never over
+    // the paywall or any other blocked screen.
+    // A merely preloaded interstitial is not an overlap; the full-screen
+    // coordinator (canShow) blocks real overlap with a showing ad.
+    final flowFinished = ref.read(appFlowProvider).finished;
+    final routeSafe = ref.read(adRouteObserverProvider).topIsSafe;
+    final isAppEligible = flowFinished && routeSafe;
+    if (!isAppEligible) {
+      AdLogger.d(
+        AdState.requestSkipped,
+        placement: AdPlacement.appOpen,
+        adType: 'AppOpen',
+        message: 'App Open not eligible: flowFinished=$flowFinished, routeSafe=$routeSafe',
       );
-      nav.push(_overlayRoute!);
-    } else if (!on && _overlayRoute != null) {
-      final route = _overlayRoute!;
-      _overlayRoute = null;
-      if (route.isActive) route.navigator?.removeRoute(route);
     }
+
+    await ref
+        .read(appOpenAdManagerProvider)
+        .onResumed(
+          isPremium: _isPremium,
+          isAppEligible: isAppEligible,
+          onImpression: () => _impression(AdPlacement.appOpen),
+          onClicked: () => _log(AdPlacement.appOpen, AdEventType.clicked),
+        );
   }
 
-  // ----------------------------------------------------------------- state
+  // ---------------------------------------------- Premium Purchase Event
+
+  /// Immediately terminates all pending ad displays and disposes all loaded ads across all subsystems
+  void onPremiumPurchased() {
+    AdLogger.i(
+      AdState.premiumPurge,
+      adType: 'AdManager',
+      message: 'User purchased Premium. Purged all active and cached ads across all monetization subsystems.',
+    );
+    state = state.copyWith(consentAllowsAds: false);
+    ref.read(splashInterstitialManagerProvider).onPremiumPurchased();
+    ref.read(nativeAdManagerProvider).onPremiumPurchased();
+    ref.read(clickCountInterstitialManagerProvider).onPremiumPurchased();
+    ref.read(appOpenAdManagerProvider).onPremiumPurchased();
+    ref.read(adDisplayCoordinatorProvider).forceDismissAll();
+  }
+
+  // ----------------------------------------------------------------- State & Telemetry
 
   void _impression(AdPlacement p) {
     _setPlacement(p, (s) => s.copyWith(impressionCount: s.impressionCount + 1, lastImpressionAt: _now()));
@@ -327,11 +212,6 @@ class AdManager extends Notifier<AdDiagnostics> {
     return null;
   }
 
-  void _setClicks(int clicks) {
-    state = state.copyWith(clickCount: clicks);
-    ref.read(sharedPrefsProvider).setInt(_clickKey, clicks);
-  }
-
   void _setPlacement(AdPlacement p, PlacementState Function(PlacementState) update) {
     final next = update(state.placements[p]!);
     state = state.copyWith(placements: {...state.placements, p: next});
@@ -340,18 +220,47 @@ class AdManager extends Notifier<AdDiagnostics> {
 
   void _log(AdPlacement p, AdEventType type, [String? detail]) {
     final events = [AdEvent(p, type, _now(), detail), ...state.events];
-    state = state.copyWith(events: events.take(AdConfig.maxLoggedEvents).toList());
+    state = state.copyWith(events: events.take(AdMobConfig.maxLoggedEvents).toList());
+
+    AdState adState;
+    switch (type) {
+      case AdEventType.request:
+        adState = AdState.requestStart;
+      case AdEventType.loaded:
+        adState = AdState.loaded;
+      case AdEventType.failed:
+        adState = AdState.loadFailed;
+      case AdEventType.impression:
+        adState = AdState.impression;
+      case AdEventType.clicked:
+        adState = AdState.clicked;
+      case AdEventType.skipped:
+        adState = AdState.requestSkipped;
+      case AdEventType.dismissed:
+        adState = AdState.dismissed;
+      case AdEventType.discarded:
+        adState = AdState.expiredDiscarded;
+    }
+
+    AdLogger.log(
+      state: adState,
+      placement: p,
+      adType: p.format,
+      unitId: AdMobConfig.unitId(p),
+      message: detail,
+      level: type == AdEventType.failed ? AdLogLevel.warn : AdLogLevel.info,
+    );
+
     _track(p, type, detail);
   }
 
   final _requestedAt = <AdPlacement, DateTime>{};
 
-  /// Mirrors the local ad log to analytics, one event per lifecycle step.
   void _track(AdPlacement p, AdEventType type, String? detail) {
     final base = <String, Object?>{
       AnalyticsParam.adName: p.analyticsName,
       AnalyticsParam.adFormat: p.format,
-      AnalyticsParam.adUnit: AdConfig.unitId(p).split('/').last,
+      AnalyticsParam.adUnit: AdMobConfig.unitId(p).split('/').last,
     };
     final analytics = ref.read(analyticsProvider);
     switch (type) {
@@ -376,38 +285,9 @@ class AdManager extends Notifier<AdDiagnostics> {
       case AdEventType.clicked:
         analytics.log(AnalyticsEvent.adClick, base);
       case AdEventType.dismissed || AdEventType.discarded || AdEventType.skipped:
-        break; // local log only
+        break;
     }
   }
 }
 
 final adManagerProvider = NotifierProvider<AdManager, AdDiagnostics>(AdManager.new);
-
-class _AdLoadingOverlay extends StatelessWidget {
-  const _AdLoadingOverlay();
-
-  @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      // Full-screen see-through scrim with the loader and its "Ad is loading"
-      // text together in the middle. No card or white background.
-      child: Material(
-        color: Colors.black.withValues(alpha: 0.35),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox.square(
-                dimension: 40,
-                child: CircularProgressIndicator(strokeWidth: 3.5, color: Colors.white),
-              ),
-              const SizedBox(height: 14),
-              Text(context.l10n.adIsLoading, style: context.text.titleSmall?.copyWith(color: Colors.white)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

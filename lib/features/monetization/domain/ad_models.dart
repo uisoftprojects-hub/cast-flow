@@ -4,7 +4,11 @@ enum AdPlacement {
   languageFirstRun('Language (first run)', 'native_language_first_open', 'native'),
   languageSettings('Language (Settings)', 'native_language_settings', 'native'),
   onboarding('Onboarding', 'native_onboarding', 'native'),
-  interstitial('5-click interstitial', 'inter_5_click', 'interstitial'),
+  splashInterstitialFirst('Splash Interstitial 1st', 'inter_splash_first', 'interstitial'),
+  splashInterstitialSecond('Splash Interstitial 2nd & Own', 'inter_splash_second', 'interstitial'),
+  clickInterstitial('1st Click Interstitial', 'inter_click', 'interstitial'),
+  interstitial('Click Interstitial (legacy alias)', 'inter_legacy', 'interstitial'),
+  homeNative('Home Native', 'native_home', 'native'),
   appOpen('App Open', 'app_open_resume', 'app_open');
 
   const AdPlacement(this.label, this.analyticsName, this.format);
