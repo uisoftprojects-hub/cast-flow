@@ -16,7 +16,10 @@ import 'ad_manager.dart';
 /// Never shows on Home. Never delays navigation indefinitely.
 class SplashInterstitialManager {
   // ignore: prefer_initializing_formals
-  SplashInterstitialManager({required this._adapter, required this._coordinator});
+  SplashInterstitialManager({
+    required this._adapter,
+    required this._coordinator,
+  });
 
   final AdAdapter _adapter;
   final AdDisplayCoordinator _coordinator;
@@ -45,13 +48,23 @@ class SplashInterstitialManager {
     _isDismissed = false;
     _isLoading = false;
     _loadDone = null;
-    _placement = isReturning ? AdPlacement.splashInterstitialSecond : AdPlacement.splashInterstitialFirst;
+    _placement = isReturning
+        ? AdPlacement.splashInterstitialSecond
+        : AdPlacement.splashInterstitialFirst;
   }
 
   /// [prerequisite] (e.g. consent) is awaited while the load is already marked
   /// in-flight, so closing the paywall early waits for it instead of giving up.
-  Future<void> startSplashLoad({required bool isPremium, bool isReturning = false, Future<void>? prerequisite}) async {
-    if (isPremium || _hasShown || _isDismissed || _isLoading || _loadedAd != null) {
+  Future<void> startSplashLoad({
+    required bool isPremium,
+    bool isReturning = false,
+    Future<void>? prerequisite,
+  }) async {
+    if (isPremium ||
+        _hasShown ||
+        _isDismissed ||
+        _isLoading ||
+        _loadedAd != null) {
       AdLogger.d(
         AdState.requestSkipped,
         placement: _placement,
@@ -92,13 +105,16 @@ class SplashInterstitialManager {
   }
 
   Future<void> _load(bool isReturning) async {
-    final placement = isReturning ? AdPlacement.splashInterstitialSecond : AdPlacement.splashInterstitialFirst;
+    final placement = isReturning
+        ? AdPlacement.splashInterstitialSecond
+        : AdPlacement.splashInterstitialFirst;
     _placement = placement;
     AdLogger.i(
       AdState.preloadStart,
       placement: placement,
       adType: 'SplashInterstitial',
-      message: 'Starting splash interstitial preload concurrently with splash timer.',
+      message:
+          'Starting splash interstitial preload concurrently with splash timer.',
     );
     try {
       final ad = await _adapter.loadInterstitial(placement);
@@ -110,7 +126,8 @@ class SplashInterstitialManager {
           AdState.disposed,
           placement: placement,
           adType: 'SplashInterstitial',
-          message: 'Splash interstitial loaded after dismissal or show; disposing immediately.',
+          message:
+              'Splash interstitial loaded after dismissal or show; disposing immediately.',
         );
         ad.dispose();
         return;
@@ -120,7 +137,8 @@ class SplashInterstitialManager {
         AdState.preloadSuccess,
         placement: placement,
         adType: 'SplashInterstitial',
-        message: 'Splash interstitial preloaded successfully and cached for startup transition.',
+        message:
+            'Splash interstitial preloaded successfully and cached for startup transition.',
       );
     } catch (e) {
       _isLoading = false;
@@ -128,7 +146,8 @@ class SplashInterstitialManager {
         AdState.preloadFailed,
         placement: placement,
         adType: 'SplashInterstitial',
-        message: 'Splash interstitial preload failed; startup flow will continue without blocking.',
+        message:
+            'Splash interstitial preload failed; startup flow will continue without blocking.',
         error: e,
       );
     }
@@ -145,7 +164,8 @@ class SplashInterstitialManager {
         AdState.requestSkipped,
         placement: _placement,
         adType: 'SplashInterstitial:Language',
-        message: 'Opportunity 1 skipped (isPremium: $isPremium, hasShown: $_hasShown, isDismissed: $_isDismissed)',
+        message:
+            'Opportunity 1 skipped (isPremium: $isPremium, hasShown: $_hasShown, isDismissed: $_isDismissed)',
       );
       return false;
     }
@@ -156,7 +176,8 @@ class SplashInterstitialManager {
         AdState.showRequested,
         placement: _placement,
         adType: 'SplashInterstitial:Language',
-        message: 'Ad not ready yet at Language completion; preserving for Opportunity 2 (Paywall close).',
+        message:
+            'Ad not ready yet at Language completion; preserving for Opportunity 2 (Paywall close).',
       );
       return false;
     }
@@ -173,7 +194,10 @@ class SplashInterstitialManager {
       placement: _placement,
       isPremium: isPremium,
       displayAction: () async {
-        await ad.show(onImpression: () => onImpression?.call(), onClicked: onClicked);
+        await ad.show(
+          onImpression: () => onImpression?.call(),
+          onClicked: onClicked,
+        );
       },
     );
 
@@ -184,14 +208,16 @@ class SplashInterstitialManager {
         AdState.showing,
         placement: _placement,
         adType: 'SplashInterstitial:Language',
-        message: 'Splash interstitial displayed successfully at Language completion.',
+        message:
+            'Splash interstitial displayed successfully at Language completion.',
       );
     } else {
       AdLogger.w(
         AdState.showFailed,
         placement: _placement,
         adType: 'SplashInterstitial:Language',
-        message: 'Splash interstitial presentation was rejected by coordinator or failed.',
+        message:
+            'Splash interstitial presentation was rejected by coordinator or failed.',
       );
     }
     return shown;
@@ -211,13 +237,14 @@ class SplashInterstitialManager {
     await _awaitInFlight();
     final ad = _loadedAd;
     if (ad == null) {
+      // Keep the opportunity: Home will use it on the first click if it loads later.
       AdLogger.d(
         AdState.showRequested,
         placement: _placement,
         adType: 'SplashInterstitial:Paywall',
-        message: 'Ad not loaded before Paywall close; dismissing opportunity permanently.',
+        message:
+            'Ad not loaded before Paywall close; preserving for first Home click.',
       );
-      dismiss();
       return false;
     }
 
@@ -233,7 +260,10 @@ class SplashInterstitialManager {
       placement: _placement,
       isPremium: isPremium,
       displayAction: () async {
-        await ad.show(onImpression: () => onImpression?.call(), onClicked: onClicked);
+        await ad.show(
+          onImpression: () => onImpression?.call(),
+          onClicked: onClicked,
+        );
       },
     );
 
@@ -251,7 +281,81 @@ class SplashInterstitialManager {
     return shown;
   }
 
-  /// Dismisses the splash interstitial request permanently when entering Home or when opportunities have expired.
+  /// True while the splash ad is still loading or cached and not yet shown.
+  /// Other interstitials wait for it so the splash ad is the first one requested/shown.
+  bool get isPending =>
+      !_hasShown && !_isDismissed && (_isLoading || _loadedAd != null);
+
+  /// Splash itself: if the interstitial finished loading while the splash was
+  /// running, it is shown right there (before leaving the splash screen), never
+  /// carried over to Language / Paywall. Not loaded yet -> returns false and the
+  /// later opportunities stay available.
+  Future<bool> tryShowOnSplash({
+    required bool isPremium,
+    VoidCallback? onImpression,
+    VoidCallback? onClicked,
+  }) async {
+    final ad = _loadedAd;
+    if (isPremium || _hasShown || _isDismissed || ad == null) return false;
+
+    _loadedAd = null;
+    AdLogger.i(
+      AdState.showRequested,
+      placement: _placement,
+      adType: 'SplashInterstitial:Splash',
+      message: 'Ad loaded during splash; showing it on the splash screen.',
+    );
+    final shown = await _coordinator.present(
+      adType: 'splash_interstitial_splash',
+      placement: _placement,
+      isPremium: isPremium,
+      displayAction: () async {
+        await ad.show(
+          onImpression: () => onImpression?.call(),
+          onClicked: onClicked,
+        );
+      },
+    );
+    ad.dispose();
+    _hasShown = true;
+    _isDismissed = true;
+    return shown;
+  }
+
+  /// Opportunity 3: first Home click, if the ad was not shown at Language/Paywall.
+  Future<bool> tryShowOnHomeClick({
+    required bool isPremium,
+    VoidCallback? onImpression,
+    VoidCallback? onClicked,
+  }) async {
+    final ad = _loadedAd;
+    if (isPremium || _hasShown || _isDismissed || ad == null) return false;
+
+    _loadedAd = null;
+    AdLogger.i(
+      AdState.showRequested,
+      placement: _placement,
+      adType: 'SplashInterstitial:Home',
+      message: 'Home click triggering splash interstitial display.',
+    );
+    final shown = await _coordinator.present(
+      adType: 'splash_interstitial_home',
+      placement: _placement,
+      isPremium: isPremium,
+      displayAction: () async {
+        await ad.show(
+          onImpression: () => onImpression?.call(),
+          onClicked: onClicked,
+        );
+      },
+    );
+    ad.dispose();
+    _hasShown = true;
+    _isDismissed = true;
+    return shown;
+  }
+
+  /// Dismisses the splash interstitial request permanently when opportunities have expired.
   /// Prevents unexpected ads later on Home.
   void dismiss() {
     if (!_isDismissed) {
@@ -283,10 +387,15 @@ class SplashInterstitialManager {
   }
 }
 
-final splashInterstitialManagerProvider = Provider<SplashInterstitialManager>((ref) {
+final splashInterstitialManagerProvider = Provider<SplashInterstitialManager>((
+  ref,
+) {
   final adapter = ref.watch(adAdapterProvider);
   final coordinator = ref.watch(adDisplayCoordinatorProvider);
-  final manager = SplashInterstitialManager(adapter: adapter, coordinator: coordinator);
+  final manager = SplashInterstitialManager(
+    adapter: adapter,
+    coordinator: coordinator,
+  );
   ref.onDispose(manager.dispose);
   return manager;
 });

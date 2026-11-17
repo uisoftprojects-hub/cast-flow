@@ -9,15 +9,29 @@ import 'package:xml/xml.dart';
 import '../../../core/platform/network_channel.dart';
 import '../domain/cast_device.dart';
 import '../domain/network_status.dart';
+import 'protocol_prober.dart';
 
 /// Finds real receivers on the local Wi-Fi:
 /// - SSDP (UPnP): DLNA media renderers, Roku (ECP) and DIAL TVs
 ///   (Samsung, LG, Fire TV, Android TV…).
 /// - mDNS: Google Cast devices and Android TVs.
 class NetworkDeviceRepository implements DeviceRepository {
-  NetworkDeviceRepository({this.scanTime = const Duration(seconds: 8)});
+  NetworkDeviceRepository({this.scanTime = const Duration(seconds: 8), ProtocolProber? prober})
+    : _prober = prober ?? ProtocolProber();
 
   final Duration scanTime;
+  final ProtocolProber _prober;
+
+  @override
+  Future<CastDevice> identify(CastDevice device) async {
+    // The renderer search is multicast, which Android drops without the lock.
+    await NetworkChannel.acquireMulticastLock();
+    try {
+      return await _prober.identify(device);
+    } finally {
+      await NetworkChannel.releaseMulticastLock();
+    }
+  }
 
   static const _ssdpTargets = [
     'urn:schemas-upnp-org:device:MediaRenderer:1',
@@ -46,7 +60,12 @@ class NetworkDeviceRepository implements DeviceRepository {
       final existing = found[d.address];
       // Prefer the more specific type (e.g. Roku over generic DLNA).
       if (existing == null || existing.type == DeviceType.dlna) {
-        found[d.address] = d;
+        found[d.address] = d.copyWith(location: d.location ?? existing?.location);
+        if (!out.isClosed) out.add(List.unmodifiable(found.values));
+      } else if (existing.location == null && d.location != null) {
+        // Keep the UPnP description URL: the DLNA backend needs it even when
+        // another protocol named the device first.
+        found[d.address] = existing.copyWith(location: d.location);
         if (!out.isClosed) out.add(List.unmodifiable(found.values));
       }
     }
@@ -150,6 +169,7 @@ class NetworkDeviceRepository implements DeviceRepository {
     final udn = text('UDN');
     final st = headers['st'] ?? '';
     final m = manufacturer.toLowerCase();
+    final hasAvTransport = doc.findAllElements('serviceType').any((e) => e.innerText.contains(':AVTransport:'));
 
     final DeviceType type;
     if (st.contains('roku') || m.contains('roku')) {
@@ -186,6 +206,10 @@ class NetworkDeviceRepository implements DeviceRepository {
       address: uri.host,
       port: uri.port,
       model: [manufacturer, model].where((s) => s.isNotEmpty).join(' '),
+      // Only a description that really offers AVTransport is a usable DLNA
+      // renderer; a TV often also publishes DIAL/Netflix descriptions on the
+      // same IP, and those must not shadow the renderer.
+      location: hasAvTransport ? location : null,
     );
   }
 

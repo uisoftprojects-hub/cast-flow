@@ -44,6 +44,18 @@ class CastMedia {
   final String? thumbnail;
 
   bool get isTimed => duration > Duration.zero;
+
+  CastMedia withDuration(Duration d) => CastMedia(
+    id: id,
+    title: title,
+    kind: kind,
+    seed: seed,
+    subtitle: subtitle,
+    duration: d,
+    url: url,
+    headers: headers,
+    thumbnail: thumbnail,
+  );
 }
 
 @immutable
@@ -55,9 +67,13 @@ class PlaybackState {
     this.position = Duration.zero,
     this.volume = 0.6,
     this.slideshowInterval,
+    this.error,
   });
 
   final List<CastMedia> queue;
+
+  /// Why the TV could not play the current item (shown to the user), or null.
+  final String? error;
   final int index;
   final bool playing;
   final Duration position;
@@ -78,6 +94,8 @@ class PlaybackState {
     Duration? position,
     double? volume,
     Duration? slideshowInterval,
+    String? error,
+    bool clearError = false,
   }) {
     return PlaybackState(
       queue: queue ?? this.queue,
@@ -86,6 +104,7 @@ class PlaybackState {
       position: position ?? this.position,
       volume: volume ?? this.volume,
       slideshowInterval: slideshowInterval ?? this.slideshowInterval,
+      error: clearError ? null : (error ?? this.error),
     );
   }
 }

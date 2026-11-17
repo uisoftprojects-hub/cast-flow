@@ -60,7 +60,8 @@ class SubscriptionPurchaseState {
 
   /// Whether a free trial is eligible and available.
   bool get isTrialEligible =>
-      status == PurchaseState.freeTrialEligible || (product?.hasFreeTrial ?? false);
+      status == PurchaseState.freeTrialEligible ||
+      (product?.hasFreeTrial ?? false);
 
   /// Dynamic CTA text based on current state and eligibility.
   String get ctaText {

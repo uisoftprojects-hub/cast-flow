@@ -1,8 +1,11 @@
+import '../../../core/debug_log.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+
 import '../../devices/domain/cast_device.dart';
+import '../../devices/domain/receiver_capabilities.dart';
 import '../domain/pairing.dart';
 
 /// Shared plumbing for "Allow on TV" protocols over a WebSocket.
@@ -31,7 +34,8 @@ abstract class _WsSession implements PairingSession {
         },
       );
       onOpen();
-    } catch (_) {
+    } catch (e) {
+      dlog('[Pairing] $uri failed: $e');
       emit(const PairingFailed('connection'));
     }
   }
@@ -56,9 +60,7 @@ abstract class _WsSession implements PairingSession {
 /// returns a token to reuse next time.
 class SamsungPairing implements PairingProtocol {
   @override
-  bool handles(CastDevice d) =>
-      d.type == DeviceType.smartTv &&
-      (d.port == 8001 || d.port == 8002 || (d.model ?? '').toLowerCase().contains('samsung'));
+  bool handles(CastDevice d) => d.effectiveProtocol == RemoteProtocol.samsung;
 
   @override
   PairingSession start(CastDevice device, {String? saved}) => _SamsungSession(device, saved);
@@ -104,9 +106,7 @@ class _SamsungSession extends _WsSession {
 /// returns a client key.
 class LgPairing implements PairingProtocol {
   @override
-  bool handles(CastDevice d) =>
-      d.type == DeviceType.smartTv &&
-      (d.port == 3000 || d.port == 3001 || (d.model ?? '').toLowerCase().startsWith('lg'));
+  bool handles(CastDevice d) => d.effectiveProtocol == RemoteProtocol.lg;
 
   @override
   PairingSession start(CastDevice device, {String? saved}) => _LgSession(device, saved);
@@ -120,36 +120,7 @@ class _LgSession extends _WsSession {
   final String? _key;
 
   @override
-  void onOpen() {
-    send({
-      'type': 'register',
-      'id': 'register_0',
-      'payload': {
-        'forcePairing': false,
-        'pairingType': 'PROMPT',
-        if (_key != null && _key.isNotEmpty) 'client-key': _key,
-        'manifest': {
-          'manifestVersion': 1,
-          'appVersion': '1.0',
-          'appId': 'com.castflow.castflow',
-          'vendorId': 'com.castflow',
-          'localizedAppNames': {'': 'Cast to TV'},
-          'permissions': [
-            'LAUNCH',
-            'CONTROL_AUDIO',
-            'CONTROL_DISPLAY',
-            'CONTROL_INPUT_MEDIA_PLAYBACK',
-            'CONTROL_POWER',
-            'READ_INSTALLED_APPS',
-            'CONTROL_INPUT_JOYSTICK',
-            'CONTROL_MOUSE_AND_KEYBOARD',
-            'READ_CURRENT_CHANNEL',
-            'READ_RUNNING_APPS',
-          ],
-        },
-      },
-    });
-  }
+  void onOpen() => send(lgRegisterMessage(_key));
 
   @override
   void onMessage(Map<String, dynamic> msg) {
@@ -170,3 +141,33 @@ class _LgSession extends _WsSession {
     }
   }
 }
+
+/// The webOS `register` request, shared by pairing and the remote channel.
+Map<String, Object?> lgRegisterMessage(String? clientKey) => {
+  'type': 'register',
+  'id': 'register_0',
+  'payload': {
+    'forcePairing': false,
+    'pairingType': 'PROMPT',
+    if (clientKey != null && clientKey.isNotEmpty) 'client-key': clientKey,
+    'manifest': {
+      'manifestVersion': 1,
+      'appVersion': '1.0',
+      'appId': 'com.castflow.castflow',
+      'vendorId': 'com.castflow',
+      'localizedAppNames': {'': 'Cast to TV'},
+      'permissions': [
+        'LAUNCH',
+        'CONTROL_AUDIO',
+        'CONTROL_DISPLAY',
+        'CONTROL_INPUT_MEDIA_PLAYBACK',
+        'CONTROL_POWER',
+        'READ_INSTALLED_APPS',
+        'CONTROL_INPUT_JOYSTICK',
+        'CONTROL_MOUSE_AND_KEYBOARD',
+        'READ_CURRENT_CHANNEL',
+        'READ_RUNNING_APPS',
+      ],
+    },
+  },
+};

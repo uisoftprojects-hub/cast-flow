@@ -10,7 +10,13 @@ import 'app_tokens.dart';
 /// Body 15 regular, Caption 12 regular, all at line height 1.4.
 TextTheme _textTheme(Color primary, Color secondary) {
   TextStyle s(double size, FontWeight w, Color c) =>
-      GoogleFonts.plusJakartaSans(fontSize: size, fontWeight: w, height: 1.4, color: c, letterSpacing: 0);
+      GoogleFonts.plusJakartaSans(
+        fontSize: size,
+        fontWeight: w,
+        height: 1.4,
+        color: c,
+        letterSpacing: 0,
+      );
 
   return TextTheme(
     displaySmall: s(34, FontWeight.w700, primary),
@@ -81,7 +87,9 @@ ThemeData _build(Brightness brightness, AppPalette p) {
         statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
         statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
         systemNavigationBarColor: p.background,
-        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness: isDark
+            ? Brightness.light
+            : Brightness.dark,
         systemNavigationBarDividerColor: Colors.transparent,
       ),
     ),
@@ -92,32 +100,44 @@ ThemeData _build(Brightness brightness, AppPalette p) {
       surfaceTintColor: Colors.transparent,
       showDragHandle: true,
       dragHandleColor: p.divider,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+      ),
     ),
     dialogTheme: DialogThemeData(
       backgroundColor: p.surface,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: isDark ? p.surfaceHigh : AppColors.textPrimary,
       contentTextStyle: text.bodyLarge?.copyWith(color: Colors.white),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: p.surface,
       hintStyle: text.bodyMedium,
       contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.pill), borderSide: BorderSide.none),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        borderSide: BorderSide.none,
+      ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.pill),
         borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.pill),
-        borderSide: BorderSide(color: p.primary.withValues(alpha: 0.5), width: 1.5),
+        borderSide: BorderSide(
+          color: p.primary.withValues(alpha: 0.5),
+          width: 1.5,
+        ),
       ),
     ),
     sliderTheme: SliderThemeData(
@@ -130,9 +150,12 @@ ThemeData _build(Brightness brightness, AppPalette p) {
     ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith(
-        (s) => s.contains(WidgetState.selected) ? Colors.white : p.textSecondary,
+        (s) =>
+            s.contains(WidgetState.selected) ? Colors.white : p.textSecondary,
       ),
-      trackColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? p.primary : p.primaryTint),
+      trackColor: WidgetStateProperty.resolveWith(
+        (s) => s.contains(WidgetState.selected) ? p.primary : p.primaryTint,
+      ),
       trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
     ),
     tabBarTheme: TabBarThemeData(
@@ -142,7 +165,10 @@ ThemeData _build(Brightness brightness, AppPalette p) {
       unselectedLabelStyle: text.labelMedium,
       dividerColor: Colors.transparent,
       indicatorSize: TabBarIndicatorSize.tab,
-      indicator: BoxDecoration(gradient: AppColors.mainGradient, borderRadius: BorderRadius.circular(AppRadius.pill)),
+      indicator: BoxDecoration(
+        gradient: AppColors.mainGradient,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+      ),
       overlayColor: const WidgetStatePropertyAll(Colors.transparent),
       splashFactory: NoSplash.splashFactory,
     ),
@@ -176,10 +202,14 @@ extension ThemeX on BuildContext {
     final dark = isDark;
     return SystemUiOverlayStyle(
       statusBarColor: statusBarColor ?? Colors.transparent,
-      statusBarIconBrightness: statusBarIconBrightness ?? (dark ? Brightness.light : Brightness.dark),
+      statusBarIconBrightness:
+          statusBarIconBrightness ??
+          (dark ? Brightness.light : Brightness.dark),
       statusBarBrightness: dark ? Brightness.dark : Brightness.light,
       systemNavigationBarColor: navigationBarColor ?? palette.background,
-      systemNavigationBarIconBrightness: navigationBarIconBrightness ?? (dark ? Brightness.light : Brightness.dark),
+      systemNavigationBarIconBrightness:
+          navigationBarIconBrightness ??
+          (dark ? Brightness.light : Brightness.dark),
       systemNavigationBarDividerColor: Colors.transparent,
     );
   }

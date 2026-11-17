@@ -34,20 +34,36 @@ class EmptyState extends StatelessWidget {
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpace.xxxl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconBubble(icon: icon, size: 88),
-            const SizedBox(height: AppSpace.xl),
-            Text(title, textAlign: TextAlign.center, style: context.text.headlineSmall),
-            const SizedBox(height: AppSpace.sm),
-            Text(message, textAlign: TextAlign.center, style: context.text.bodyMedium),
-            if (actionLabel != null) ...[
-              const SizedBox(height: AppSpace.xxl),
-              GradientButton(label: actionLabel!, onPressed: onAction, icon: Iconsax.refresh_copy),
-            ],
-          ],
-        ).animate().fadeIn(duration: AppDurations.slow).slideY(begin: 0.06, end: 0),
+        child:
+            Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconBubble(icon: icon, size: 88),
+                    const SizedBox(height: AppSpace.xl),
+                    Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: context.text.headlineSmall,
+                    ),
+                    const SizedBox(height: AppSpace.sm),
+                    Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: context.text.bodyMedium,
+                    ),
+                    if (actionLabel != null) ...[
+                      const SizedBox(height: AppSpace.xxl),
+                      GradientButton(
+                        label: actionLabel!,
+                        onPressed: onAction,
+                        icon: Iconsax.refresh_copy,
+                      ),
+                    ],
+                  ],
+                )
+                .animate()
+                .fadeIn(duration: AppDurations.slow)
+                .slideY(begin: 0.06, end: 0),
       ),
     );
   }
@@ -72,7 +88,11 @@ class ErrorState extends StatelessWidget {
           children: [
             IconBubble(icon: Iconsax.danger_copy, size: 88, color: p.error),
             const SizedBox(height: AppSpace.xl),
-            Text(context.l10n.somethingWentWrong, textAlign: TextAlign.center, style: context.text.headlineSmall),
+            Text(
+              context.l10n.somethingWentWrong,
+              textAlign: TextAlign.center,
+              style: context.text.headlineSmall,
+            ),
             const SizedBox(height: AppSpace.sm),
             Text(
               message ?? context.l10n.weCouldntLoadThis,
@@ -81,7 +101,11 @@ class ErrorState extends StatelessWidget {
             ),
             if (onRetry != null) ...[
               const SizedBox(height: AppSpace.xxl),
-              TintedButton(label: context.l10n.tryAgain, icon: Iconsax.refresh_copy, onPressed: onRetry),
+              TintedButton(
+                label: context.l10n.tryAgain,
+                icon: Iconsax.refresh_copy,
+                onPressed: onRetry,
+              ),
             ],
           ],
         ).animate().fadeIn(duration: AppDurations.slow),
@@ -109,7 +133,12 @@ class SoftShimmer extends StatelessWidget {
 }
 
 class ShimmerBox extends StatelessWidget {
-  const ShimmerBox({super.key, this.width, this.height = 16, this.radius = AppRadius.sm});
+  const ShimmerBox({
+    super.key,
+    this.width,
+    this.height = 16,
+    this.radius = AppRadius.sm,
+  });
 
   final double? width;
   final double height;
@@ -120,14 +149,22 @@ class ShimmerBox extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      decoration: BoxDecoration(color: context.palette.surfaceHigh, borderRadius: BorderRadius.circular(radius)),
+      decoration: BoxDecoration(
+        color: context.palette.surfaceHigh,
+        borderRadius: BorderRadius.circular(radius),
+      ),
     );
   }
 }
 
 /// Shimmering list of rows used while lists load.
 class ShimmerList extends StatelessWidget {
-  const ShimmerList({super.key, this.count = 6, this.leadingSize = 56, this.padding});
+  const ShimmerList({
+    super.key,
+    this.count = 6,
+    this.leadingSize = 56,
+    this.padding,
+  });
 
   final int count;
   final double leadingSize;
@@ -143,7 +180,11 @@ class ShimmerList extends StatelessWidget {
         separatorBuilder: (_, _) => const SizedBox(height: AppSpace.lg),
         itemBuilder: (_, _) => Row(
           children: [
-            ShimmerBox(width: leadingSize, height: leadingSize, radius: AppRadius.md),
+            ShimmerBox(
+              width: leadingSize,
+              height: leadingSize,
+              radius: AppRadius.md,
+            ),
             const SizedBox(width: AppSpace.lg),
             const Expanded(
               child: Column(
@@ -151,7 +192,10 @@ class ShimmerList extends StatelessWidget {
                 children: [
                   ShimmerBox(height: 14),
                   SizedBox(height: 10),
-                  FractionallySizedBox(widthFactor: 0.55, child: ShimmerBox(height: 12)),
+                  FractionallySizedBox(
+                    widthFactor: 0.55,
+                    child: ShimmerBox(height: 12),
+                  ),
                 ],
               ),
             ),
@@ -164,7 +208,12 @@ class ShimmerList extends StatelessWidget {
 
 /// Shimmering grid used while galleries load.
 class ShimmerGrid extends StatelessWidget {
-  const ShimmerGrid({super.key, this.crossAxisCount = 3, this.count = 12, this.padding});
+  const ShimmerGrid({
+    super.key,
+    this.crossAxisCount = 3,
+    this.count = 12,
+    this.padding,
+  });
 
   final int crossAxisCount;
   final int count;
@@ -217,7 +266,10 @@ class AsyncView<T> extends StatelessWidget {
       duration: AppDurations.medium,
       child: value.when(
         skipLoadingOnRefresh: false,
-        loading: () => KeyedSubtree(key: const ValueKey('loading'), child: loading ?? const ShimmerList()),
+        loading: () => KeyedSubtree(
+          key: const ValueKey('loading'),
+          child: loading ?? const ShimmerList(),
+        ),
         error: (e, _) => KeyedSubtree(
           key: const ValueKey('error'),
           child: errorBuilder?.call(e) ?? ErrorState(onRetry: onRetry),

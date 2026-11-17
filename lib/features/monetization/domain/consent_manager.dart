@@ -21,7 +21,11 @@ class ConsentManager {
   /// If [isPremium] is true, entirely skips consent and ad initialization.
   Future<bool> gatherConsentAndInitialize({required bool isPremium}) async {
     if (isPremium) {
-      AdLogger.i(AdState.requestSkipped, adType: 'UMP_Consent', message: 'Consent gathering skipped for premium user.');
+      AdLogger.i(
+        AdState.requestSkipped,
+        adType: 'UMP_Consent',
+        message: 'Consent gathering skipped for premium user.',
+      );
       _initialized = true;
       _canRequest = false;
       return false;
@@ -38,7 +42,11 @@ class ConsentManager {
       return _canRequest;
     }
 
-    AdLogger.i(AdState.consentCheckStart, adType: 'UMP_Consent', message: 'Requesting UMP consent information update.');
+    AdLogger.i(
+      AdState.consentCheckStart,
+      adType: 'UMP_Consent',
+      message: 'Requesting UMP consent information update.',
+    );
 
     final completer = Completer<void>();
 
@@ -50,14 +58,16 @@ class ConsentManager {
           AdLogger.d(
             AdState.consentUpdated,
             adType: 'UMP_Consent',
-            message: 'Consent info updated; checking if consent form is required.',
+            message:
+                'Consent info updated; checking if consent form is required.',
           );
           ConsentForm.loadAndShowConsentFormIfRequired((formError) {
             if (formError != null) {
               AdLogger.w(
                 AdState.consentError,
                 adType: 'UMP_Consent',
-                message: 'Consent form error: [${formError.errorCode}] ${formError.message}',
+                message:
+                    'Consent form error: [${formError.errorCode}] ${formError.message}',
               );
             } else {
               AdLogger.i(
@@ -73,13 +83,19 @@ class ConsentManager {
           AdLogger.w(
             AdState.consentError,
             adType: 'UMP_Consent',
-            message: 'Consent info update failed: [${formError.errorCode}] ${formError.message}',
+            message:
+                'Consent info update failed: [${formError.errorCode}] ${formError.message}',
           );
           if (!completer.isCompleted) completer.complete();
         },
       );
     } catch (e) {
-      AdLogger.e(AdState.consentError, adType: 'UMP_Consent', message: 'Exception in consent gathering', error: e);
+      AdLogger.e(
+        AdState.consentError,
+        adType: 'UMP_Consent',
+        message: 'Exception in consent gathering',
+        error: e,
+      );
       if (!completer.isCompleted) completer.complete();
     }
 
@@ -89,23 +105,42 @@ class ConsentManager {
     try {
       _canRequest = await ConsentInformation.instance.canRequestAds();
     } catch (e) {
-      AdLogger.e(AdState.consentError, adType: 'UMP_Consent', message: 'Failed to inspect canRequestAds()', error: e);
+      AdLogger.e(
+        AdState.consentError,
+        adType: 'UMP_Consent',
+        message: 'Failed to inspect canRequestAds()',
+        error: e,
+      );
       _canRequest = false;
     }
 
-    AdLogger.i(AdState.consentCanRequestStatus, adType: 'UMP_Consent', message: 'canRequestAds() result: $_canRequest');
+    AdLogger.i(
+      AdState.consentCanRequestStatus,
+      adType: 'UMP_Consent',
+      message: 'canRequestAds() result: $_canRequest',
+    );
 
     if (_canRequest) {
-      AdLogger.i(AdState.sdkInitStart, adType: 'GoogleMobileAds', message: 'Initializing Google Mobile Ads SDK.');
+      AdLogger.i(
+        AdState.sdkInitStart,
+        adType: 'GoogleMobileAds',
+        message: 'Initializing Google Mobile Ads SDK.',
+      );
       try {
         final status = await MobileAds.instance.initialize();
         AdLogger.i(
           AdState.sdkInitSuccess,
           adType: 'GoogleMobileAds',
-          message: 'SDK initialized successfully with ${status.adapterStatuses.length} adapter(s).',
+          message:
+              'SDK initialized successfully with ${status.adapterStatuses.length} adapter(s).',
         );
       } catch (e) {
-        AdLogger.e(AdState.sdkInitFailed, adType: 'GoogleMobileAds', message: 'SDK initialization failed', error: e);
+        AdLogger.e(
+          AdState.sdkInitFailed,
+          adType: 'GoogleMobileAds',
+          message: 'SDK initialization failed',
+          error: e,
+        );
       }
     }
 
@@ -125,7 +160,11 @@ class ConsentManager {
       return false;
     }
 
-    AdLogger.i(AdState.showing, adType: 'PrivacyOptionsForm', message: 'Opening user privacy options form.');
+    AdLogger.i(
+      AdState.showing,
+      adType: 'PrivacyOptionsForm',
+      message: 'Opening user privacy options form.',
+    );
 
     final completer = Completer<bool>();
     AdSuppression.suppressNextAppOpen();
@@ -135,7 +174,8 @@ class ConsentManager {
           AdLogger.w(
             AdState.showFailed,
             adType: 'PrivacyOptionsForm',
-            message: 'Privacy options form failed: [${formError.errorCode}] ${formError.message}',
+            message:
+                'Privacy options form failed: [${formError.errorCode}] ${formError.message}',
           );
           completer.complete(false);
         } else {
@@ -163,7 +203,8 @@ class ConsentManager {
   Future<bool> isPrivacyOptionsRequired({required bool isPremium}) async {
     if (isPremium) return false;
     try {
-      final status = await ConsentInformation.instance.getPrivacyOptionsRequirementStatus();
+      final status = await ConsentInformation.instance
+          .getPrivacyOptionsRequirementStatus();
       return status == PrivacyOptionsRequirementStatus.required;
     } catch (_) {
       return false;

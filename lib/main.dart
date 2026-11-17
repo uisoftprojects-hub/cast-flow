@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,10 +9,14 @@ import 'app/app.dart';
 import 'core/analytics/analytics.dart';
 import 'core/analytics/firebase_analytics_sink.dart';
 import 'core/app_providers.dart';
+import 'core/debug_log.dart';
 import 'core/storage/local_store.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  _installErrorHandlers();
+  // Portrait only: the whole app is laid out for a tall screen.
+  await SystemChrome.setPreferredOrientations(const [DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -44,4 +49,25 @@ Future<void> main() async {
       child: const CastFlowApp(),
     ),
   );
+}
+
+/// Release builds never show the framework's grey error box and never let a stray
+/// asynchronous error take the app down; debug builds keep the full red screen
+/// and console output so mistakes are still loud during development.
+void _installErrorHandlers() {
+  if (kReleaseMode) {
+    ErrorWidget.builder = (_) => const SizedBox.shrink();
+  }
+  final framework = FlutterError.onError;
+  FlutterError.onError = (details) {
+    if (kDebugMode) {
+      (framework ?? FlutterError.presentError)(details);
+    } else {
+      dlog('Flutter error: ${details.exceptionAsString()}');
+    }
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    dlog('Unhandled error: $error');
+    return kReleaseMode; // debug: let the VM print it as before
+  };
 }

@@ -1,9 +1,11 @@
+import '../../../core/debug_log.dart';
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../devices/domain/cast_device.dart';
+import '../../devices/domain/receiver_capabilities.dart';
 import '../../devices/presentation/network_controller.dart';
 import '../data/android_tv_pairing.dart';
 import '../data/approval_pairing.dart';
@@ -79,6 +81,7 @@ class PairingController extends Notifier<PairingUi?> {
   CastDevice? _device;
   PairingProtocol? _protocol;
   bool _waitingForUi = false;
+  bool _userInitiated = false;
 
   @override
   PairingUi? build() {
@@ -94,10 +97,16 @@ class PairingController extends Notifier<PairingUi?> {
 
   /// Pairs [device] if its protocol needs it. Resolves true when connected,
   /// false when cancelled. Concurrent calls share one session.
-  Future<bool> pair(CastDevice device) {
+  ///
+  /// [userInitiated] is true when the user pressed a remote key that needs the
+  /// pairing: then an unreachable pairing port is shown as a failure instead of
+  /// being skipped silently (which is how a TV ended up "Connected" with a dead
+  /// remote).
+  Future<bool> pair(CastDevice device, {bool userInitiated = false}) {
     if (_result != null) return _device?.id == device.id ? _result!.future : Future.value(false);
     final protocol = ref.read(pairingProtocolsProvider).where((p) => p.handles(device)).firstOrNull;
     if (protocol == null) return Future.value(true); // Chromecast, Roku, DLNA…
+    _userInitiated = userInitiated;
     _device = device;
     _protocol = protocol;
     _result = Completer<bool>();
@@ -162,9 +171,10 @@ class PairingController extends Notifier<PairingUi?> {
       case PairingFailed(:final message):
         _timeout?.cancel();
         _closeSession();
-        if (_waitingForUi && state == null && message == 'connection') {
-          // The pairing port isn't reachable: treat as "no pairing needed"
-          // rather than blocking the connection.
+        dlog('[Pairing] ${device.name} (${device.effectiveProtocol?.name}) failed: $message');
+        if (!_userInitiated && _waitingForUi && state == null && message == 'connection') {
+          // The pairing port isn't reachable: don't block connecting (casting
+          // still works); pairing is retried when a remote key is pressed.
           _finish(true);
           return;
         }
@@ -223,6 +233,7 @@ class PairingController extends Notifier<PairingUi?> {
     _result = null;
     _device = null;
     _protocol = null;
+    _userInitiated = false;
     state = null;
     if (r != null && !r.isCompleted) r.complete(ok);
   }

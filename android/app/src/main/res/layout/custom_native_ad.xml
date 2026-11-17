@@ -34,6 +34,8 @@
 
         <!-- Right section: 65% width -->
         <LinearLayout
+            android:id="@+id/ad_text_column"
+            android:gravity="center_vertical"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="65"
@@ -70,28 +72,23 @@
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
-            <!-- 3. One-line description (exactly 1 line, ellipsis) -->
+            <!-- 3. Description (max 2 lines, ellipsis) -->
             <TextView
                 android:id="@+id/ad_body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:ellipsize="end"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:textColor="#6B7280"
                 android:textSize="12sp" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
 
             <!-- 4. CTA button -->
             <Button
                 android:id="@+id/ad_call_to_action"
                 android:layout_width="match_parent"
                 android:layout_height="36dp"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="12dp"
                 android:background="@drawable/native_ad_cta_bg"
                 android:gravity="center"
                 android:minHeight="36dp"

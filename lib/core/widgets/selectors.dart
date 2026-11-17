@@ -46,7 +46,10 @@ class SegmentedPills<T> extends StatelessWidget {
                     curve: Curves.easeOutCubic,
                     constraints: const BoxConstraints(minHeight: 44),
                     alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       gradient: v == selected ? AppColors.mainGradient : null,
                       borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -55,7 +58,9 @@ class SegmentedPills<T> extends StatelessWidget {
                       labelOf(v),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: context.text.labelMedium?.copyWith(color: v == selected ? Colors.white : p.textSecondary),
+                      style: context.text.labelMedium?.copyWith(
+                        color: v == selected ? Colors.white : p.textSecondary,
+                      ),
                     ),
                   ),
                 ),
@@ -99,17 +104,25 @@ class ToggleChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: value ? p.primaryTint : p.surface,
             borderRadius: BorderRadius.circular(AppRadius.pill),
-            border: Border.all(color: value ? p.primary.withValues(alpha: 0.35) : p.divider),
+            border: Border.all(
+              color: value ? p.primary.withValues(alpha: 0.35) : p.divider,
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(value ? icon : (offIcon ?? icon), size: 18, color: value ? p.primary : p.textSecondary),
+              Icon(
+                value ? icon : (offIcon ?? icon),
+                size: 18,
+                color: value ? p.primary : p.textSecondary,
+              ),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
                   label,
-                  style: context.text.labelMedium?.copyWith(color: value ? p.primary : p.textSecondary),
+                  style: context.text.labelMedium?.copyWith(
+                    color: value ? p.primary : p.textSecondary,
+                  ),
                 ),
               ),
             ],
@@ -122,7 +135,13 @@ class ToggleChip extends StatelessWidget {
 
 /// Small rounded label (badges such as "Best value", "4K", "Live").
 class SoftBadge extends StatelessWidget {
-  const SoftBadge(this.label, {super.key, this.color, this.textColor, this.icon});
+  const SoftBadge(
+    this.label, {
+    super.key,
+    this.color,
+    this.textColor,
+    this.icon,
+  });
 
   final String label;
   final Color? color;
@@ -134,7 +153,10 @@ class SoftBadge extends StatelessWidget {
     final c = color ?? AppColors.accent;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(AppRadius.pill)),
+      decoration: BoxDecoration(
+        color: c,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

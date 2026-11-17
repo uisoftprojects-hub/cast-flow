@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +8,6 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../core/analytics/analytics.dart';
 import '../../../core/analytics/analytics_events.dart';
 import '../../../core/config/app_links.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/utils/launch.dart';
@@ -18,7 +17,6 @@ import '../../app_flow/domain/flow_config.dart';
 import '../../app_flow/presentation/app_flow_controller.dart';
 import '../../monetization/presentation/ad_display_coordinator.dart';
 import '../../monetization/presentation/ad_manager.dart';
-import '../../monetization/presentation/native_ad_manager.dart';
 import '../../monetization/presentation/splash_interstitial_manager.dart';
 import '../domain/billing.dart';
 import '../domain/premium_status_service.dart';
@@ -73,7 +71,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     Future.microtask(() {
       final isPremium = ref.read(isPremiumProvider);
       if (!isPremium) {
-        ref.read(nativeAdManagerProvider).preloadOnboardingAd(isPremium: false);
+        // Onboarding native ad is requested when the user lands on Onboarding.
       }
     });
   }
@@ -283,19 +281,9 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                               onRetry: () =>
                                   ref.invalidate(storeProductsProvider),
                             ),
-                            const SizedBox(height: AppSpace.md),
-                            if (selected != null)
-                              Text(
-                                selected.isSubscription
-                                    ? context
-                                          .l10n
-                                          .renewsAutomaticallyUntilCancelled
-                                    : context.l10n.oneTimePurchaseNo,
-                                textAlign: TextAlign.center,
-                                style: context.text.bodySmall,
-                              ),
                             const SizedBox(height: AppSpace.sm),
                             GradientButton(
+                              radius: AppRadius.md,
                               label: products.isLoading
                                   ? context.l10n.loadingPrice
                                   : (selected?.ctaText(
@@ -375,19 +363,14 @@ class _Plans extends StatelessWidget {
             ),
           );
         }
-        return Row(
+        return Column(
           children: [
-            for (final (i, product) in list.indexed) ...[
-              if (i > 0) const SizedBox(width: AppSpace.md),
-              Expanded(
-                child: _PlanCard(
-                  product: product,
-                  selected: product.id == selectedId,
-                  best: false,
-                  onTap: () => onSelect(product.id),
-                ),
+            for (final product in list)
+              _PlanLine(
+                product: product,
+                selected: list.length == 1 || product.id == selectedId,
+                onTap: () => onSelect(product.id),
               ),
-            ],
           ],
         );
       },
@@ -408,92 +391,35 @@ class _Plans extends StatelessWidget {
   }
 }
 
-class _PlanCard extends StatelessWidget {
-  const _PlanCard({
+/// Plan shown as one plain line: "weekly  Rs 1,950.00  per week" (no container).
+class _PlanLine extends StatelessWidget {
+  const _PlanLine({
     required this.product,
     required this.selected,
-    required this.best,
     required this.onTap,
   });
 
   final StoreProduct product;
   final bool selected;
-  final bool best;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
+    final label = '${product.price} / ${context.tr('week')}';
     return TapScale(
       onTap: onTap,
-      semanticLabel:
-          '${product.title}, ${product.price}, ${product.period.note}',
-      child: AnimatedContainer(
-        duration: AppDurations.medium,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpace.sm,
-          vertical: AppSpace.md,
-        ),
-        decoration: BoxDecoration(
-          color: selected ? p.primaryTint : p.surface,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(
-            color: selected ? p.primary : p.divider,
-            width: selected ? 2 : 1,
-          ),
-        ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.topCenter,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    context.tr(product.period.name),
-                    style: context.text.titleSmall,
-                  ),
-                  const SizedBox(height: 4),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      product.price,
-                      style: context.text.headlineSmall,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    context.tr(product.period.note),
-                    style: context.text.labelSmall?.copyWith(
-                      color: p.textSecondary.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ],
-              ),
+      semanticLabel: label,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpace.xs),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            maxLines: 1,
+            style: context.text.bodyMedium?.copyWith(
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
             ),
-            if (best)
-              Positioned(
-                top: -10,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: AppColors.mainGradient,
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                  ),
-                  child: Text(
-                    context.l10n.bestValue,
-                    style: context.text.labelSmall?.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-          ],
+          ),
         ),
       ),
     );

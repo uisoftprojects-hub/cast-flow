@@ -5,8 +5,11 @@ import 'package:castflow/features/monetization/domain/ad_config.dart';
 import 'package:castflow/features/monetization/domain/ad_models.dart';
 import 'package:castflow/features/monetization/presentation/native_ad_card.dart';
 import 'package:castflow/features/monetization/presentation/native_ad_manager.dart';
+import 'package:castflow/core/app_providers.dart';
+import 'package:castflow/features/premium/data/fake_billing_service.dart';
 import 'package:castflow/features/premium/domain/billing.dart';
 import 'package:castflow/features/premium/domain/premium_status_service.dart';
+import 'package:castflow/features/premium/presentation/billing_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -156,18 +159,30 @@ void main() {
     });
 
     test('active verified purchase sets premium and persists authoritative entitlement', () async {
-      final service = c.read(premiumStatusServiceProvider);
-      final now = DateTime.now();
+      // The store is the authority: it must still own the subscription when
+      // startup verification asks, otherwise a local flag would be revoked.
+      final expiry = DateTime.now().add(const Duration(days: 365));
+      final store = FakeBillingService(() => PreviewMode.live)
+        ..setSimulatedSubscription(productId: BillingConfig.weekly, active: true, expiry: expiry);
+      final owned = await makeContainer(overrides: [billingServiceProvider.overrideWithValue(store)]);
+      final service = owned.read(premiumStatusServiceProvider);
 
-      service.applyPurchase(
-        productId: BillingConfig.weekly,
-        expiry: now.add(const Duration(days: 365)),
-      );
+      service.applyPurchase(productId: BillingConfig.weekly, expiry: expiry);
       expect(service.isPremium, isTrue);
 
-      // Startup verification recognizes active cached entitlement
+      // Startup verification recognizes the entitlement the store confirms
       final verified = await service.verifyStartupEntitlement();
       expect(verified, isTrue);
+    });
+
+    test('a local purchase flag the store does not confirm is revoked at startup', () async {
+      final service = c.read(premiumStatusServiceProvider); // store owns nothing
+      service.applyPurchase(
+        productId: BillingConfig.weekly,
+        expiry: DateTime.now().add(const Duration(days: 365)),
+      );
+      expect(service.isPremium, isTrue);
+      expect(await service.verifyStartupEntitlement(), isFalse);
     });
 
     test('expired subscription safely revokes premium status', () async {
@@ -215,16 +230,24 @@ void main() {
       ]);
     });
 
-    test('Flow C (premium user): Splash → Home (skips ads, paywall, onboarding)', () {
-      final flow = buildFlow(
+    test('Flow C (premium user): never sees a paywall; first run still sets language + onboarding', () {
+      final firstRun = buildFlow(
         config: const FlowConfig(),
         firstLaunchCompleted: false,
         onboardingDone: false,
         languageChosen: false,
         isPremium: true,
       );
+      expect(firstRun, [FlowStep.language, FlowStep.onboarding, FlowStep.home]);
 
-      expect(flow, [FlowStep.home]);
+      final returning = buildFlow(
+        config: const FlowConfig(),
+        firstLaunchCompleted: true,
+        onboardingDone: true,
+        languageChosen: true,
+        isPremium: true,
+      );
+      expect(returning, [FlowStep.home]);
     });
   });
 

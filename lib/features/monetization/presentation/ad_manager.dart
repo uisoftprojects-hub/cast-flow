@@ -24,15 +24,20 @@ import 'native_ad_manager.dart';
 import 'splash_interstitial_manager.dart';
 
 final adAdapterProvider = Provider<AdAdapter>(
-  (ref) => createAdAdapter(rootNavigatorKey, () => ref.read(previewModeProvider)),
+  (ref) =>
+      createAdAdapter(rootNavigatorKey, () => ref.read(previewModeProvider)),
 );
 
-final adRouteObserverProvider = Provider<AdRouteObserver>((ref) => AdRouteObserver());
+final adRouteObserverProvider = Provider<AdRouteObserver>(
+  (ref) => AdRouteObserver(),
+);
 
 /// Injectable clock so timing and cooldown rules can be tested cleanly.
 final adClockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
 
-final consentManagerProvider = Provider<ConsentManager>((ref) => ConsentManager());
+final consentManagerProvider = Provider<ConsentManager>(
+  (ref) => ConsentManager(),
+);
 
 /// Centralized AdManager acting as the top-level orchestration layer for all monetization subsystems:
 /// - Enforces global Premium User Protection (Rule 1 priority).
@@ -54,7 +59,10 @@ class AdManager extends Notifier<AdDiagnostics> {
     _adapter = ref.watch(adAdapterProvider);
     _now = ref.watch(adClockProvider);
 
-    ref.listen<bool>(settingsProvider.select((s) => s.isPremium), (prev, isPremium) {
+    ref.listen<bool>(settingsProvider.select((s) => s.isPremium), (
+      prev,
+      isPremium,
+    ) {
       if (isPremium) {
         onPremiumPurchased();
       }
@@ -63,14 +71,21 @@ class AdManager extends Notifier<AdDiagnostics> {
     final prefs = ref.read(sharedPrefsProvider);
     PlacementState load(AdPlacement p) {
       final raw = prefs.getString(_key(p));
-      return raw == null ? const PlacementState() : PlacementState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+      return raw == null
+          ? const PlacementState()
+          : PlacementState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
     }
 
     final clicks = prefs.getInt(_clickKey) ?? 0;
-    return AdDiagnostics(placements: {for (final p in AdPlacement.values) p: load(p)}, clickCount: clicks);
+    return AdDiagnostics(
+      placements: {for (final p in AdPlacement.values) p: load(p)},
+      clickCount: clicks,
+    );
   }
 
-  bool get _isPremium => ref.read(settingsProvider).isPremium || ref.read(premiumStatusServiceProvider).isPremium;
+  bool get _isPremium =>
+      ref.read(settingsProvider).isPremium ||
+      ref.read(premiumStatusServiceProvider).isPremium;
 
   bool get _adsAllowed => !_isPremium && state.consentAllowsAds;
 
@@ -106,11 +121,17 @@ class AdManager extends Notifier<AdDiagnostics> {
     final ps = state.placements[placement]!;
     if (!_adsAllowed) return _skip(placement, 'ads not allowed');
     if (ps.inCooldown(_now())) return _skip(placement, 'cooldown');
-    if (ps.requestState == AdRequestState.loading) return _skip(placement, 'request in flight');
+    if (ps.requestState == AdRequestState.loading) {
+      return _skip(placement, 'request in flight');
+    }
 
     _setPlacement(
       placement,
-      (s) => s.copyWith(requestState: AdRequestState.loading, requestCount: s.requestCount + 1, lastRequestAt: _now()),
+      (s) => s.copyWith(
+        requestState: AdRequestState.loading,
+        requestCount: s.requestCount + 1,
+        lastRequestAt: _now(),
+      ),
     );
     _log(placement, AdEventType.request);
 
@@ -121,7 +142,10 @@ class AdManager extends Notifier<AdDiagnostics> {
         onImpression: () => _impression(placement),
         onClicked: () => _log(placement, AdEventType.clicked),
       );
-      _setPlacement(placement, (s) => s.copyWith(requestState: AdRequestState.ready));
+      _setPlacement(
+        placement,
+        (s) => s.copyWith(requestState: AdRequestState.ready),
+      );
       _log(placement, AdEventType.loaded);
       return ad;
     } catch (e) {
@@ -133,13 +157,28 @@ class AdManager extends Notifier<AdDiagnostics> {
   void releaseNative(AdPlacement placement, LoadedNativeAd? ad) {
     ad?.dispose();
     if (!ref.mounted) return;
-    _setPlacement(placement, (s) => s.copyWith(requestState: AdRequestState.idle));
+    _setPlacement(
+      placement,
+      (s) => s.copyWith(requestState: AdRequestState.idle),
+    );
   }
 
   // -------------------------------------------------------------- App Open
 
+  /// Whether the app was minimized on an eligible screen (Home onwards, not
+  /// splash / language / onboarding / paywall). Latched at background time so a
+  /// splash that finishes while minimized can't make the return eligible.
+  bool _backgroundedOnSafeScreen = false;
+
   void onBackgrounded() {
-    ref.read(appOpenAdManagerProvider).onBackgrounded();
+    final appOpen = ref.read(appOpenAdManagerProvider);
+    // pause + hide both fire for one trip; only evaluate on the first.
+    if (!appOpen.isBackgrounded) {
+      _backgroundedOnSafeScreen =
+          ref.read(appFlowProvider).finished &&
+          ref.read(adRouteObserverProvider).topIsSafe;
+    }
+    appOpen.onBackgrounded();
   }
 
   Future<void> onResumed() async {
@@ -151,13 +190,16 @@ class AdManager extends Notifier<AdDiagnostics> {
     // coordinator (canShow) blocks real overlap with a showing ad.
     final flowFinished = ref.read(appFlowProvider).finished;
     final routeSafe = ref.read(adRouteObserverProvider).topIsSafe;
-    final isAppEligible = flowFinished && routeSafe;
+    final isAppEligible =
+        flowFinished && routeSafe && _backgroundedOnSafeScreen;
+    _backgroundedOnSafeScreen = false;
     if (!isAppEligible) {
       AdLogger.d(
         AdState.requestSkipped,
         placement: AdPlacement.appOpen,
         adType: 'AppOpen',
-        message: 'App Open not eligible: flowFinished=$flowFinished, routeSafe=$routeSafe',
+        message:
+            'App Open not eligible: flowFinished=$flowFinished, routeSafe=$routeSafe',
       );
     }
 
@@ -178,7 +220,8 @@ class AdManager extends Notifier<AdDiagnostics> {
     AdLogger.i(
       AdState.premiumPurge,
       adType: 'AdManager',
-      message: 'User purchased Premium. Purged all active and cached ads across all monetization subsystems.',
+      message:
+          'User purchased Premium. Purged all active and cached ads across all monetization subsystems.',
     );
     state = state.copyWith(consentAllowsAds: false);
     ref.read(splashInterstitialManagerProvider).onPremiumPurchased();
@@ -191,7 +234,13 @@ class AdManager extends Notifier<AdDiagnostics> {
   // ----------------------------------------------------------------- State & Telemetry
 
   void _impression(AdPlacement p) {
-    _setPlacement(p, (s) => s.copyWith(impressionCount: s.impressionCount + 1, lastImpressionAt: _now()));
+    _setPlacement(
+      p,
+      (s) => s.copyWith(
+        impressionCount: s.impressionCount + 1,
+        lastImpressionAt: _now(),
+      ),
+    );
     _log(p, AdEventType.impression);
   }
 
@@ -212,7 +261,10 @@ class AdManager extends Notifier<AdDiagnostics> {
     return null;
   }
 
-  void _setPlacement(AdPlacement p, PlacementState Function(PlacementState) update) {
+  void _setPlacement(
+    AdPlacement p,
+    PlacementState Function(PlacementState) update,
+  ) {
     final next = update(state.placements[p]!);
     state = state.copyWith(placements: {...state.placements, p: next});
     ref.read(sharedPrefsProvider).setString(_key(p), jsonEncode(next.toJson()));
@@ -220,7 +272,9 @@ class AdManager extends Notifier<AdDiagnostics> {
 
   void _log(AdPlacement p, AdEventType type, [String? detail]) {
     final events = [AdEvent(p, type, _now(), detail), ...state.events];
-    state = state.copyWith(events: events.take(AdMobConfig.maxLoggedEvents).toList());
+    state = state.copyWith(
+      events: events.take(AdMobConfig.maxLoggedEvents).toList(),
+    );
 
     AdState adState;
     switch (type) {
@@ -266,28 +320,37 @@ class AdManager extends Notifier<AdDiagnostics> {
     switch (type) {
       case AdEventType.request:
         _requestedAt[p] = _now();
-        analytics.log(AnalyticsEvent.adRequest, {...base, AnalyticsParam.source: detail});
+        analytics.log(AnalyticsEvent.adRequest, {
+          ...base,
+          AnalyticsParam.source: detail,
+        });
       case AdEventType.loaded:
         final at = _requestedAt[p];
         analytics.log(AnalyticsEvent.adLoadSuccess, {
           ...base,
-          AnalyticsParam.loadMs: at == null ? null : _now().difference(at).inMilliseconds,
+          AnalyticsParam.loadMs: at == null
+              ? null
+              : _now().difference(at).inMilliseconds,
         });
       case AdEventType.failed:
         final message = detail ?? '';
         final noFill = message.toLowerCase().contains('no fill');
-        analytics.log(noFill ? AnalyticsEvent.adNoFill : AnalyticsEvent.adLoadFail, {
-          ...base,
-          AnalyticsParam.errorMessage: message,
-        });
+        analytics.log(
+          noFill ? AnalyticsEvent.adNoFill : AnalyticsEvent.adLoadFail,
+          {...base, AnalyticsParam.errorMessage: message},
+        );
       case AdEventType.impression:
         analytics.log(AnalyticsEvent.adImpression, base);
       case AdEventType.clicked:
         analytics.log(AnalyticsEvent.adClick, base);
-      case AdEventType.dismissed || AdEventType.discarded || AdEventType.skipped:
+      case AdEventType.dismissed ||
+          AdEventType.discarded ||
+          AdEventType.skipped:
         break;
     }
   }
 }
 
-final adManagerProvider = NotifierProvider<AdManager, AdDiagnostics>(AdManager.new);
+final adManagerProvider = NotifierProvider<AdManager, AdDiagnostics>(
+  AdManager.new,
+);

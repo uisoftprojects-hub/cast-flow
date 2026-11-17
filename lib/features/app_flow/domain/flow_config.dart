@@ -24,7 +24,8 @@ class FlowConfig {
 ///
 /// Flow A (First-time non-premium): Splash → Language → Paywall → Onboarding → Home
 /// Flow B (Returning non-premium):   Splash → Paywall → Home
-/// Flow C (Premium user):            Splash → Home
+/// Flow C (Premium user):            Splash → Home (a first run still sets the
+///                                   language and onboarding once; no paywalls)
 ///
 /// Finished milestones are skipped, so an interrupted first run resumes at
 /// the next unfinished step.

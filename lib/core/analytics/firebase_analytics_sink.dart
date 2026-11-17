@@ -16,17 +16,22 @@ class FirebaseAnalyticsSink implements AnalyticsSink {
       if (Firebase.apps.isEmpty) await Firebase.initializeApp();
       return FirebaseAnalyticsSink(FirebaseAnalytics.instance);
     } catch (e) {
-      debugPrint('Firebase Analytics not configured, using debug analytics: $e');
+      debugPrint(
+        'Firebase Analytics not configured, using debug analytics: $e',
+      );
       return null;
     }
   }
 
   @override
-  Future<void> logEvent(String name, Map<String, Object> params) => _fa.logEvent(name: name, parameters: params);
+  Future<void> logEvent(String name, Map<String, Object> params) =>
+      _fa.logEvent(name: name, parameters: params);
 
   @override
-  Future<void> logScreen(String screenName) => _fa.logScreenView(screenName: screenName, screenClass: screenName);
+  Future<void> logScreen(String screenName) =>
+      _fa.logScreenView(screenName: screenName, screenClass: screenName);
 
   @override
-  Future<void> setUserProperty(String name, String? value) => _fa.setUserProperty(name: name, value: value);
+  Future<void> setUserProperty(String name, String? value) =>
+      _fa.setUserProperty(name: name, value: value);
 }

@@ -6,12 +6,19 @@ import 'ad_models.dart';
 abstract class LoadedNativeAd {
   Widget build(BuildContext context);
   void dispose();
+
+  /// Height (dp) the ad needs at [widthDp], measured by the native view once it is
+  /// on screen. Null when unknown (not rendered yet, or no native measuring).
+  Future<double?> measuredHeight(double widthDp) async => null;
 }
 
 /// A loaded interstitial / App Open ad.
 abstract class LoadedFullScreenAd {
   /// Presents the ad; completes when it is dismissed or fails to show.
-  Future<void> show({required VoidCallback onImpression, VoidCallback? onClicked});
+  Future<void> show({
+    required VoidCallback onImpression,
+    VoidCallback? onClicked,
+  });
   void dispose();
 }
 
@@ -30,7 +37,9 @@ abstract interface class AdAdapter {
     required VoidCallback onClicked,
   });
 
-  Future<LoadedFullScreenAd> loadInterstitial([AdPlacement placement = AdPlacement.clickInterstitial]);
+  Future<LoadedFullScreenAd> loadInterstitial([
+    AdPlacement placement = AdPlacement.clickInterstitial,
+  ]);
 
   Future<LoadedFullScreenAd> loadAppOpen();
 }

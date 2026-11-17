@@ -1,13 +1,29 @@
 import 'package:flutter/widgets.dart';
 
 enum AdPlacement {
-  languageFirstRun('Language (first run)', 'native_language_first_open', 'native'),
+  languageFirstRun(
+    'Language (first run)',
+    'native_language_first_open',
+    'native',
+  ),
   languageSettings('Language (Settings)', 'native_language_settings', 'native'),
   onboarding('Onboarding', 'native_onboarding', 'native'),
-  splashInterstitialFirst('Splash Interstitial 1st', 'inter_splash_first', 'interstitial'),
-  splashInterstitialSecond('Splash Interstitial 2nd & Own', 'inter_splash_second', 'interstitial'),
+  splashInterstitialFirst(
+    'Splash Interstitial 1st',
+    'inter_splash_first',
+    'interstitial',
+  ),
+  splashInterstitialSecond(
+    'Splash Interstitial 2nd & Own',
+    'inter_splash_second',
+    'interstitial',
+  ),
   clickInterstitial('1st Click Interstitial', 'inter_click', 'interstitial'),
-  interstitial('Click Interstitial (legacy alias)', 'inter_legacy', 'interstitial'),
+  interstitial(
+    'Click Interstitial (legacy alias)',
+    'inter_legacy',
+    'interstitial',
+  ),
   homeNative('Home Native', 'native_home', 'native'),
   appOpen('App Open', 'app_open_resume', 'app_open');
 
@@ -23,7 +39,16 @@ enum AdPlacement {
 
 enum AdRequestState { idle, loading, ready, showing }
 
-enum AdEventType { request, loaded, failed, impression, clicked, dismissed, discarded, skipped }
+enum AdEventType {
+  request,
+  loaded,
+  failed,
+  impression,
+  clicked,
+  dismissed,
+  discarded,
+  skipped,
+}
 
 @immutable
 class AdEvent {
@@ -56,7 +81,8 @@ class PlacementState {
   final DateTime? cooldownUntil;
   final String? lastFailure;
 
-  bool inCooldown(DateTime now) => cooldownUntil != null && now.isBefore(cooldownUntil!);
+  bool inCooldown(DateTime now) =>
+      cooldownUntil != null && now.isBefore(cooldownUntil!);
 
   PlacementState copyWith({
     AdRequestState? requestState,
@@ -74,7 +100,9 @@ class PlacementState {
       impressionCount: impressionCount ?? this.impressionCount,
       lastRequestAt: lastRequestAt ?? this.lastRequestAt,
       lastImpressionAt: lastImpressionAt ?? this.lastImpressionAt,
-      cooldownUntil: clearCooldown ? null : (cooldownUntil ?? this.cooldownUntil),
+      cooldownUntil: clearCooldown
+          ? null
+          : (cooldownUntil ?? this.cooldownUntil),
       lastFailure: lastFailure ?? this.lastFailure,
     );
   }
@@ -86,7 +114,8 @@ class PlacementState {
   };
 
   factory PlacementState.fromJson(Map<String, dynamic> j) {
-    DateTime? t(String k) => j[k] == null ? null : DateTime.fromMillisecondsSinceEpoch(j[k] as int);
+    DateTime? t(String k) =>
+        j[k] == null ? null : DateTime.fromMillisecondsSinceEpoch(j[k] as int);
     return PlacementState(
       lastRequestAt: t('lastRequestAt'),
       lastImpressionAt: t('lastImpressionAt'),

@@ -48,6 +48,8 @@ class AppOpenAdManager {
     return DateTime.now().difference(_loadedAt!) < AdMobConfig.appOpenFreshness;
   }
 
+  bool get isBackgrounded => _backgroundedAt != null;
+
   void onBackgrounded() {
     // pause + hide both fire for one background trip: keep the first.
     if (_backgroundedAt != null) return;
@@ -81,7 +83,8 @@ class AppOpenAdManager {
         AdState.requestSkipped,
         placement: AdPlacement.appOpen,
         adType: 'AppOpen',
-        message: 'App Open skipped: returned from an in-app launched permission/settings/link.',
+        message:
+            'App Open skipped: returned from an in-app launched permission/settings/link.',
       );
       return;
     }
@@ -91,7 +94,8 @@ class AppOpenAdManager {
       AdState.resumed,
       placement: AdPlacement.appOpen,
       adType: 'AppOpen',
-      message: 'App resumed | background: ${DateTime.now().difference(backgroundedTime).inMilliseconds}ms',
+      message:
+          'App resumed | background: ${DateTime.now().difference(backgroundedTime).inMilliseconds}ms',
     );
 
     // Rule: Never show ads to premium users
@@ -100,7 +104,8 @@ class AppOpenAdManager {
         AdState.requestSkipped,
         placement: AdPlacement.appOpen,
         adType: 'AppOpen',
-        message: 'App Open skipped: isPremium=$isPremium, isAppEligible=$isAppEligible',
+        message:
+            'App Open skipped: isPremium=$isPremium, isAppEligible=$isAppEligible',
       );
       return;
     }
@@ -111,7 +116,8 @@ class AppOpenAdManager {
         AdState.coordinatorLockRejected,
         placement: AdPlacement.appOpen,
         adType: 'AppOpen',
-        message: 'App Open presentation rejected: coordinator is locked with another full-screen ad.',
+        message:
+            'App Open presentation rejected: coordinator is locked with another full-screen ad.',
       );
       return;
     }
@@ -135,9 +141,14 @@ class AppOpenAdManager {
         AdState.showRequested,
         placement: AdPlacement.appOpen,
         adType: 'AppOpen',
-        message: 'Fresh cached App Open ad is ready; displaying immediately without loading screen.',
+        message:
+            'Fresh cached App Open ad is ready; displaying immediately without loading screen.',
       );
-      await _displayLoadedAd(isPremium: isPremium, onImpression: onImpression, onClicked: onClicked);
+      await _displayLoadedAd(
+        isPremium: isPremium,
+        onImpression: onImpression,
+        onClicked: onClicked,
+      );
       return;
     }
 
@@ -146,12 +157,21 @@ class AppOpenAdManager {
       AdState.overlayShowing,
       placement: AdPlacement.appOpen,
       adType: 'AppOpen',
-      message: 'No ad cached; displaying dedicated transparent 6-second Ad Loading overlay.',
+      message:
+          'No ad cached; displaying dedicated transparent 6-second Ad Loading overlay.',
     );
-    await _showAdLoadingOverlayAndLoad(isPremium: isPremium, onImpression: onImpression, onClicked: onClicked);
+    await _showAdLoadingOverlayAndLoad(
+      isPremium: isPremium,
+      onImpression: onImpression,
+      onClicked: onClicked,
+    );
   }
 
-  Future<void> _displayLoadedAd({required bool isPremium, VoidCallback? onImpression, VoidCallback? onClicked}) async {
+  Future<void> _displayLoadedAd({
+    required bool isPremium,
+    VoidCallback? onImpression,
+    VoidCallback? onClicked,
+  }) async {
     final ad = _loadedAd;
     if (ad == null) return;
     _loadedAd = null;
@@ -172,11 +192,16 @@ class AppOpenAdManager {
         placement: AdPlacement.appOpen,
         isPremium: isPremium,
         displayAction: () async {
-          await ad.show(onImpression: () => onImpression?.call(), onClicked: onClicked);
+          await ad.show(
+            onImpression: () => onImpression?.call(),
+            onClicked: onClicked,
+          );
         },
       );
     } finally {
-      if (backdrop != null && backdrop.isActive) backdrop.navigator?.removeRoute(backdrop);
+      if (backdrop != null && backdrop.isActive) {
+        backdrop.navigator?.removeRoute(backdrop);
+      }
       ad.dispose();
     }
   }
@@ -253,7 +278,8 @@ class AppOpenAdManager {
       opaque: false,
       transitionDuration: const Duration(milliseconds: 150),
       pageBuilder: (context, _, _) => const AdLoadingOverlayWidget(),
-      transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),
+      transitionsBuilder: (_, a, _, child) =>
+          FadeTransition(opacity: a, child: child),
     );
     _overlayRoute = route;
     nav.push(route);
@@ -279,7 +305,8 @@ class AppOpenAdManager {
         AdState.overlayTimeout,
         placement: AdPlacement.appOpen,
         adType: 'AppOpen',
-        message: 'Ad Loading overlay timed out; hidden. A late ad is cached for the next foreground.',
+        message:
+            'Ad Loading overlay timed out; hidden. A late ad is cached for the next foreground.',
       );
       return;
     }
@@ -290,7 +317,11 @@ class AppOpenAdManager {
     }
 
     if (_coordinator.canShow(isPremium: isPremium)) {
-      await _displayLoadedAd(isPremium: isPremium, onImpression: onImpression, onClicked: onClicked);
+      await _displayLoadedAd(
+        isPremium: isPremium,
+        onImpression: onImpression,
+        onClicked: onClicked,
+      );
     }
   }
 
@@ -317,7 +348,8 @@ class AppOpenAdManager {
       AdState.premiumPurge,
       placement: AdPlacement.appOpen,
       adType: 'AppOpen',
-      message: 'Disposing App Open ad and dismissing overlay due to premium purchase.',
+      message:
+          'Disposing App Open ad and dismissing overlay due to premium purchase.',
     );
     _epoch++;
     _dismissOverlay();
@@ -349,14 +381,19 @@ class AdLoadingOverlayWidget extends StatelessWidget {
     return PopScope(
       canPop: false,
       child: Material(
-        color: isDark ? Colors.black.withValues(alpha: 0.60) : Colors.black.withValues(alpha: 0.38),
+        color: isDark
+            ? Colors.black.withValues(alpha: 0.60)
+            : Colors.black.withValues(alpha: 0.38),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox.square(
                 dimension: 42,
-                child: CircularProgressIndicator(strokeWidth: 3.5, color: Colors.white),
+                child: CircularProgressIndicator(
+                  strokeWidth: 3.5,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(height: 16),
               Text(

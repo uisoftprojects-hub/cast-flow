@@ -55,5 +55,8 @@ class FakeDeviceRepository implements DeviceRepository {
   }
 
   @override
+  Future<CastDevice> identify(CastDevice device) async => device;
+
+  @override
   Future<void> disconnect() => Future<void>.delayed(const Duration(milliseconds: 300));
 }

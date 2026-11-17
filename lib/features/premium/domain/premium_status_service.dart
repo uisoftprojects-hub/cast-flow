@@ -19,8 +19,8 @@ class PremiumStatusService {
     required this._prefs,
     required this._ref,
     DateTime Function()? clock,
-  })  : _billing = billingService,
-        _now = clock ?? DateTime.now {
+  }) : _billing = billingService,
+       _now = clock ?? DateTime.now {
     _init();
   }
 
@@ -46,7 +46,9 @@ class PremiumStatusService {
     final raw = _prefs.getString(cacheKey);
     if (raw != null) {
       try {
-        _cached = EntitlementState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+        _cached = EntitlementState.fromJson(
+          jsonDecode(raw) as Map<String, dynamic>,
+        );
       } catch (_) {
         _cached = const EntitlementState();
       }
@@ -80,7 +82,9 @@ class PremiumStatusService {
     // Not re-confirmed by the store this session: trust the cache for a bounded time only.
     if (!_verified) {
       final checked = _cached.lastCheckedAt;
-      if (checked == null || _now().difference(checked) > maxCacheAge) return false;
+      if (checked == null || _now().difference(checked) > maxCacheAge) {
+        return false;
+      }
     }
     return true;
   }
@@ -155,7 +159,11 @@ class PremiumStatusService {
   /// Throttled so resume events don't hammer Google Play.
   Future<void> refresh({bool force = false}) async {
     final last = _lastRefreshAt;
-    if (!force && last != null && _now().difference(last) < const Duration(seconds: 30)) return;
+    if (!force &&
+        last != null &&
+        _now().difference(last) < const Duration(seconds: 30)) {
+      return;
+    }
     _lastRefreshAt = _now();
     try {
       if (await _billing.isAvailable()) {
@@ -205,7 +213,12 @@ enum PremiumStatus { loading, premium, free }
 /// free user, so nothing flashes while billing is still being checked.
 @immutable
 class PremiumEntitlement {
-  const PremiumEntitlement({required this.isPremium, required this.isEntitlementVerified, this.expiry, this.productId});
+  const PremiumEntitlement({
+    required this.isPremium,
+    required this.isEntitlementVerified,
+    this.expiry,
+    this.productId,
+  });
 
   final bool isPremium;
   final bool isEntitlementVerified;
@@ -216,8 +229,9 @@ class PremiumEntitlement {
   bool get isSubscriptionLoading => !isEntitlementVerified && !isPremium;
   bool get hasLifetimePurchase => false; // only the weekly subscription exists
   bool get shouldShowPremiumPromotion => isEntitlementVerified && !isPremium;
-  PremiumStatus get status =>
-      isPremium ? PremiumStatus.premium : (isEntitlementVerified ? PremiumStatus.free : PremiumStatus.loading);
+  PremiumStatus get status => isPremium
+      ? PremiumStatus.premium
+      : (isEntitlementVerified ? PremiumStatus.free : PremiumStatus.loading);
 
   @override
   bool operator ==(Object other) =>
@@ -228,7 +242,8 @@ class PremiumEntitlement {
       other.productId == productId;
 
   @override
-  int get hashCode => Object.hash(isPremium, isEntitlementVerified, expiry, productId);
+  int get hashCode =>
+      Object.hash(isPremium, isEntitlementVerified, expiry, productId);
 }
 
 class PremiumEntitlementNotifier extends Notifier<PremiumEntitlement> {
@@ -248,13 +263,16 @@ class PremiumEntitlementNotifier extends Notifier<PremiumEntitlement> {
   );
 }
 
-final premiumEntitlementProvider = NotifierProvider<PremiumEntitlementNotifier, PremiumEntitlement>(
-  PremiumEntitlementNotifier.new,
-);
+final premiumEntitlementProvider =
+    NotifierProvider<PremiumEntitlementNotifier, PremiumEntitlement>(
+      PremiumEntitlementNotifier.new,
+    );
 
 /// `isEntitlementVerified && !isPremium` – the only gate for promotional UI.
 final shouldShowPremiumPromotionProvider = Provider<bool>(
-  (ref) => ref.watch(premiumEntitlementProvider.select((e) => e.shouldShowPremiumPromotion)),
+  (ref) => ref.watch(
+    premiumEntitlementProvider.select((e) => e.shouldShowPremiumPromotion),
+  ),
 );
 
 final premiumStatusServiceProvider = Provider<PremiumStatusService>((ref) {

@@ -19,7 +19,11 @@ class AdDisplayCoordinator {
 
   void setPurchaseInProgress(bool inProgress) {
     _isPurchaseInProgress = inProgress;
-    AdLogger.d(AdState.cooldownActive, adType: 'Coordinator', message: 'setPurchaseInProgress: $inProgress');
+    AdLogger.d(
+      AdState.cooldownActive,
+      adType: 'Coordinator',
+      message: 'setPurchaseInProgress: $inProgress',
+    );
   }
 
   /// Whether a new full-screen ad can be presented right now
@@ -62,7 +66,13 @@ class AdDisplayCoordinator {
       await displayAction();
       return true;
     } catch (e) {
-      AdLogger.e(AdState.showFailed, placement: placement, adType: adType, message: 'Error displaying $adType', error: e);
+      AdLogger.e(
+        AdState.showFailed,
+        placement: placement,
+        adType: adType,
+        message: 'Error displaying $adType',
+        error: e,
+      );
       return false;
     } finally {
       _isFullScreenShowing = false;

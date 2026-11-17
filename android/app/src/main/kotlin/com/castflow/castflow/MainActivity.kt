@@ -49,6 +49,29 @@ object NativeAdTheme {
     }
 }
 
+/** Measures how tall a bound native ad needs to be at a given width, so Flutter can size its container. */
+object NativeAdSizer {
+    private val views = java.util.concurrent.ConcurrentHashMap<String, java.lang.ref.WeakReference<NativeAdView>>()
+
+    fun register(id: String?, view: NativeAdView) {
+        if (id != null) views[id] = java.lang.ref.WeakReference(view)
+    }
+
+    /** Height in dp of the text column (title, description, CTA) for a full ad width of [widthDp]. */
+    fun measureDp(id: String, widthDp: Double): Double? {
+        val view = views[id]?.get() ?: return null
+        val column = view.findViewById<View>(R.id.ad_text_column) ?: return null
+        val density = view.resources.displayMetrics.density
+        val columnPx = (widthDp * density * 0.65).toInt()
+        if (columnPx <= 0) return null
+        column.measure(
+            View.MeasureSpec.makeMeasureSpec(columnPx, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
+        return column.measuredHeight / density.toDouble()
+    }
+}
+
 class CustomNativeAdFactory(private val layoutInflater: LayoutInflater) : NativeAdFactory {
     companion object {
         private const val TAG = "AdMob"
@@ -100,6 +123,7 @@ class CustomNativeAdFactory(private val layoutInflater: LayoutInflater) : Native
 
         nativeAdView.setNativeAd(nativeAd)
         NativeAdTheme.register(nativeAdView)
+        NativeAdSizer.register(nativeAd.responseInfo?.responseId, nativeAdView)
         Log.i(TAG, "[NativeAdFactory] STATE: NATIVE_AD_RENDERED | headline: ${nativeAd.headline}")
         return nativeAdView
     }
@@ -158,6 +182,18 @@ class MainActivity : FlutterActivity() {
                 "setDark" -> {
                     NativeAdTheme.setDark(call.argument<Boolean>("dark") ?: false)
                     result.success(true)
+                }
+                else -> result.notImplemented()
+            }
+        }
+
+        // Lets Flutter size the native ad container to its content (no clipping, no gaps).
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "castflow/native_ad_size").setMethodCallHandler { call, result ->
+            when (call.method) {
+                "measure" -> {
+                    val id = call.argument<String>("responseId")
+                    val w = call.argument<Double>("widthDp")
+                    result.success(if (id != null && w != null) NativeAdSizer.measureDp(id, w) else null)
                 }
                 else -> result.notImplemented()
             }

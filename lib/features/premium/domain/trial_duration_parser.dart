@@ -72,7 +72,9 @@ abstract final class TrialDurationParser {
     String? trialDurationText,
     String continueLabel = 'Continue',
   }) {
-    if (isEligible && trialDurationText != null && trialDurationText.isNotEmpty) {
+    if (isEligible &&
+        trialDurationText != null &&
+        trialDurationText.isNotEmpty) {
       return '$trialDurationText Free Trial';
     }
     return continueLabel;

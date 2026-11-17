@@ -46,12 +46,23 @@ class AppShell extends ConsumerWidget {
     );
   }
 
-  Widget _scaffold(BuildContext context, WidgetRef ref) {
+  Widget _scaffold(BuildContext shellContext, WidgetRef ref) {
     return Scaffold(
       // The bar sits below the page instead of floating over it, so content
       // never shows through or hides behind the navigation.
       extendBody: false,
-      body: navigationShell,
+      // The tab navigator reports "can't pop" on its root page, which makes
+      // Flutter hand Back to Android (closing the app, skipping PopScope).
+      // Re-dispatch it as "can pop" so the framework always keeps Back.
+      // Must dispatch from [shellContext] (above the listener) or it loops.
+      body: NotificationListener<NavigationNotification>(
+        onNotification: (n) {
+          if (n.canHandlePop) return false;
+          const NavigationNotification(canHandlePop: true).dispatch(shellContext);
+          return true;
+        },
+        child: navigationShell,
+      ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(AppSpace.lg, 0, AppSpace.lg, AppSpace.md),
         child: Column(

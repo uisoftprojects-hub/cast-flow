@@ -38,8 +38,8 @@ void main() {
       );
     });
 
-    test('Flow C (premium user): Splash → Home (skips language, onboarding, paywalls)', () {
-      expect(_flow(isPremium: true), [FlowStep.home]);
+    test('Flow C (premium user): no paywalls; a first run still sets language + onboarding once', () {
+      expect(_flow(isPremium: true), [FlowStep.language, FlowStep.onboarding, FlowStep.home]);
       expect(_flow(firstLaunchCompleted: true, isPremium: true), [FlowStep.home]);
     });
 

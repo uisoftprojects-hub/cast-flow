@@ -41,22 +41,29 @@ class MemoryAnalyticsSink implements AnalyticsSink {
 
   List<String> get names => [for (final e in events) e.$1];
 
-  Map<String, Object>? last(String name) => events.lastWhere((e) => e.$1 == name, orElse: () => ('', {})).$2;
+  Map<String, Object>? last(String name) =>
+      events.lastWhere((e) => e.$1 == name, orElse: () => ('', {})).$2;
 
   @override
-  Future<void> logEvent(String name, Map<String, Object> params) async => events.add((name, params));
+  Future<void> logEvent(String name, Map<String, Object> params) async =>
+      events.add((name, params));
 
   @override
   Future<void> logScreen(String screenName) async => screens.add(screenName);
 
   @override
-  Future<void> setUserProperty(String name, String? value) async => userProperties[name] = value;
+  Future<void> setUserProperty(String name, String? value) async =>
+      userProperties[name] = value;
 }
 
 /// Overridden in main() with the Firebase sink once Firebase starts.
-final analyticsSinkProvider = Provider<AnalyticsSink>((ref) => const DebugAnalyticsSink());
+final analyticsSinkProvider = Provider<AnalyticsSink>(
+  (ref) => const DebugAnalyticsSink(),
+);
 
-final analyticsProvider = Provider<Analytics>((ref) => Analytics(ref.watch(analyticsSinkProvider)));
+final analyticsProvider = Provider<Analytics>(
+  (ref) => Analytics(ref.watch(analyticsSinkProvider)),
+);
 
 /// Analytics from a widget context, for helpers that have no `ref`.
 Analytics analyticsOf(BuildContext context) =>
@@ -74,7 +81,8 @@ class Analytics {
   static const _reservedPrefixes = ['firebase_', 'google_', 'ga_'];
 
   /// Whether [name] is a valid event or parameter name.
-  static bool isValidName(String name) => _name.hasMatch(name) && !_reservedPrefixes.any(name.startsWith);
+  static bool isValidName(String name) =>
+      _name.hasMatch(name) && !_reservedPrefixes.any(name.startsWith);
 
   void log(String name, [Map<String, Object?> params = const {}]) {
     assert(isValidName(name), 'Bad analytics event name: $name');
@@ -94,12 +102,15 @@ class Analytics {
     _safe(() => _sink.logEvent(name, clean));
   }
 
-  void screen(String screenName) => _safe(() => _sink.logScreen(_cut(screenName)));
+  void screen(String screenName) =>
+      _safe(() => _sink.logScreen(_cut(screenName)));
 
-  void userProperty(String name, String? value) =>
-      _safe(() => _sink.setUserProperty(name, value == null ? null : _cut(value, 36)));
+  void userProperty(String name, String? value) => _safe(
+    () => _sink.setUserProperty(name, value == null ? null : _cut(value, 36)),
+  );
 
-  static String _cut(String s, [int max = 100]) => s.length <= max ? s : s.substring(0, max);
+  static String _cut(String s, [int max = 100]) =>
+      s.length <= max ? s : s.substring(0, max);
 
   static void _safe(Future<void> Function() call) {
     try {
@@ -110,7 +121,11 @@ class Analytics {
 
 /// Logs a screen_view whenever the router location changes (pushes, pops
 /// and tab switches), skipping repeats of the same screen.
-void trackScreens(Listenable router, String Function() currentPath, Analytics Function() analytics) {
+void trackScreens(
+  Listenable router,
+  String Function() currentPath,
+  Analytics Function() analytics,
+) {
   String? last;
   void report() {
     final name = screenNameFor(currentPath());
@@ -155,6 +170,8 @@ String? screenNameFor(String? path) {
   };
   if (names[clean] case final n?) return n;
   // Fallback: "/foo-bar/baz" → "foo_bar_baz".
-  final n = clean.replaceAll(RegExp(r'^/+'), '').replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+  final n = clean
+      .replaceAll(RegExp(r'^/+'), '')
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '_');
   return n.isEmpty ? null : n;
 }

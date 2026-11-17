@@ -68,7 +68,8 @@ class GooglePlayPurchaseVerifier implements PurchaseVerifier {
       return VerificationResult(
         isValid: false,
         isActive: false,
-        errorMessage: purchase.error?.message ?? 'Purchase encountered an error.',
+        errorMessage:
+            purchase.error?.message ?? 'Purchase encountered an error.',
       );
     }
     if (purchase.status != PurchaseStatus.purchased &&
@@ -115,7 +116,9 @@ class GooglePlayPurchaseVerifier implements PurchaseVerifier {
 
         final purchaseTimeMs = json['purchaseTime'] as int?;
         if (purchaseTimeMs != null && purchaseTimeMs > 0) {
-          final purchaseDate = DateTime.fromMillisecondsSinceEpoch(purchaseTimeMs);
+          final purchaseDate = DateTime.fromMillisecondsSinceEpoch(
+            purchaseTimeMs,
+          );
           // If auto-renewal is false (cancelled), entitlement remains active until cycle end.
           // For weekly subscription, base period is 7 days.
           if (!isAutoRenewing) {

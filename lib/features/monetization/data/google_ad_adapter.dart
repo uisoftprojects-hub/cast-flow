@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../domain/ad_adapter.dart';
@@ -30,9 +31,17 @@ class GoogleAdAdapter implements AdAdapter {
     );
     await done.future;
     if (await canRequestAds()) {
-      AdLogger.i(AdState.sdkInitStart, adType: 'GoogleMobileAds', message: 'Initializing MobileAds.instance.');
+      AdLogger.i(
+        AdState.sdkInitStart,
+        adType: 'GoogleMobileAds',
+        message: 'Initializing MobileAds.instance.',
+      );
       await MobileAds.instance.initialize();
-      AdLogger.i(AdState.sdkInitSuccess, adType: 'GoogleMobileAds', message: 'MobileAds.instance initialized.');
+      AdLogger.i(
+        AdState.sdkInitSuccess,
+        adType: 'GoogleMobileAds',
+        message: 'MobileAds.instance initialized.',
+      );
     }
   }
 
@@ -56,7 +65,8 @@ class GoogleAdAdapter implements AdAdapter {
       placement: placement,
       adType: 'Native',
       unitId: unitId,
-      message: 'Dispatching NativeAd.load() | isDark: $isDark | medium: $medium',
+      message:
+          'Dispatching NativeAd.load() | isDark: $isDark | medium: $medium',
     );
 
     NativeAd(
@@ -65,7 +75,10 @@ class GoogleAdAdapter implements AdAdapter {
       customOptions: isAndroid ? {'isDark': isDark} : null,
       nativeTemplateStyle: isAndroid
           ? null
-          : NativeTemplateStyle(templateType: medium ? TemplateType.medium : TemplateType.small, cornerRadius: 16),
+          : NativeTemplateStyle(
+              templateType: medium ? TemplateType.medium : TemplateType.small,
+              cornerRadius: 16,
+            ),
       request: const AdRequest(),
       listener: NativeAdListener(
         onAdLoaded: (ad) {
@@ -84,7 +97,8 @@ class GoogleAdAdapter implements AdAdapter {
             placement: placement,
             adType: 'Native',
             unitId: unitId,
-            message: 'NativeAd failed to load: [${error.code}] ${error.message} (domain: ${error.domain})',
+            message:
+                'NativeAd failed to load: [${error.code}] ${error.message} (domain: ${error.domain})',
           );
           ad.dispose();
           c.completeError(error.message);
@@ -131,7 +145,9 @@ class GoogleAdAdapter implements AdAdapter {
   }
 
   @override
-  Future<LoadedFullScreenAd> loadInterstitial([AdPlacement placement = AdPlacement.clickInterstitial]) {
+  Future<LoadedFullScreenAd> loadInterstitial([
+    AdPlacement placement = AdPlacement.clickInterstitial,
+  ]) {
     final c = Completer<LoadedFullScreenAd>();
     final unitId = AdMobConfig.unitId(placement);
 
@@ -163,7 +179,8 @@ class GoogleAdAdapter implements AdAdapter {
             placement: placement,
             adType: 'Interstitial',
             unitId: unitId,
-            message: 'InterstitialAd failed to load: [${error.code}] ${error.message} (domain: ${error.domain})',
+            message:
+                'InterstitialAd failed to load: [${error.code}] ${error.message} (domain: ${error.domain})',
           );
           c.completeError(error.message);
         },
@@ -205,7 +222,8 @@ class GoogleAdAdapter implements AdAdapter {
             placement: AdPlacement.appOpen,
             adType: 'AppOpen',
             unitId: unitId,
-            message: 'AppOpenAd failed to load: [${error.code}] ${error.message} (domain: ${error.domain})',
+            message:
+                'AppOpenAd failed to load: [${error.code}] ${error.message} (domain: ${error.domain})',
           );
           c.completeError(error.message);
         },
@@ -222,13 +240,40 @@ class _Native extends LoadedNativeAd {
 
   @override
   Widget build(BuildContext context) {
-    AdLogger.d(AdState.showing, placement: placement, adType: 'Native', message: 'Rendering AdWidget for Native ad.');
+    AdLogger.d(
+      AdState.showing,
+      placement: placement,
+      adType: 'Native',
+      message: 'Rendering AdWidget for Native ad.',
+    );
     return AdWidget(ad: ad);
+  }
+
+  static const _sizeChannel = MethodChannel('castflow/native_ad_size');
+
+  @override
+  Future<double?> measuredHeight(double widthDp) async {
+    final id = ad.responseInfo?.responseId;
+    if (id == null || defaultTargetPlatform != TargetPlatform.android)
+      return null;
+    try {
+      return await _sizeChannel.invokeMethod<double>('measure', {
+        'responseId': id,
+        'widthDp': widthDp,
+      });
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
   void dispose() {
-    AdLogger.d(AdState.disposed, placement: placement, adType: 'Native', message: 'Disposing NativeAd instance.');
+    AdLogger.d(
+      AdState.disposed,
+      placement: placement,
+      adType: 'Native',
+      message: 'Disposing NativeAd instance.',
+    );
     ad.dispose();
   }
 }
@@ -239,7 +284,10 @@ class _Interstitial extends LoadedFullScreenAd {
   final AdPlacement placement;
 
   @override
-  Future<void> show({required VoidCallback onImpression, VoidCallback? onClicked}) {
+  Future<void> show({
+    required VoidCallback onImpression,
+    VoidCallback? onClicked,
+  }) {
     final c = Completer<void>();
     AdLogger.i(
       AdState.showRequested,
@@ -267,7 +315,12 @@ class _Interstitial extends LoadedFullScreenAd {
         onImpression();
       },
       onAdClicked: (_) {
-        AdLogger.i(AdState.clicked, placement: placement, adType: 'Interstitial', message: 'InterstitialAd clicked.');
+        AdLogger.i(
+          AdState.clicked,
+          placement: placement,
+          adType: 'Interstitial',
+          message: 'InterstitialAd clicked.',
+        );
         onClicked?.call();
       },
       onAdDismissedFullScreenContent: (_) {
@@ -284,7 +337,8 @@ class _Interstitial extends LoadedFullScreenAd {
           AdState.showFailed,
           placement: placement,
           adType: 'Interstitial',
-          message: 'InterstitialAd failed to show: [${error.code}] ${error.message}',
+          message:
+              'InterstitialAd failed to show: [${error.code}] ${error.message}',
         );
         c.complete();
       },
@@ -310,7 +364,10 @@ class _AppOpen extends LoadedFullScreenAd {
   final AppOpenAd ad;
 
   @override
-  Future<void> show({required VoidCallback onImpression, VoidCallback? onClicked}) {
+  Future<void> show({
+    required VoidCallback onImpression,
+    VoidCallback? onClicked,
+  }) {
     final c = Completer<void>();
     AdLogger.i(
       AdState.showRequested,
@@ -338,7 +395,12 @@ class _AppOpen extends LoadedFullScreenAd {
         onImpression();
       },
       onAdClicked: (_) {
-        AdLogger.i(AdState.clicked, placement: AdPlacement.appOpen, adType: 'AppOpen', message: 'AppOpenAd clicked.');
+        AdLogger.i(
+          AdState.clicked,
+          placement: AdPlacement.appOpen,
+          adType: 'AppOpen',
+          message: 'AppOpenAd clicked.',
+        );
         onClicked?.call();
       },
       onAdDismissedFullScreenContent: (_) {

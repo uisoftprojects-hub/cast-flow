@@ -12,7 +12,7 @@ import 'google_play_offer_inspector.dart';
 /// Retrieves dynamic prices, subscription base plans, and introductory trial offers.
 class IapBillingService implements BillingService {
   IapBillingService({PurchaseVerifier? verifier})
-      : _verifier = verifier ?? const GooglePlayPurchaseVerifier() {
+    : _verifier = verifier ?? const GooglePlayPurchaseVerifier() {
     _sub = _iap.purchaseStream.listen(
       _onPurchases,
       onError: (Object error) {
@@ -39,7 +39,7 @@ class IapBillingService implements BillingService {
 
   void _onResumeWhilePending() {
     _abandonTimer?.cancel();
-    _abandonTimer = Timer(const Duration(milliseconds: 1500), () {
+    _abandonTimer = Timer(const Duration(milliseconds: 500), () {
       if (_pending != null && !_gotUpdate) _complete(PurchaseOutcome.cancelled);
     });
   }
@@ -122,7 +122,10 @@ class IapBillingService implements BillingService {
     _pending = Completer<PurchaseOutcome>();
     _gotUpdate = false;
     _lifecycle?.dispose();
-    _lifecycle = AppLifecycleListener(onResume: _onResumeWhilePending);
+    _lifecycle = AppLifecycleListener(
+      onStateChange: (s) => debugPrint('[Billing] lifecycle -> $s'),
+      onResume: _onResumeWhilePending,
+    );
     try {
       PurchaseParam param;
       if (details is GooglePlayProductDetails) {

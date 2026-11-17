@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,25 +33,80 @@ class LanguageScreen extends ConsumerStatefulWidget {
 
 class _LanguageScreenState extends ConsumerState<LanguageScreen> {
   late String _selected = ref.read(settingsProvider).languageCode;
+  bool _closing = false;
+
+  /// Done icon shows a spinner (primary colour) while the native ad loads.
+  bool _adLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startLandingLoader();
+  }
+
+  /// Default loader on landing: the ad request goes out as the screen opens and a
+  /// 3s spinner (dimmed screen, taps blocked) gives it time to load and be seen.
+  static const _landingLoader = Duration(seconds: 3);
+  Timer? _loaderTimer;
+
+  void _startLandingLoader() {
+    if (ref.read(isPremiumProvider)) return;
+    _adLoading = true;
+    _loaderTimer = Timer(_landingLoader, () {
+      if (mounted) setState(() => _adLoading = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _loaderTimer?.cancel();
+    super.dispose();
+  }
+
+  final _adKey = GlobalKey<NativeAdSlotState>();
+
+  /// Settings: back leaves without applying the language.
+  void _back() {
+    if (_closing) return;
+    _closing = true;
+    context.pop();
+  }
 
   Future<void> _done() async {
+    if (_adLoading) return;
     if (widget.fromSettings) {
       // Leave the screen first, then switch the locale, so the whole app does not
       // rebuild around this screen (and its native ad view) while it is closing.
       final notifier = ref.read(settingsProvider.notifier);
       final code = _selected;
+      if (_closing) return; // double-tap on the check icon
+      _closing = true;
+      if (!mounted) return;
       context.pop();
-      Future<void>.delayed(const Duration(milliseconds: 400), () => notifier.confirmLanguage(code));
+      // Wait for the exit transition to finish (320ms) and then for a frame
+      // boundary: changing the locale rebuilds every Localizations dependent, and
+      // doing that while this route's elements are still being torn down trips
+      // the "really is our descendant" framework assertion.
+      Future<void>.delayed(const Duration(milliseconds: 500), () {
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => notifier.confirmLanguage(code),
+        );
+        WidgetsBinding.instance.scheduleFrame();
+      });
     } else {
       await ref.read(settingsProvider.notifier).confirmLanguage(_selected);
       if (!mounted) return;
       // First run: Splash Interstitial Opportunity 1
       final isPremium = ref.read(isPremiumProvider);
       if (!isPremium) {
-        await ref.read(splashInterstitialManagerProvider).tryShowAtLanguageCompletion(isPremium: isPremium);
+        await ref
+            .read(splashInterstitialManagerProvider)
+            .tryShowAtLanguageCompletion(isPremium: isPremium);
       }
       if (!mounted) return;
-      final next = ref.read(appFlowProvider.notifier).advance(FlowStep.language);
+      final next = ref
+          .read(appFlowProvider.notifier)
+          .advance(FlowStep.language);
       if (next != null) context.go(next);
     }
   }
@@ -58,71 +115,99 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
   Widget build(BuildContext context) {
     final canGoBack = widget.fromSettings && context.canPop();
     return PopScope(
-      canPop: widget.fromSettings,
+      canPop: false,
       // First run: back acts like Continue (shows the splash ad if ready, then moves on).
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && !widget.fromSettings) _done();
+        if (didPop) return;
+        widget.fromSettings ? _back() : _done();
       },
-      child: Scaffold(
-        appBar: AppBar(
-          systemOverlayStyle: context.systemOverlayStyle(),
-          toolbarHeight: 68,
-          clipBehavior: Clip.none,
-          automaticallyImplyLeading: false,
-          titleSpacing: canGoBack ? 0 : AppSpace.page,
-          leading: canGoBack
-              ? Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 12),
-                  child: Center(
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back_rounded, size: 26),
-                      tooltip: context.l10n.browserBack,
-                      onPressed: () => context.pop(),
-                    ),
+      child: Stack(
+        children: [
+          Scaffold(
+            appBar: AppBar(
+              systemOverlayStyle: context.systemOverlayStyle(),
+              toolbarHeight: 68,
+              clipBehavior: Clip.none,
+              automaticallyImplyLeading: false,
+              titleSpacing: canGoBack ? 0 : AppSpace.page,
+              leading: canGoBack
+                  ? Padding(
+                      padding: const EdgeInsetsDirectional.only(start: 12),
+                      child: Center(
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back_rounded, size: 26),
+                          tooltip: context.l10n.browserBack,
+                          onPressed: _back,
+                        ),
+                      ),
+                    )
+                  : null,
+              leadingWidth: canGoBack ? 68 : null,
+              title: Text(context.l10n.language),
+              actions: [
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: AppSpace.page),
+                  child: IconButton(
+                    icon: _adLoading
+                        ? SizedBox.square(
+                            dimension: 30,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: context.palette.primary,
+                            ),
+                          )
+                        : const Icon(Icons.check_rounded, size: 30),
+                    tooltip: context.l10n.done,
+                    color: context.palette.primary,
+                    onPressed: _adLoading ? null : _done,
                   ),
-                )
-              : null,
-          leadingWidth: canGoBack ? 68 : null,
-          title: Text(context.l10n.language),
-          actions: [
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: AppSpace.page),
-              child: IconButton(
-                icon: const Icon(Icons.check_rounded, size: 30),
-                tooltip: context.l10n.done,
-                color: context.palette.primary,
-                onPressed: _done,
+                ),
+              ],
+            ),
+            body: AdSideLayout(
+              content: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpace.page,
+                  AppSpace.sm,
+                  AppSpace.page,
+                  AppSpace.lg,
+                ),
+                itemCount: supportedLanguages.length,
+                separatorBuilder: (_, _) => const SizedBox(height: AppSpace.sm),
+                itemBuilder: (context, i) {
+                  final entry = supportedLanguages.entries.elementAt(i);
+                  return _LanguageRow(
+                        native: entry.value.$1,
+                        english: entry.value.$2,
+                        flag: entry.value.$3,
+                        selected: entry.key == _selected,
+                        onTap: () => setState(() => _selected = entry.key),
+                      )
+                      .animate(delay: ((i > 10 ? 10 : i) * 30).ms)
+                      .fadeIn(duration: 250.ms);
+                },
+              ),
+              // Medium native ad at bottom, full available width, ZERO horizontal padding
+              ad: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: EdgeInsets.zero,
+                  child: NativeAdSlot(
+                    placement: widget.fromSettings
+                        ? AdPlacement.languageSettings
+                        : AdPlacement.languageFirstRun,
+                    key: _adKey,
+                    onSettled: (loaded) {
+                      if (mounted && _adLoading) {
+                        setState(() => _adLoading = false);
+                      }
+                    },
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
-        body: AdSideLayout(
-          content: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, AppSpace.lg),
-            itemCount: supportedLanguages.length,
-            separatorBuilder: (_, _) => const SizedBox(height: AppSpace.sm),
-            itemBuilder: (context, i) {
-              final entry = supportedLanguages.entries.elementAt(i);
-              return _LanguageRow(
-                native: entry.value.$1,
-                english: entry.value.$2,
-                flag: entry.value.$3,
-                selected: entry.key == _selected,
-                onTap: () => setState(() => _selected = entry.key),
-              ).animate(delay: ((i > 10 ? 10 : i) * 30).ms).fadeIn(duration: 250.ms);
-            },
           ),
-          // Medium native ad at bottom, full available width, ZERO horizontal padding
-          ad: SafeArea(
-            top: false,
-            child: Padding(
-              padding: EdgeInsets.zero,
-              child: NativeAdSlot(
-                placement: widget.fromSettings ? AdPlacement.languageSettings : AdPlacement.languageFirstRun,
-              ),
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -155,11 +240,17 @@ class _LanguageRow extends StatelessWidget {
         child: AnimatedContainer(
           duration: AppDurations.medium,
           constraints: const BoxConstraints(minHeight: 60),
-          padding: const EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: AppSpace.md),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpace.lg,
+            vertical: AppSpace.md,
+          ),
           decoration: BoxDecoration(
             color: selected ? p.primaryTint : p.surface,
             borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(color: selected ? p.primary : p.divider, width: selected ? 1.5 : 1),
+            border: Border.all(
+              color: selected ? p.primary : p.divider,
+              width: selected ? 1.5 : 1,
+            ),
           ),
           child: Row(
             children: [
@@ -170,7 +261,8 @@ class _LanguageRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(native, style: context.text.titleSmall),
-                    if (native != english) Text(english, style: context.text.bodySmall),
+                    if (native != english)
+                      Text(english, style: context.text.bodySmall),
                   ],
                 ),
               ),
@@ -181,9 +273,17 @@ class _LanguageRow extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: selected ? AppColors.mainGradient : null,
-                  border: selected ? null : Border.all(color: p.divider, width: 2),
+                  border: selected
+                      ? null
+                      : Border.all(color: p.divider, width: 2),
                 ),
-                child: selected ? const Icon(Icons.check_rounded, size: 14, color: Colors.white) : null,
+                child: selected
+                    ? const Icon(
+                        Icons.check_rounded,
+                        size: 14,
+                        color: Colors.white,
+                      )
+                    : null,
               ),
             ],
           ),

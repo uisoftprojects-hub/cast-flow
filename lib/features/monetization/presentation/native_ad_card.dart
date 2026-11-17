@@ -33,9 +33,13 @@ class NativeAdCard extends StatelessWidget {
     final p = context.palette;
 
     final cardBg = isDark ? const Color(0xFF1A1D24) : Colors.white;
-    final cardBorder = isDark ? const Color(0xFF2E333D) : const Color(0xFFE5E7EB);
+    final cardBorder = isDark
+        ? const Color(0xFF2E333D)
+        : const Color(0xFFE5E7EB);
     final titleColor = isDark ? Colors.white : const Color(0xFF111827);
-    final descColor = isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280);
+    final descColor = isDark
+        ? const Color(0xFF9CA3AF)
+        : const Color(0xFF6B7280);
 
     return Container(
       height: height,
@@ -58,12 +62,16 @@ class NativeAdCard extends StatelessWidget {
               child:
                   iconWidget ??
                   Container(
-                    color: isDark ? const Color(0xFF252A34) : const Color(0xFFF3F4F6),
+                    color: isDark
+                        ? const Color(0xFF252A34)
+                        : const Color(0xFFF3F4F6),
                     child: Center(
                       child: Icon(
                         Icons.campaign_rounded,
                         size: 40,
-                        color: isDark ? const Color(0xFF4B5563) : const Color(0xFF9CA3AF),
+                        color: isDark
+                            ? const Color(0xFF4B5563)
+                            : const Color(0xFF9CA3AF),
                       ),
                     ),
                   ),
@@ -82,9 +90,14 @@ class NativeAdCard extends StatelessWidget {
                 children: [
                   // 1. Small Ad disclosure label
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1,
+                    ),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
+                      color: isDark
+                          ? const Color(0xFF374151)
+                          : const Color(0xFFF3F4F6),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -92,7 +105,9 @@ class NativeAdCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                        color: isDark
+                            ? const Color(0xFF9CA3AF)
+                            : const Color(0xFF6B7280),
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -103,7 +118,12 @@ class NativeAdCard extends StatelessWidget {
                     title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: titleColor, height: 1.2),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: titleColor,
+                      height: 1.2,
+                    ),
                   ),
 
                   // 3. Body text (maximum 1 line)
@@ -111,7 +131,11 @@ class NativeAdCard extends StatelessWidget {
                     description,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 11, color: descColor, height: 1.1),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: descColor,
+                      height: 1.1,
+                    ),
                   ),
 
                   // 4. CTA Button (fills available horizontal space)
@@ -125,13 +149,18 @@ class NativeAdCard extends StatelessWidget {
                         foregroundColor: Colors.white,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(horizontal: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
+                        ),
                       ),
                       child: Text(
                         ctaText,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),

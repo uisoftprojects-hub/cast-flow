@@ -4,7 +4,14 @@ import '../utils/tap_feedback.dart';
 
 /// Scales its child to [scale] while pressed (spec: 0.97 scale-on-tap).
 class TapScale extends StatefulWidget {
-  const TapScale({super.key, required this.child, this.onTap, this.onLongPress, this.scale = 0.97, this.semanticLabel});
+  const TapScale({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.onLongPress,
+    this.scale = 0.97,
+    this.semanticLabel,
+  });
 
   final Widget child;
   final VoidCallback? onTap;

@@ -116,7 +116,8 @@ class StoreProduct {
       basePlanId: basePlanId ?? this.basePlanId,
       offerToken: offerToken ?? this.offerToken,
       freeTrialPeriodIso: freeTrialPeriodIso ?? this.freeTrialPeriodIso,
-      freeTrialDurationText: freeTrialDurationText ?? this.freeTrialDurationText,
+      freeTrialDurationText:
+          freeTrialDurationText ?? this.freeTrialDurationText,
       isFreeTrialEligible: isFreeTrialEligible ?? this.isFreeTrialEligible,
       rawPrice: rawPrice ?? this.rawPrice,
       currencyCode: currencyCode ?? this.currencyCode,
@@ -193,7 +194,8 @@ class EntitlementState {
   };
 
   factory EntitlementState.fromJson(Map<String, dynamic> j) {
-    DateTime? t(String k) => j[k] == null ? null : DateTime.fromMillisecondsSinceEpoch(j[k] as int);
+    DateTime? t(String k) =>
+        j[k] == null ? null : DateTime.fromMillisecondsSinceEpoch(j[k] as int);
     return EntitlementState(
       productId: j['productId'] as String?,
       active: j['active'] as bool? ?? false,

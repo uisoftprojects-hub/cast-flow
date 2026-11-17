@@ -23,6 +23,8 @@ Future<void> showRateSheet(BuildContext context, {bool exit = false}) {
     useSafeArea: true,
     isScrollControlled: true,
     showDragHandle: true,
+    // Back, a tap outside the sheet, or a drag down only close the sheet. The app
+    // exits solely through the "Tap to exit" button.
     builder: (_) => SafeArea(
       top: false,
       child: SingleChildScrollView(child: _RateSheet(exit: exit)),

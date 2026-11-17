@@ -24,7 +24,9 @@ class PreviewModeNotifier extends Notifier<PreviewMode> {
   void set(PreviewMode mode) => state = mode;
 }
 
-final previewModeProvider = NotifierProvider<PreviewModeNotifier, PreviewMode>(PreviewModeNotifier.new);
+final previewModeProvider = NotifierProvider<PreviewModeNotifier, PreviewMode>(
+  PreviewModeNotifier.new,
+);
 
 /// Shared helper for the fake data sources: waits a little, then applies the
 /// current [PreviewMode].

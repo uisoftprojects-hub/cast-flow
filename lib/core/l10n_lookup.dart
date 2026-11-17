@@ -5,14 +5,19 @@ import '../l10n/app_localizations.dart';
 extension L10nLookup on AppLocalizations {
   String lookup(String en) => switch (en) {
     "A VPN hides your TV from your phone." => aVpnHidesYour,
-    "Accept the prompt on your TV if one appears. That’s it!" => acceptThePromptOn,
+    "Accept the prompt on your TV if one appears. That’s it!" =>
+      acceptThePromptOn,
     "Albums" => albums,
     "No Wi-Fi? Use your hotspot" => onboardHotspotTitle,
-    "Turn on your phone’s hotspot and connect your TV to it. Casting works just like on Wi-Fi." => onboardHotspotBody,
-    "Allow Cast to TV to find devices on your network when asked." => allowCastflowToFind,
-    "Allow access to your media to cast it. You can change this in Settings." => allowAccessToYour,
+    "Turn on your phone’s hotspot and connect your TV to it. Casting works just like on Wi-Fi." =>
+      onboardHotspotBody,
+    "Allow Cast to TV to find devices on your network when asked." =>
+      allowCastflowToFind,
+    "Allow access to your media to cast it. You can change this in Settings." =>
+      allowAccessToYour,
     "Allow screen capture when Android asks." => allowScreenCaptureWhen,
-    "Android opens Smart View / Cast. Tap your TV in the list." => androidOpensSmartView,
+    "Android opens Smart View / Cast. Tap your TV in the list." =>
+      androidOpensSmartView,
     "Auto" => auto,
     "Automatic" => automatic,
     "Back" => browserBack,
@@ -22,12 +27,15 @@ extension L10nLookup on AppLocalizations {
     "Cast from web & apps" => castFromWebApps,
     "Cast photos, videos & music" => castPhotosVideosMusic,
     "Cast videos, photos & music" => castVideosPhotosMusic,
-    "Choose a lower quality (720p or 480p), close heavy apps and use a 5 GHz Wi-Fi network." => chooseALowerQuality,
+    "Choose a lower quality (720p or 480p), close heavy apps and use a 5 GHz Wi-Fi network." =>
+      chooseALowerQuality,
     "Chromecast" => chromecast,
     "Connect to your TV" => connectToYourTv,
     "Connect to your TV first." => connectToYourTvFirst,
-    "Connect your phone and TV to the same Wi-Fi network." => connectYourPhoneAndTv,
-    "Connect your phone and your TV to the same Wi-Fi network." => connectYourPhoneAnd,
+    "Connect your phone and TV to the same Wi-Fi network." =>
+      connectYourPhoneAndTv,
+    "Connect your phone and your TV to the same Wi-Fi network." =>
+      connectYourPhoneAnd,
     "Connect your phone to Wi-Fi." => connectYourPhoneTo,
     "Connecting" => connecting2,
     "Connection fails or times out" => connectionFailsOrTimes,
@@ -38,7 +46,8 @@ extension L10nLookup on AppLocalizations {
     "Down" => down,
     "Each receiver supports different commands. Chromecast and DLNA only support playback and volume; Miracast has no remote channel." =>
       eachReceiverSupportsDifferent,
-    "Enable Screen Mirroring, Miracast or Google Cast in the TV settings." => enableScreenMirroringMiracast,
+    "Enable Screen Mirroring, Miracast or Google Cast in the TV settings." =>
+      enableScreenMirroringMiracast,
     "Everything on your phone now shows on the TV." => everythingOnYourPhone,
     "Find TVs and streaming devices on your Wi-Fi." => findTvsAndStreaming,
     "Finding your TV" => findingYourTv,
@@ -54,12 +63,14 @@ extension L10nLookup on AppLocalizations {
       guestOrOfficeNetworks,
     "History" => history,
     "Home" => home,
-    "If the TV asks, choose Allow or enter the PIN shown on screen." => ifTheTvAsks,
+    "If the TV asks, choose Allow or enter the PIN shown on screen." =>
+      ifTheTvAsks,
     "Input" => input,
     "Isolation blocks devices from seeing each other. Turn it off in the router settings, or use a non-guest network." =>
       isolationBlocksDevicesFrom,
     "It keeps reconnecting to an old TV" => itKeepsReconnectingTo,
-    "It plays on the TV; control it from your phone or the notification." => itPlaysOnThe,
+    "It plays on the TV; control it from your phone or the notification." =>
+      itPlaysOnThe,
     "Join the same Wi-Fi" => joinTheSameWi,
     "Keep the TV on that screen while your phone connects." => keepTheTvOn,
     "Left" => left,
@@ -86,23 +97,28 @@ extension L10nLookup on AppLocalizations {
     "OK" => ok,
     "Older TVs may need a firmware update. Miracast TVs only appear while their “Screen Mirroring” input is open." =>
       olderTvsMayNeed,
-    "On the TV, open Settings → Network and join the same Wi-Fi." => onTheTvOpen,
+    "On the TV, open Settings → Network and join the same Wi-Fi." =>
+      onTheTvOpen,
     "Only on TVs that expose those commands over the network. Unsupported buttons are disabled instead of pretending to work." =>
       onlyOnTvsThat,
     "Only some devices show up" => onlySomeDevicesShow,
-    "Open Devices in Cast to TV and wait a few seconds for your TV to appear." => openDevicesInCastflow,
+    "Open Devices in Cast to TV and wait a few seconds for your TV to appear." =>
+      openDevicesInCastflow,
     "Open Photos, Videos or Music on Home." => openPhotosVideosOr,
     "Open Screen Mirroring from Home." => openScreenMirroringFrom,
     "Open TV Remote on Home." => openTvRemoteOn,
-    "Other TVs: open Input / Source and pick Screen Mirroring or Miracast." => otherTvsOpenInput,
-    "Pause or disconnect your VPN app before you start." => pauseOrDisconnectYour,
+    "Other TVs: open Input / Source and pick Screen Mirroring or Miracast." =>
+      otherTvsOpenInput,
+    "Pause or disconnect your VPN app before you start." =>
+      pauseOrDisconnectYour,
     "Phone and TV" => phoneAndTv,
     "Phone only" => phoneOnly,
     "Photo" => photo2,
     "Photos" => photos,
     "Photos, Videos & Music" => photosVideosMusic,
     "Pick a quality and tap Start." => pickAQualityAnd,
-    "Pick what you want to cast from your gallery and library." => pickWhatYouWantTo,
+    "Pick what you want to cast from your gallery and library." =>
+      pickWhatYouWantTo,
     "Pick what you want to show." => pickWhatYouWant,
     "Play / Pause" => playPause,
     "Play a video on the site." => playAVideoOn,
@@ -113,16 +129,21 @@ extension L10nLookup on AppLocalizations {
     "Right" => right,
     "Roku" => roku,
     "Same Wi-Fi network" => sameWiFiNetwork,
-    "Samsung, LG and most Android TVs accept mirroring automatically." => samsungLgAndMost,
+    "Samsung, LG and most Android TVs accept mirroring automatically." =>
+      samsungLgAndMost,
     "Scan for devices" => scanForDevices,
     "Screen Capture" => screenCapture,
     "Screen mirroring" => screenMirroring2,
     "Screen mirroring session" => screenMirroringSession,
-    "Send videos from YouTube, Facebook and any website straight to your TV." => sendVideosFromYoutube,
+    "Send videos from YouTube, Facebook and any website straight to your TV." =>
+      sendVideosFromYoutube,
     "Settings" => settings,
-    "Share memories with the whole room and keep control from your phone." => shareMemoriesWithThe,
-    "Show casting controls while you use other apps." => showCastingControlsWhile,
-    "Show your phone on the big screen in one tap — no cables, no fuss." => showYourPhoneOnThe,
+    "Share memories with the whole room and keep control from your phone." =>
+      shareMemoriesWithThe,
+    "Show casting controls while you use other apps." =>
+      showCastingControlsWhile,
+    "Show your phone on the big screen in one tap — no cables, no fuss." =>
+      showYourPhoneOnThe,
     "Smart TV" => smartTv,
     "Smooth, lag-free streaming" => smoothLagFreeStreaming,
     "Some remote buttons are greyed out" => someRemoteButtonsAre,
@@ -133,7 +154,8 @@ extension L10nLookup on AppLocalizations {
     "TV only" => tvOnly,
     "TV remote" => tvRemote2,
     "Tap Connect" => tapConnect,
-    "Tap Connect and accept the prompt on the TV if one appears." => tapConnectAndAccept,
+    "Tap Connect and accept the prompt on the TV if one appears." =>
+      tapConnectAndAccept,
     "Tap Start and pick your TV" => tapStartAndPick,
     "Tap Start on the Screen Mirroring screen." => tapStartOnThe,
     "Tap the browser bar or an app on Home." => tapTheBrowserBar,
@@ -145,19 +167,24 @@ extension L10nLookup on AppLocalizations {
     "Toggle Auto-rotate on the Screen Mirroring screen." => toggleAutoRotateOn,
     "Touchpad" => touchpad,
     "Turn off VPN" => turnOffVpn,
-    "Turn off “Auto-connect to last TV” in Settings → Casting." => turnOffAutoConnect,
-    "Turn on Screen Mirroring, Cast or Miracast on the TV." => turnOnScreenMirroring,
+    "Turn off “Auto-connect to last TV” in Settings → Casting." =>
+      turnOffAutoConnect,
+    "Turn on Screen Mirroring, Cast or Miracast on the TV." =>
+      turnOnScreenMirroring,
     "Turn on casting / screen mirroring on the TV, wake it from standby, then tap Rescan. Allow the Local Network permission if asked." =>
       turnOnCastingScreen,
     "Turn on casting on your TV" => turnOnCastingOn,
     "Turn on mirroring on the TV" => turnOnMirroringOn,
     "Turn on the TV and open its Screen Mirroring / Cast input." => turnOnTheTv,
-    "Turn the phone sideways for full-screen videos and games." => turnThePhoneSideways,
+    "Turn the phone sideways for full-screen videos and games." =>
+      turnThePhoneSideways,
     "Unknown device" => unknownDevice,
     "Up" => up,
-    "Use the D-pad or swipe on the touchpad to move, tap OK to select." => useTheDPad,
+    "Use the D-pad or swipe on the touchpad to move, tap OK to select." =>
+      useTheDPad,
     "Use the TV remote" => useTheTvRemote,
-    "VPNs and guest / isolated Wi-Fi hide devices from each other." => vpnsAndGuestIsolated,
+    "VPNs and guest / isolated Wi-Fi hide devices from each other." =>
+      vpnsAndGuestIsolated,
     "Video" => video,
     "Videos" => videos,
     "Volume down" => volumeDown,
@@ -175,10 +202,12 @@ extension L10nLookup on AppLocalizations {
     "per year" => perYear,
     "Checking network..." => checkingNetwork,
     "Discovery stopped" => discoveryStopped,
-    "Discovery stopped. Tap search to find nearby devices." => discoveryStoppedHint,
+    "Discovery stopped. Tap search to find nearby devices." =>
+      discoveryStoppedHint,
     "Search" => search,
     "Stop" => stop,
-    "Location permission is required to discover devices on Wi-Fi." => permissionNeededToDiscover,
+    "Location permission is required to discover devices on Wi-Fi." =>
+      permissionNeededToDiscover,
     "Location Services Disabled" => locationServicesDisabled,
     "Open Location Settings" => openLocationSettings,
     "Open App Settings" => openAppSettings,

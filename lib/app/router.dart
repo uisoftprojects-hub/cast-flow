@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -67,6 +68,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     observers: [ref.read(adRouteObserverProvider)],
     // Single route guard: deep links can't skip the first-run journey.
     redirect: (context, state) {
+      // The ad diagnostics screen is a developer tool: not reachable in release.
+      if (kReleaseMode && state.uri.path == '/ad-diagnostics') return '/home';
       final done = ref.read(settingsProvider).firstLaunchCompleted;
       if (!done && !_flowRoutes.contains(state.uri.path)) return '/splash';
       // Never send an active subscriber to a paywall.

@@ -12,9 +12,15 @@ Future<void> openExternal(BuildContext context, String url) async {
   final messenger = ScaffoldMessenger.maybeOf(context);
   final l = context.l10n;
   AdSuppression.suppressNextAppOpen();
-  final ok = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication).catchError((_) => false);
-  if (!ok) messenger?.showSnackBar(SnackBar(content: Text(l.couldntOpenTheLink)));
+  final ok = await launchUrl(
+    Uri.parse(url),
+    mode: LaunchMode.externalApplication,
+  ).catchError((_) => false);
+  if (!ok)
+    messenger?.showSnackBar(SnackBar(content: Text(l.couldntOpenTheLink)));
 }
 
 String get storeListingUrl =>
-    !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS ? AppLinks.appStore : AppLinks.playStore;
+    !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+    ? AppLinks.appStore
+    : AppLinks.playStore;

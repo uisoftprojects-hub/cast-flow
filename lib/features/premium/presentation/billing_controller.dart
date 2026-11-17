@@ -63,11 +63,17 @@ class PurchaseStateManager extends Notifier<SubscriptionPurchaseState> {
 
     final initialProducts = ref.read(storeProductsProvider).asData?.value;
     if (initialProducts != null && initialProducts.isNotEmpty) {
-      final weekly = initialProducts.where((p) => p.id == BillingConfig.weekly).firstOrNull ??
+      final weekly =
+          initialProducts
+              .where((p) => p.id == BillingConfig.weekly)
+              .firstOrNull ??
           initialProducts.first;
-      final trialEligible = weekly.isFreeTrialEligible && weekly.freeTrialDurationText != null;
+      final trialEligible =
+          weekly.isFreeTrialEligible && weekly.freeTrialDurationText != null;
       return SubscriptionPurchaseState(
-        status: trialEligible ? PurchaseState.freeTrialEligible : PurchaseState.freeTrialUnavailable,
+        status: trialEligible
+            ? PurchaseState.freeTrialEligible
+            : PurchaseState.freeTrialUnavailable,
         product: weekly,
       );
     }
@@ -86,12 +92,16 @@ class PurchaseStateManager extends Notifier<SubscriptionPurchaseState> {
     }
 
     // Match exact product ID `weekly_sub`
-    final weekly = products.where((p) => p.id == BillingConfig.weekly).firstOrNull ??
+    final weekly =
+        products.where((p) => p.id == BillingConfig.weekly).firstOrNull ??
         products.first;
 
-    final isTrial = weekly.isFreeTrialEligible && weekly.freeTrialDurationText != null;
+    final isTrial =
+        weekly.isFreeTrialEligible && weekly.freeTrialDurationText != null;
     state = state.copyWith(
-      status: isTrial ? PurchaseState.freeTrialEligible : PurchaseState.freeTrialUnavailable,
+      status: isTrial
+          ? PurchaseState.freeTrialEligible
+          : PurchaseState.freeTrialUnavailable,
       product: weekly,
       isProcessing: false,
       errorMessage: null,
@@ -100,10 +110,13 @@ class PurchaseStateManager extends Notifier<SubscriptionPurchaseState> {
 
   /// Selects a specific plan on the paywall.
   void selectProduct(StoreProduct product) {
-    final isTrial = product.isFreeTrialEligible && product.freeTrialDurationText != null;
+    final isTrial =
+        product.isFreeTrialEligible && product.freeTrialDurationText != null;
     state = state.copyWith(
       product: product,
-      status: isTrial ? PurchaseState.freeTrialEligible : PurchaseState.freeTrialUnavailable,
+      status: isTrial
+          ? PurchaseState.freeTrialEligible
+          : PurchaseState.freeTrialUnavailable,
     );
   }
 
@@ -111,7 +124,9 @@ class PurchaseStateManager extends Notifier<SubscriptionPurchaseState> {
   Future<PurchaseOutcome> buy([StoreProduct? target, String? source]) async {
     final product = target ?? state.product;
     if (product == null) return PurchaseOutcome.unavailable;
-    if (state.isProcessing) return PurchaseOutcome.pending; // Prevent duplicate taps
+    if (state.isProcessing) {
+      return PurchaseOutcome.pending; // Prevent duplicate taps
+    }
 
     final analytics = ref.read(analyticsProvider);
     final params = <String, Object?>{
@@ -155,14 +170,20 @@ class PurchaseStateManager extends Notifier<SubscriptionPurchaseState> {
           status: PurchaseState.premiumActive,
           isProcessing: false,
         );
-        ref.read(premiumStatusServiceProvider).applyPurchase(productId: product.id);
+        ref
+            .read(premiumStatusServiceProvider)
+            .applyPurchase(productId: product.id);
         analytics.log(AnalyticsEvent.purchaseSuccess, params);
         analytics.userProperty(AnalyticsUserProperty.isPremium, 'true');
       case PurchaseOutcome.cancelled:
         // 8. Purchase cancelled
-        final isTrial = product.isFreeTrialEligible && product.freeTrialDurationText != null;
+        final isTrial =
+            product.isFreeTrialEligible &&
+            product.freeTrialDurationText != null;
         state = state.copyWith(
-          status: isTrial ? PurchaseState.freeTrialEligible : PurchaseState.freeTrialUnavailable,
+          status: isTrial
+              ? PurchaseState.freeTrialEligible
+              : PurchaseState.freeTrialUnavailable,
           isProcessing: false,
         );
         analytics.log(AnalyticsEvent.purchaseFail, {
@@ -220,7 +241,8 @@ class PurchaseStateManager extends Notifier<SubscriptionPurchaseState> {
 
       if (entitlement.productId == null || !entitlement.active) {
         // If it was previously owned but expired
-        if (entitlement.expiry != null && DateTime.now().isAfter(entitlement.expiry!)) {
+        if (entitlement.expiry != null &&
+            DateTime.now().isAfter(entitlement.expiry!)) {
           state = state.copyWith(status: PurchaseState.subscriptionExpired);
           ref.read(settingsProvider.notifier).setPremium(false);
           return const RestoreResult(
@@ -235,7 +257,8 @@ class PurchaseStateManager extends Notifier<SubscriptionPurchaseState> {
       }
 
       // Check if subscription has expired
-      if (entitlement.expiry != null && DateTime.now().isAfter(entitlement.expiry!)) {
+      if (entitlement.expiry != null &&
+          DateTime.now().isAfter(entitlement.expiry!)) {
         state = state.copyWith(status: PurchaseState.subscriptionExpired);
         ref.read(settingsProvider.notifier).setPremium(false);
         return const RestoreResult(
@@ -259,7 +282,9 @@ class PurchaseStateManager extends Notifier<SubscriptionPurchaseState> {
 }
 
 final purchaseStateProvider =
-    NotifierProvider<PurchaseStateManager, SubscriptionPurchaseState>(PurchaseStateManager.new);
+    NotifierProvider<PurchaseStateManager, SubscriptionPurchaseState>(
+      PurchaseStateManager.new,
+    );
 
 /// Cached entitlement; kept in sync with what the store reports and mirrored
 /// into settings.isPremium (which gates ads and paywalls).
@@ -277,9 +302,13 @@ class EntitlementController extends Notifier<EntitlementState> {
     if (raw == null) return const EntitlementState();
 
     try {
-      final loaded = EntitlementState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+      final loaded = EntitlementState.fromJson(
+        jsonDecode(raw) as Map<String, dynamic>,
+      );
       // Validate expiration on startup
-      if (loaded.active && loaded.expiry != null && DateTime.now().isAfter(loaded.expiry!)) {
+      if (loaded.active &&
+          loaded.expiry != null &&
+          DateTime.now().isAfter(loaded.expiry!)) {
         // Expired: revoke
         return EntitlementState(
           productId: loaded.productId,
@@ -310,7 +339,9 @@ class EntitlementController extends Notifier<EntitlementState> {
     );
 
     state = effectiveState;
-    ref.read(sharedPrefsProvider).setString(_key, jsonEncode(effectiveState.toJson()));
+    ref
+        .read(sharedPrefsProvider)
+        .setString(_key, jsonEncode(effectiveState.toJson()));
     ref.read(settingsProvider.notifier).setPremium(effectiveActive);
   }
 
@@ -322,7 +353,9 @@ class EntitlementController extends Notifier<EntitlementState> {
 
   /// Restores purchases; returns whether an active entitlement was found.
   Future<bool> restore() async {
-    final res = await ref.read(purchaseStateProvider.notifier).restorePurchases();
+    final res = await ref
+        .read(purchaseStateProvider.notifier)
+        .restorePurchases();
     return res.status == RestoreStatus.activeRestored;
   }
 
@@ -333,4 +366,6 @@ class EntitlementController extends Notifier<EntitlementState> {
 }
 
 final entitlementProvider =
-    NotifierProvider<EntitlementController, EntitlementState>(EntitlementController.new);
+    NotifierProvider<EntitlementController, EntitlementState>(
+      EntitlementController.new,
+    );

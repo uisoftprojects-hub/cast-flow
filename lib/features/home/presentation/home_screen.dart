@@ -16,6 +16,7 @@ import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../devices/presentation/widgets/connection_bar.dart';
 import '../../devices/presentation/widgets/network_widgets.dart';
+import '../../monetization/presentation/click_count_interstitial_manager.dart';
 import '../../premium/domain/premium_status_service.dart';
 
 import '../../../core/l10n.dart';
@@ -366,5 +367,16 @@ Future<void> _openFeature(BuildContext context, String route) async {
   if (route == '/mirror' || route == '/remote') {
     if (!await requireNetwork(context, source: screenNameFor(route)!)) return;
   }
-  if (context.mounted) context.push(route);
+  if (!context.mounted) return;
+  // Main features count towards the shared click-count interstitial (1st click
+  // loads, 2nd shows, once per session) together with the bottom nav.
+  if (_adClickRoutes.contains(route)) {
+    final container = ProviderScope.containerOf(context);
+    container
+        .read(clickCountInterstitialManagerProvider)
+        .onBottomNavClick(isPremium: container.read(isPremiumProvider));
+  }
+  context.push(route);
 }
+
+const _adClickRoutes = {'/mirror', '/photos', '/videos', '/music', '/apps'};

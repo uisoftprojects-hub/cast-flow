@@ -88,7 +88,11 @@ class AdLogger {
     final parts = <String>['[STATE: $stateName]'];
 
     // Always show where the ad lives; non-ad-unit events (consent, SDK init) are 'global'.
-    parts.add(placement != null ? '[Placement: ${placement.name} | ${placement.label}]' : '[Placement: global]');
+    parts.add(
+      placement != null
+          ? '[Placement: ${placement.name} | ${placement.label}]'
+          : '[Placement: global]',
+    );
     if (adType != null) {
       parts.add('[Type: $adType]');
     }
@@ -108,7 +112,11 @@ class AdLogger {
     if (defaultTargetPlatform == TargetPlatform.android && !kIsWeb) {
       try {
         _channel
-            .invokeMethod<void>('log', {'tag': tag, 'level': level.name.toUpperCase(), 'message': formatted})
+            .invokeMethod<void>('log', {
+              'tag': tag,
+              'level': level.name.toUpperCase(),
+              'message': formatted,
+            })
             .catchError((_) {
               // Swallow any channel errors (e.g. during headless widget tests)
             });
@@ -121,7 +129,13 @@ class AdLogger {
     debugPrint(formatted);
 
     // 3. Emit to Dart VM timeline
-    developer.log(formatted, name: tag, level: _levelToNumber(level), error: error, stackTrace: stackTrace);
+    developer.log(
+      formatted,
+      name: tag,
+      level: _levelToNumber(level),
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 
   // Convenience helper methods

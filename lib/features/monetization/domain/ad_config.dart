@@ -20,14 +20,18 @@ class AdMobConfig {
   /// (not the OS theme) in app.dart before any native ad is requested.
   static bool nativeAdIsDark = false;
 
-  static const MethodChannel _themeChannel = MethodChannel('castflow/native_ad_theme');
+  static const MethodChannel _themeChannel = MethodChannel(
+    'castflow/native_ad_theme',
+  );
 
   /// Sets the native-ad theme and re-colours ads that are already on screen.
   static void syncNativeTheme(bool dark) {
     if (dark == nativeAdIsDark) return;
     nativeAdIsDark = dark;
     if (kIsWeb) return;
-    _themeChannel.invokeMethod<void>('setDark', {'dark': dark}).catchError((_) {});
+    _themeChannel
+        .invokeMethod<void>('setDark', {'dark': dark})
+        .catchError((_) {});
   }
 
   static bool get isRelease => debugOverrideIsRelease ?? kReleaseMode;
@@ -35,36 +39,51 @@ class AdMobConfig {
   static bool get isIOS => defaultTargetPlatform == TargetPlatform.iOS;
 
   // Official Google AdMob Test App IDs
-  static const String testAppIdAndroid = 'ca-app-pub-3940256099942544~3347511713';
+  static const String testAppIdAndroid =
+      'ca-app-pub-3940256099942544~3347511713';
   static const String testAppIdIOS = 'ca-app-pub-3940256099942544~1458002511';
 
   // Official Google AdMob Test Ad Unit IDs
-  static const String testInterstitialAndroid = 'ca-app-pub-3940256099942544/1033173712';
-  static const String testInterstitialIOS = 'ca-app-pub-3940256099942544/4411468910';
+  static const String testInterstitialAndroid =
+      'ca-app-pub-3940256099942544/1033173712';
+  static const String testInterstitialIOS =
+      'ca-app-pub-3940256099942544/4411468910';
 
-  static const String testNativeAndroid = 'ca-app-pub-3940256099942544/2247696110';
+  static const String testNativeAndroid =
+      'ca-app-pub-3940256099942544/2247696110';
   static const String testNativeIOS = 'ca-app-pub-3940256099942544/3986624511';
 
-  static const String testAppOpenAndroid = 'ca-app-pub-3940256099942544/9257395921';
+  static const String testAppOpenAndroid =
+      'ca-app-pub-3940256099942544/9257395921';
   static const String testAppOpenIOS = 'ca-app-pub-3940256099942544/5575463023';
 
   // Real Production AdMob Credentials for Cast to TV (com.smarttvcast.screenmirror)
-  static const String prodAppIdAndroid = 'ca-app-pub-3116238716336403~3352823507';
+  static const String prodAppIdAndroid =
+      'ca-app-pub-3116238716336403~3352823507';
   static const String prodAppOpen = 'ca-app-pub-3116238716336403/1820249985';
-  static const String prodLanguageNative = 'ca-app-pub-3116238716336403/7288199082';
-  static const String prodOnboardingNative = 'ca-app-pub-3116238716336403/4343692730';
-  static const String prodSplashInterstitialFirst = 'ca-app-pub-3116238716336403/9914362422';
-  static const String prodSplashInterstitialSecond = 'ca-app-pub-3116238716336403/5787415153';
-  static const String prodClickInterstitial = 'ca-app-pub-3116238716336403/9252192456';
+  static const String prodLanguageNative =
+      'ca-app-pub-3116238716336403/7288199082';
+  static const String prodOnboardingNative =
+      'ca-app-pub-3116238716336403/4343692730';
+  static const String prodSplashInterstitialFirst =
+      'ca-app-pub-3116238716336403/9914362422';
+  static const String prodSplashInterstitialSecond =
+      'ca-app-pub-3116238716336403/5787415153';
+  static const String prodClickInterstitial =
+      'ca-app-pub-3116238716336403/9252192456';
   static const String prodHomeNative = 'ca-app-pub-3116238716336403/2742624427';
 
   // Suggested centralized AdMob configuration getters
   static String get appOpenAdUnitId => unitId(AdPlacement.appOpen);
-  static String get languageNativeAdUnitId => unitId(AdPlacement.languageFirstRun);
+  static String get languageNativeAdUnitId =>
+      unitId(AdPlacement.languageFirstRun);
   static String get onboardingNativeAdUnitId => unitId(AdPlacement.onboarding);
-  static String get splashInterstitialFirstAdUnitId => unitId(AdPlacement.splashInterstitialFirst);
-  static String get splashInterstitialSecondAdUnitId => unitId(AdPlacement.splashInterstitialSecond);
-  static String get clickInterstitialAdUnitId => unitId(AdPlacement.clickInterstitial);
+  static String get splashInterstitialFirstAdUnitId =>
+      unitId(AdPlacement.splashInterstitialFirst);
+  static String get splashInterstitialSecondAdUnitId =>
+      unitId(AdPlacement.splashInterstitialSecond);
+  static String get clickInterstitialAdUnitId =>
+      unitId(AdPlacement.clickInterstitial);
   static String get homeNativeAdUnitId => unitId(AdPlacement.homeNative);
 
   // Cached native config from Android BuildConfig / resValues
@@ -74,7 +93,9 @@ class AdMobConfig {
   static Future<void> initializeNativeConfig() async {
     if (kIsWeb) return;
     try {
-      final res = await _channel.invokeMapMethod<String, dynamic>('getAdConfig');
+      final res = await _channel.invokeMapMethod<String, dynamic>(
+        'getAdConfig',
+      );
       _nativeConfig = res;
     } catch (_) {
       // Running on test or unsupported platform
@@ -96,27 +117,36 @@ class AdMobConfig {
         AdPlacement.splashInterstitialFirst ||
         AdPlacement.splashInterstitialSecond ||
         AdPlacement.clickInterstitial ||
-        AdPlacement.interstitial => isIOS ? testInterstitialIOS : testInterstitialAndroid,
+        AdPlacement.interstitial =>
+          isIOS ? testInterstitialIOS : testInterstitialAndroid,
         AdPlacement.appOpen => isIOS ? testAppOpenIOS : testAppOpenAndroid,
       };
     } else {
       // In release mode: use production IDs, NEVER load test ads
       if (debugOverrideNativeIds != null) {
-        return debugOverrideNativeIds![placement.name] ?? _productionFallback(placement);
+        return debugOverrideNativeIds![placement.name] ??
+            _productionFallback(placement);
       }
       if (_nativeConfig != null) {
         final id = switch (placement) {
           AdPlacement.languageFirstRun || AdPlacement.languageSettings =>
-            _nativeConfig!['languageNativeId'] as String? ?? _nativeConfig!['nativeId'] as String?,
+            _nativeConfig!['languageNativeId'] as String? ??
+                _nativeConfig!['nativeId'] as String?,
           AdPlacement.onboarding =>
-            _nativeConfig!['onboardingNativeId'] as String? ?? _nativeConfig!['nativeId'] as String?,
-          AdPlacement.homeNative => _nativeConfig!['homeNativeId'] as String? ?? _nativeConfig!['nativeId'] as String?,
+            _nativeConfig!['onboardingNativeId'] as String? ??
+                _nativeConfig!['nativeId'] as String?,
+          AdPlacement.homeNative =>
+            _nativeConfig!['homeNativeId'] as String? ??
+                _nativeConfig!['nativeId'] as String?,
           AdPlacement.splashInterstitialFirst =>
-            _nativeConfig!['splashInterstitialFirstId'] as String? ?? _nativeConfig!['interstitialId'] as String?,
+            _nativeConfig!['splashInterstitialFirstId'] as String? ??
+                _nativeConfig!['interstitialId'] as String?,
           AdPlacement.splashInterstitialSecond =>
-            _nativeConfig!['splashInterstitialSecondId'] as String? ?? _nativeConfig!['interstitialId'] as String?,
+            _nativeConfig!['splashInterstitialSecondId'] as String? ??
+                _nativeConfig!['interstitialId'] as String?,
           AdPlacement.clickInterstitial || AdPlacement.interstitial =>
-            _nativeConfig!['clickInterstitialId'] as String? ?? _nativeConfig!['interstitialId'] as String?,
+            _nativeConfig!['clickInterstitialId'] as String? ??
+                _nativeConfig!['interstitialId'] as String?,
           AdPlacement.appOpen => _nativeConfig!['appOpenId'] as String?,
         };
         if (id != null && id.isNotEmpty && !id.contains('3940256099942544')) {
@@ -129,29 +159,40 @@ class AdMobConfig {
 
   static String _productionFallback(AdPlacement placement) {
     // Production IDs from compile-time defines if provided, or the real production credentials
-    const defineInterstitial = String.fromEnvironment('ADMOB_PROD_INTERSTITIAL_ID');
+    const defineInterstitial = String.fromEnvironment(
+      'ADMOB_PROD_INTERSTITIAL_ID',
+    );
     const defineNative = String.fromEnvironment('ADMOB_PROD_NATIVE_ID');
     const defineAppOpen = String.fromEnvironment('ADMOB_PROD_APP_OPEN_ID');
 
     return switch (placement) {
-      AdPlacement.languageFirstRun ||
-      AdPlacement.languageSettings => defineNative.isNotEmpty ? defineNative : prodLanguageNative,
-      AdPlacement.onboarding => defineNative.isNotEmpty ? defineNative : prodOnboardingNative,
-      AdPlacement.homeNative => defineNative.isNotEmpty ? defineNative : prodHomeNative,
+      AdPlacement.languageFirstRun || AdPlacement.languageSettings =>
+        defineNative.isNotEmpty ? defineNative : prodLanguageNative,
+      AdPlacement.onboarding =>
+        defineNative.isNotEmpty ? defineNative : prodOnboardingNative,
+      AdPlacement.homeNative =>
+        defineNative.isNotEmpty ? defineNative : prodHomeNative,
       AdPlacement.splashInterstitialFirst =>
-        defineInterstitial.isNotEmpty ? defineInterstitial : prodSplashInterstitialFirst,
+        defineInterstitial.isNotEmpty
+            ? defineInterstitial
+            : prodSplashInterstitialFirst,
       AdPlacement.splashInterstitialSecond =>
-        defineInterstitial.isNotEmpty ? defineInterstitial : prodSplashInterstitialSecond,
-      AdPlacement.clickInterstitial ||
-      AdPlacement.interstitial => defineInterstitial.isNotEmpty ? defineInterstitial : prodClickInterstitial,
-      AdPlacement.appOpen => defineAppOpen.isNotEmpty ? defineAppOpen : prodAppOpen,
+        defineInterstitial.isNotEmpty
+            ? defineInterstitial
+            : prodSplashInterstitialSecond,
+      AdPlacement.clickInterstitial || AdPlacement.interstitial =>
+        defineInterstitial.isNotEmpty
+            ? defineInterstitial
+            : prodClickInterstitial,
+      AdPlacement.appOpen =>
+        defineAppOpen.isNotEmpty ? defineAppOpen : prodAppOpen,
     };
   }
 
   // ------------------------------------------------ Timing and policies
 
-  /// Splash screen timer duration: exactly 6 seconds
-  static const Duration splashTimeout = Duration(seconds: 6);
+  /// Splash screen timer duration: exactly 9 seconds
+  static const Duration splashTimeout = Duration(seconds: 9);
 
   /// App Open ad loading screen max duration: 6 seconds
   static const Duration appOpenLoadTimeout = Duration(seconds: 6);
@@ -172,7 +213,19 @@ class AdMobConfig {
   static const Duration showDelay = Duration(milliseconds: 400);
 
   // Native dimensions
-  static const double nativeMediumHeight = 120.0;
+  /// Height of the medium native ad at normal text size. The native layout is
+  /// ~68dp of fixed parts (paddings, 12dp gap, CTA) + ~85dp of text (badge,
+  /// 2-line title, 2-line description) which grows with the user's font scale, so this is
+  /// only the worst-case estimate; the slot replaces it with the real measured
+  /// height of the native view once the ad is on screen.
+  static const double nativeMediumHeight = 157.0;
+
+  /// Container height for the medium native ad at the given text scale factor.
+  static double nativeHeightFor(double textScale) {
+    final scale = textScale.clamp(1.0, 2.0);
+    return (68 + 85 * scale + 4).ceilToDouble();
+  }
+
   static const double nativeSmallHeight = 112.0;
 
   static const int loadAtClick = 3;

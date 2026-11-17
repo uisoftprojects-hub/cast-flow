@@ -14,9 +14,9 @@ import '../../app_flow/presentation/app_flow_controller.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../monetization/domain/ad_config.dart';
 import '../../monetization/presentation/ad_manager.dart';
-import '../../monetization/presentation/native_ad_manager.dart';
 import '../../monetization/presentation/splash_interstitial_manager.dart';
 import '../../premium/domain/premium_status_service.dart';
+import '../../premium/presentation/billing_controller.dart';
 import '../../settings/presentation/settings_controller.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -26,56 +26,135 @@ class SplashScreen extends ConsumerStatefulWidget {
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends ConsumerState<SplashScreen>
+    with SingleTickerProviderStateMixin {
   Timer? _timer;
 
-  /// Progress bar: runs 0 -> 100% in exactly [AdMobConfig.splashTimeout] (6s),
+  /// Progress bar: runs 0 -> 100% in exactly [AdMobConfig.splashTimeout] (9s),
   /// started together with the navigation timer so both end at the same moment.
-  late final AnimationController _bar = AnimationController(vsync: this, duration: AdMobConfig.splashTimeout);
+  late final AnimationController _bar = AnimationController(
+    vsync: this,
+    duration: AdMobConfig.splashTimeout,
+  );
 
   @override
   void initState() {
     super.initState();
-    // The 6 second clock starts the moment the splash appears and never waits
-    // for consent, billing or ads: those run alongside it.
-    _bar.forward();
-    // Navigation waits for the splash clock AND the entitlement check, so a
-    // returning/reinstalled subscriber never sees a paywall flash. The check
-    // itself is time-bounded (PremiumStatusService.restoreTimeout).
-    _timer = Timer(AdMobConfig.splashTimeout, () async {
-      await _entitlement;
-      if (mounted) _navigateNext();
-    });
+    // Consent, premium verification and other startup services run first; the
+    // splash clock and the interstitial request then start together (_runStartup).
     Future.microtask(_runStartup);
   }
 
-  late final Future<bool> _entitlement = ref.read(premiumStatusServiceProvider).verifyStartupEntitlement();
+  /// Starts the splash clock (progress bar + navigation timer).
+  void _startClock() {
+    if (_timer != null || !mounted) return;
+    _bar.forward();
+    _timer = Timer(AdMobConfig.splashTimeout, () async {
+      // An ad that is already on screen finishes the splash itself when closed.
+      if (_showingAd) return;
+      final premium = await _entitlement;
+      if (!mounted || _showingAd) return;
+      // Loaded during the splash -> shown on the splash, then move on.
+      if (!premium) await _showSplashAd();
+      _finish();
+    });
+  }
+
+  bool _showingAd = false;
+  bool _finished = false;
+
+  /// Shows the splash interstitial if it is loaded. Returns once it is closed.
+  Future<void> _showSplashAd() async {
+    if (_showingAd || _finished) return;
+    _showingAd = true;
+    try {
+      await ref
+          .read(splashInterstitialManagerProvider)
+          .tryShowOnSplash(isPremium: false);
+    } finally {
+      _showingAd = false;
+    }
+  }
+
+  /// Leaves the splash exactly once.
+  void _finish() {
+    if (_finished || !mounted) return;
+    _finished = true;
+    _timer?.cancel();
+    _navigateNext();
+  }
+
+  /// Interstitial finished loading: show it right away (no waiting for the splash
+  /// timer); when the user closes it, move straight on to the next screen.
+  Future<void> _onSplashAdLoaded() async {
+    if (!mounted || _finished || _showingAd) return;
+    final splash = ref.read(splashInterstitialManagerProvider);
+    if (!splash.isLoaded) return;
+    await _showSplashAd();
+    if (!mounted) return;
+    await _entitlement;
+    _finish();
+  }
+
+  late final Future<bool> _entitlement = ref
+      .read(premiumStatusServiceProvider)
+      .verifyStartupEntitlement();
 
   Future<void> _runStartup() async {
     ref.read(appFlowProvider.notifier).splashShown();
 
-    // Ads must not wait for the (up to 8s) billing check, otherwise the splash
-    // interstitial is not ready by the time the user leaves Language / Paywall.
-    // A cached Premium user (isPremium already true) never loads ads; if billing
-    // later proves Premium, everything is purged below.
-    unawaited(_entitlement.then((premium) {
-      if (premium && mounted) ref.read(adManagerProvider.notifier).onPremiumPurchased();
-    }));
-    if (ref.read(premiumStatusServiceProvider).isPremium) return;
+    // A cached Premium user never loads ads; if billing later proves Premium,
+    // everything is purged.
+    final premiumFuture = _entitlement.then((premium) {
+      if (premium && mounted) {
+        ref.read(adManagerProvider.notifier).onPremiumPurchased();
+      }
+      return premium;
+    });
+    final cachedPremium = ref.read(premiumStatusServiceProvider).isPremium;
 
-    // Fresh interstitial opportunity for this launch (first vs returning placement).
-    final isReturning = ref.read(settingsProvider).firstLaunchCompleted;
-    final splashMgr = ref.read(splashInterstitialManagerProvider)..resetForNewSession(isReturning: isReturning);
-
-    // Request Google UMP consent; the interstitial is already "in flight" while it runs.
-    final consent = ref.read(consentManagerProvider).gatherConsentAndInitialize(isPremium: false);
-    final load = splashMgr.startSplashLoad(isPremium: false, isReturning: isReturning, prerequisite: consent);
-    await consent;
+    // Consent (UMP / ads init) + premium verification, bounded so a slow service
+    // can never hold the splash forever.
+    final consent = cachedPremium
+        ? Future<void>.value()
+        : ref
+              .read(consentManagerProvider)
+              .gatherConsentAndInitialize(isPremium: false);
+    // Paywall prices load now, inside the same window, so the paywall opens with
+    // them ready (no loader there).
+    final prices = cachedPremium
+        ? Future<void>.value()
+        : _preloadPaywallPrices();
+    try {
+      await Future.wait<Object?>([
+        consent,
+        premiumFuture,
+        prices,
+      ]).timeout(const Duration(seconds: 6));
+    } catch (_) {}
     if (!mounted) return;
 
-    // Language native ad loads while the splash is still running
-    ref.read(nativeAdManagerProvider).preloadLanguageAd(isPremium: false);
-    unawaited(load);
+    // Right after the services are ready: splash timer + interstitial request
+    // start together.
+    _startClock();
+    if (ref.read(premiumStatusServiceProvider).isPremium) return;
+
+    final isReturning = ref.read(settingsProvider).firstLaunchCompleted;
+    final splashMgr = ref.read(splashInterstitialManagerProvider)
+      ..resetForNewSession(isReturning: isReturning);
+    unawaited(
+      splashMgr
+          .startSplashLoad(isPremium: false, isReturning: isReturning)
+          .whenComplete(_onSplashAdLoaded),
+    );
+    // Language native ad is requested when the user lands on the Language screen.
+  }
+
+  Future<void> _preloadPaywallPrices() async {
+    try {
+      ref.read(purchaseStateProvider);
+      await ref.read(storeProductsProvider.future);
+    } catch (_) {}
   }
 
   void _navigateNext() {
@@ -118,29 +197,48 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
             child: Stack(
               children: [
                 // Soft floating blobs.
-                PositionedDirectional(top: -60, end: -40, child: _Blob(220, Colors.white.withValues(alpha: 0.12))),
+                PositionedDirectional(
+                  top: -60,
+                  end: -40,
+                  child: _Blob(220, Colors.white.withValues(alpha: 0.12)),
+                ),
                 PositionedDirectional(
                   bottom: -80,
                   start: -60,
-                  child: _Blob(260, AppColors.secondary.withValues(alpha: 0.25)),
+                  child: _Blob(
+                    260,
+                    AppColors.secondary.withValues(alpha: 0.25),
+                  ),
                 ),
                 Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const AppLogo(size: 112)
+                      // Shimmer always sweeps left to right, even in RTL languages.
+                      const _ShimmerLogo(size: 112)
                           .animate()
                           .fadeIn(duration: 600.ms)
-                          .scale(begin: const Offset(0.85, 0.85), curve: Curves.easeOutBack, duration: 700.ms),
+                          .scale(
+                            begin: const Offset(0.85, 0.85),
+                            curve: Curves.easeOutBack,
+                            duration: 700.ms,
+                          ),
                       const SizedBox(height: 24),
                       Text(
-                        context.l10n.appName,
-                        style: context.text.headlineLarge?.copyWith(color: Colors.white),
-                      ).animate(delay: 300.ms).fadeIn(duration: 600.ms).slideY(begin: 0.3, end: 0),
+                            context.l10n.appName,
+                            style: context.text.headlineLarge?.copyWith(
+                              color: Colors.white,
+                            ),
+                          )
+                          .animate(delay: 300.ms)
+                          .fadeIn(duration: 600.ms)
+                          .slideY(begin: 0.3, end: 0),
                       const SizedBox(height: 6),
                       Text(
                         context.l10n.mirrorCastBeautifullySimple,
-                        style: context.text.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.85)),
+                        style: context.text.bodyMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
                       ).animate(delay: 500.ms).fadeIn(duration: 600.ms),
                     ],
                   ),
@@ -164,7 +262,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                               builder: (context, _) => LinearProgressIndicator(
                                 value: _bar.value,
                                 minHeight: 6,
-                                backgroundColor: Colors.white.withValues(alpha: 0.22),
+                                backgroundColor: Colors.white.withValues(
+                                  alpha: 0.22,
+                                ),
                                 color: Colors.white,
                               ),
                             ),
@@ -173,7 +273,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                             const SizedBox(height: 12),
                             Text(
                               context.l10n.thisActionMayContain,
-                              style: context.text.bodySmall?.copyWith(color: Colors.white.withValues(alpha: 0.8)),
+                              style: context.text.bodySmall?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.8),
+                              ),
                             ),
                           ],
                         ],
@@ -185,6 +287,65 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// App icon with a glossy highlight sweeping diagonally from the top-left
+/// corner to the bottom-right corner, on repeat. Own controller (not
+/// flutter_animate) so it always runs, even if system animations are scaled
+/// down; always LTR so RTL languages sweep the same way.
+class _ShimmerLogo extends StatefulWidget {
+  const _ShimmerLogo({required this.size});
+  final double size;
+
+  @override
+  State<_ShimmerLogo> createState() => _ShimmerLogoState();
+}
+
+class _ShimmerLogoState extends State<_ShimmerLogo>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2000),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: AnimatedBuilder(
+        animation: _c,
+        child: AppLogo(size: widget.size),
+        builder: (context, child) {
+          // Band centre travels from -0.5 (before the corner) to 1.5 (past it).
+          final t = -0.5 + 2.0 * Curves.easeInOut.transform(_c.value);
+          return ShaderMask(
+            blendMode: BlendMode.srcATop,
+            shaderCallback: (rect) => LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withValues(alpha: 0),
+                Colors.white.withValues(alpha: 0.85),
+                Colors.white.withValues(alpha: 0),
+              ],
+              stops: [
+                (t - 0.18).clamp(0.0, 1.0),
+                t.clamp(0.0, 1.0),
+                (t + 0.18).clamp(0.0, 1.0),
+              ],
+            ).createShader(rect),
+            child: child,
+          );
+        },
       ),
     );
   }
@@ -203,6 +364,11 @@ class _Blob extends StatelessWidget {
           decoration: BoxDecoration(shape: BoxShape.circle, color: color),
         )
         .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
-        .scale(begin: const Offset(1, 1), end: const Offset(1.08, 1.08), duration: 3.seconds, curve: Curves.easeInOut);
+        .scale(
+          begin: const Offset(1, 1),
+          end: const Offset(1.08, 1.08),
+          duration: 3.seconds,
+          curve: Curves.easeInOut,
+        );
   }
 }

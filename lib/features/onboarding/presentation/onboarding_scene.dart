@@ -11,7 +11,12 @@ enum SceneKind { mirror, media, web, hotspot }
 /// Animated onboarding artwork: a phone sending content to a TV. Each slide
 /// shows its own story (mirroring, media flying over, a web video cast).
 class OnboardingScene extends StatefulWidget {
-  const OnboardingScene({super.key, required this.kind, required this.size, this.playing = true});
+  const OnboardingScene({
+    super.key,
+    required this.kind,
+    required this.size,
+    this.playing = true,
+  });
 
   final SceneKind kind;
   final double size;
@@ -23,8 +28,12 @@ class OnboardingScene extends StatefulWidget {
   State<OnboardingScene> createState() => _OnboardingSceneState();
 }
 
-class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProviderStateMixin {
-  late final _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 2800));
+class _OnboardingSceneState extends State<OnboardingScene>
+    with SingleTickerProviderStateMixin {
+  late final _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2800),
+  );
 
   @override
   void didChangeDependencies() {
@@ -61,7 +70,10 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
       child: SizedBox(
         width: s,
         height: s * 0.86,
-        child: AnimatedBuilder(animation: _c, builder: (context, _) => _frame(context, _c.value, s)),
+        child: AnimatedBuilder(
+          animation: _c,
+          builder: (context, _) => _frame(context, _c.value, s),
+        ),
       ),
     );
   }
@@ -74,10 +86,15 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
     final phLeft = s * 0.04, phTop = s * 0.86 - phH - s * 0.02;
     final from = Offset(phLeft + phW * 0.7, phTop + phH * 0.2);
     final to = Offset(tvLeft + tvW * 0.35, tvTop + tvH * 0.9);
-    final ctrl = Offset((from.dx + to.dx) / 2 - s * 0.02, math.min(from.dy, to.dy) - s * 0.02);
+    final ctrl = Offset(
+      (from.dx + to.dx) / 2 - s * 0.02,
+      math.min(from.dy, to.dy) - s * 0.02,
+    );
 
     // Phase within a cycle: send (0–0.45), arrive (0.45–0.6), show (0.6–1).
-    final arrived = Curves.easeOut.transform(((t - 0.45) / 0.15).clamp(0.0, 1.0));
+    final arrived = Curves.easeOut.transform(
+      ((t - 0.45) / 0.15).clamp(0.0, 1.0),
+    );
     final glow = 0.5 + 0.5 * math.sin(t * math.pi * 2);
 
     return Stack(
@@ -105,20 +122,36 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
         Positioned(
           left: tvLeft,
           top: tvTop,
-          child: _Tv(width: tvW, height: tvH, lit: arrived, child: _tvContent(context, t, arrived, tvW, tvH)),
+          child: _Tv(
+            width: tvW,
+            height: tvH,
+            lit: arrived,
+            child: _tvContent(context, t, arrived, tvW, tvH),
+          ),
         ),
         // Beam: travelling dots along a curve from phone to TV.
         Positioned.fill(
           child: CustomPaint(
-            painter: _BeamPainter(from: from, ctrl: ctrl, to: to, t: t, color: p.primary),
+            painter: _BeamPainter(
+              from: from,
+              ctrl: ctrl,
+              to: to,
+              t: t,
+              color: p.primary,
+            ),
           ),
         ),
-        if (widget.kind == SceneKind.media && t < 0.5) _flyingCard(t, from, ctrl, to, s),
+        if (widget.kind == SceneKind.media && t < 0.5)
+          _flyingCard(t, from, ctrl, to, s),
         // Phone
         Positioned(
           left: phLeft,
           top: phTop,
-          child: _Phone(width: phW, height: phH, child: _phoneContent(context, t, phW, phH)),
+          child: _Phone(
+            width: phW,
+            height: phH,
+            child: _phoneContent(context, t, phW, phH),
+          ),
         ),
         // Connected badge pops in when content arrives.
         Positioned(
@@ -134,7 +167,11 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
                 shape: BoxShape.circle,
                 border: Border.all(color: p.surface, width: 3),
               ),
-              child: Icon(Icons.check_rounded, color: Colors.white, size: s * 0.055),
+              child: Icon(
+                Icons.check_rounded,
+                color: Colors.white,
+                size: s * 0.055,
+              ),
             ),
           ),
         ),
@@ -148,7 +185,8 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
     (Iconsax.music_copy, [Color(0xFF34D399), Color(0xFF0E9F6E)]),
   ];
 
-  int get _mediaIndex => (_c.lastElapsedDuration?.inMilliseconds ?? 0) ~/ 2800 % _media.length;
+  int get _mediaIndex =>
+      (_c.lastElapsedDuration?.inMilliseconds ?? 0) ~/ 2800 % _media.length;
 
   Widget _flyingCard(double t, Offset from, Offset ctrl, Offset to, double s) {
     final k = Curves.easeInOut.transform((t / 0.5).clamp(0.0, 1.0));
@@ -166,7 +204,13 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
           decoration: BoxDecoration(
             gradient: LinearGradient(colors: m.$2),
             borderRadius: BorderRadius.circular(size * 0.22),
-            boxShadow: [BoxShadow(color: m.$2.last.withValues(alpha: 0.4), blurRadius: 12, offset: const Offset(0, 4))],
+            boxShadow: [
+              BoxShadow(
+                color: m.$2.last.withValues(alpha: 0.4),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Icon(m.$1, color: Colors.white, size: size * 0.5),
         ),
@@ -195,7 +239,11 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
                   ),
                   child: Opacity(
                     opacity: i == _mediaIndex && t < 0.5 ? 0.3 : 1,
-                    child: Icon(_media[i % 3].$1, color: Colors.white, size: w * 0.18),
+                    child: Icon(
+                      _media[i % 3].$1,
+                      color: Colors.white,
+                      size: w * 0.18,
+                    ),
                   ),
                 ),
             ],
@@ -208,22 +256,39 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
             Container(
               margin: EdgeInsets.all(w * 0.07),
               height: h * 0.07,
-              decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(h)),
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(h),
+              ),
             ),
             Container(
               margin: EdgeInsets.symmetric(horizontal: w * 0.07),
               height: h * 0.28,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFFFF6B6B), Color(0xFFE62117)]),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF6B6B), Color(0xFFE62117)],
+                ),
                 borderRadius: BorderRadius.circular(w * 0.06),
               ),
-              child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: w * 0.3),
+              child: Icon(
+                Icons.play_arrow_rounded,
+                color: Colors.white,
+                size: w * 0.3,
+              ),
             ),
             for (var i = 0; i < 3; i++)
               Container(
-                margin: EdgeInsets.fromLTRB(w * 0.07, h * 0.04, w * (0.07 + 0.12 * i), 0),
+                margin: EdgeInsets.fromLTRB(
+                  w * 0.07,
+                  h * 0.04,
+                  w * (0.07 + 0.12 * i),
+                  0,
+                ),
                 height: h * 0.035,
-                decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(h)),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(h),
+                ),
               ),
             const Spacer(),
             // The browser's Cast button, pulsing with a "1 video" badge.
@@ -235,12 +300,19 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
                   clipBehavior: Clip.none,
                   children: [
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: w * 0.12, vertical: h * 0.02),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: w * 0.12,
+                        vertical: h * 0.02,
+                      ),
                       decoration: BoxDecoration(
                         gradient: AppColors.mainGradient,
                         borderRadius: BorderRadius.circular(h),
                       ),
-                      child: Icon(Iconsax.screenmirroring_copy, color: Colors.white, size: w * 0.16),
+                      child: Icon(
+                        Iconsax.screenmirroring_copy,
+                        color: Colors.white,
+                        size: w * 0.16,
+                      ),
                     ),
                     Positioned(
                       right: -w * 0.05,
@@ -249,10 +321,17 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
                         width: w * 0.14,
                         height: w * 0.14,
                         alignment: Alignment.center,
-                        decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFEF4444),
+                          shape: BoxShape.circle,
+                        ),
                         child: Text(
                           '1',
-                          style: TextStyle(color: Colors.white, fontSize: w * 0.09, fontWeight: FontWeight.w800),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: w * 0.09,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                     ),
@@ -282,10 +361,19 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
                         height: w * (0.3 + 0.4 * ((wave + k) % 1)),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withValues(alpha: 1 - (wave + k) % 1), width: 1.5),
+                          border: Border.all(
+                            color: Colors.white.withValues(
+                              alpha: 1 - (wave + k) % 1,
+                            ),
+                            width: 1.5,
+                          ),
                         ),
                       ),
-                  Icon(Icons.wifi_tethering_rounded, color: Colors.white, size: w * 0.3),
+                  Icon(
+                    Icons.wifi_tethering_rounded,
+                    color: Colors.white,
+                    size: w * 0.3,
+                  ),
                 ],
               ),
             ),
@@ -303,7 +391,10 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
               child: Container(
                 width: w * 0.17,
                 height: w * 0.17,
-                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
               ),
             ),
           ],
@@ -311,7 +402,13 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
     }
   }
 
-  Widget _tvContent(BuildContext context, double t, double arrived, double w, double h) {
+  Widget _tvContent(
+    BuildContext context,
+    double t,
+    double arrived,
+    double w,
+    double h,
+  ) {
     final Widget content;
     switch (widget.kind) {
       case SceneKind.mirror:
@@ -325,11 +422,19 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
       case SceneKind.web:
         final progress = ((t - 0.55) / 0.45).clamp(0.0, 1.0);
         content = Container(
-          decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF1F2340), Color(0xFF0B0D1A)])),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF1F2340), Color(0xFF0B0D1A)],
+            ),
+          ),
           child: Stack(
             children: [
               Center(
-                child: Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: h * 0.36),
+                child: Icon(
+                  Icons.play_circle_fill_rounded,
+                  color: Colors.white,
+                  size: h * 0.36,
+                ),
               ),
               Positioned(
                 left: w * 0.06,
@@ -350,7 +455,11 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
         );
       case SceneKind.hotspot:
         content = Container(
-          decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF1F2340), Color(0xFF0B0D1A)])),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF1F2340), Color(0xFF0B0D1A)],
+            ),
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -359,11 +468,19 @@ class _OnboardingSceneState extends State<OnboardingScene> with SingleTickerProv
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.check_circle_rounded, color: const Color(0xFF22C55E), size: h * 0.14),
+                  Icon(
+                    Icons.check_circle_rounded,
+                    color: const Color(0xFF22C55E),
+                    size: h * 0.14,
+                  ),
                   SizedBox(width: w * 0.02),
                   Text(
                     'Cast to TV',
-                    style: TextStyle(color: Colors.white, fontSize: h * 0.1, fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: h * 0.1,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ],
               ),
@@ -384,7 +501,13 @@ Offset _bezier(Offset a, Offset c, Offset b, double t) {
 }
 
 class _BeamPainter extends CustomPainter {
-  _BeamPainter({required this.from, required this.ctrl, required this.to, required this.t, required this.color});
+  _BeamPainter({
+    required this.from,
+    required this.ctrl,
+    required this.to,
+    required this.t,
+    required this.color,
+  });
 
   final Offset from, ctrl, to;
   final double t;
@@ -412,8 +535,16 @@ class _BeamPainter extends CustomPainter {
       if (k < 0 || k > 1) continue;
       final pos = _bezier(from, ctrl, to, k);
       final fade = math.sin(k * math.pi);
-      canvas.drawCircle(pos, 8, Paint()..color = color.withValues(alpha: 0.15 * fade));
-      canvas.drawCircle(pos, 4, Paint()..color = color.withValues(alpha: 0.9 * fade));
+      canvas.drawCircle(
+        pos,
+        8,
+        Paint()..color = color.withValues(alpha: 0.15 * fade),
+      );
+      canvas.drawCircle(
+        pos,
+        4,
+        Paint()..color = color.withValues(alpha: 0.9 * fade),
+      );
     }
   }
 
@@ -422,7 +553,12 @@ class _BeamPainter extends CustomPainter {
 }
 
 class _Tv extends StatelessWidget {
-  const _Tv({required this.width, required this.height, required this.child, required this.lit});
+  const _Tv({
+    required this.width,
+    required this.height,
+    required this.child,
+    required this.lit,
+  });
   final double width, height, lit;
   final Widget child;
 
@@ -444,7 +580,11 @@ class _Tv extends StatelessWidget {
                 blurRadius: 24,
                 spreadRadius: 2 * lit,
               ),
-              BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 12, offset: const Offset(0, 6)),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
             ],
           ),
           child: ClipRRect(
@@ -455,11 +595,18 @@ class _Tv extends StatelessWidget {
             ),
           ),
         ),
-        Container(width: width * 0.06, height: height * 0.1, color: const Color(0xFF2B2E45)),
+        Container(
+          width: width * 0.06,
+          height: height * 0.1,
+          color: const Color(0xFF2B2E45),
+        ),
         Container(
           width: width * 0.34,
           height: height * 0.05,
-          decoration: BoxDecoration(color: const Color(0xFF2B2E45), borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2B2E45),
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       ],
     );
@@ -467,7 +614,11 @@ class _Tv extends StatelessWidget {
 }
 
 class _Phone extends StatelessWidget {
-  const _Phone({required this.width, required this.height, required this.child});
+  const _Phone({
+    required this.width,
+    required this.height,
+    required this.child,
+  });
   final double width, height;
   final Widget child;
 
@@ -480,7 +631,13 @@ class _Phone extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF1B1D2E),
         borderRadius: BorderRadius.circular(width * 0.2),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.22), blurRadius: 16, offset: const Offset(0, 8))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.22),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(width * 0.15),
@@ -495,25 +652,38 @@ class _Phone extends StatelessWidget {
 
 /// A tiny app screen (header, card, rows) drawn the same on phone and TV.
 class _MiniUi extends StatelessWidget {
-  const _MiniUi({required this.scale, required this.highlight, this.wide = false});
+  const _MiniUi({
+    required this.scale,
+    required this.highlight,
+    this.wide = false,
+  });
   final double scale;
   final double highlight;
   final bool wide;
 
   @override
   Widget build(BuildContext context) {
-    final bar = Color.lerp(Colors.white24, Colors.white54, (math.sin(highlight * math.pi * 2) + 1) / 2)!;
+    final bar = Color.lerp(
+      Colors.white24,
+      Colors.white54,
+      (math.sin(highlight * math.pi * 2) + 1) / 2,
+    )!;
     Widget row(double widthFactor) => FractionallySizedBox(
       widthFactor: widthFactor,
       alignment: Alignment.centerLeft,
       child: Container(
         height: 5 * scale,
         margin: EdgeInsets.only(top: 5 * scale),
-        decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(4)),
+        decoration: BoxDecoration(
+          color: Colors.white24,
+          borderRadius: BorderRadius.circular(4),
+        ),
       ),
     );
     return Container(
-      decoration: wide ? const BoxDecoration(gradient: AppColors.mainGradient) : null,
+      decoration: wide
+          ? const BoxDecoration(gradient: AppColors.mainGradient)
+          : null,
       padding: EdgeInsets.all(7 * scale),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -523,13 +693,19 @@ class _MiniUi extends StatelessWidget {
               Container(
                 width: 10 * scale,
                 height: 10 * scale,
-                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
               ),
               SizedBox(width: 5 * scale),
               Expanded(
                 child: Container(
                   height: 5 * scale,
-                  decoration: BoxDecoration(color: Colors.white54, borderRadius: BorderRadius.circular(4)),
+                  decoration: BoxDecoration(
+                    color: Colors.white54,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
               ),
             ],
@@ -538,8 +714,15 @@ class _MiniUi extends StatelessWidget {
           Expanded(
             child: Container(
               width: double.infinity,
-              decoration: BoxDecoration(color: bar, borderRadius: BorderRadius.circular(6 * scale)),
-              child: Icon(Iconsax.play_circle_copy, color: Colors.white, size: 18 * scale),
+              decoration: BoxDecoration(
+                color: bar,
+                borderRadius: BorderRadius.circular(6 * scale),
+              ),
+              child: Icon(
+                Iconsax.play_circle_copy,
+                color: Colors.white,
+                size: 18 * scale,
+              ),
             ),
           ),
           row(0.9),

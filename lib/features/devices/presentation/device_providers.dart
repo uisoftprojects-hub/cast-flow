@@ -53,6 +53,8 @@ CastDevice mergeCastDevices(CastDevice existing, CastDevice incoming) {
     model: bestModel,
     signal: incoming.signal > 0 ? incoming.signal : existing.signal,
     lastSeen: bestLastSeen,
+    protocol: existing.protocol ?? incoming.protocol,
+    location: existing.location ?? incoming.location,
   );
 }
 
@@ -183,6 +185,10 @@ class DiscoveryController extends Notifier<DiscoveryState> {
 
   /// Called when returning to the app (e.g. from app settings or location settings).
   Future<void> recheckPermissions() async {
+    // The system permission dialog pauses/resumes the app, which fires this while
+    // the request that opened it is still running. Re-checking then restarts the
+    // scan mid-flight and makes the screen flicker between states.
+    if (state.phase == DiscoveryPhase.checkingConnectivity) return;
     final permService = ref.read(discoveryPermissionServiceProvider);
     final status = await permService.checkStatus();
     if (!ref.mounted) return;
@@ -190,6 +196,8 @@ class DiscoveryController extends Notifier<DiscoveryState> {
     if (!ref.mounted) return;
 
     if (status == DiscoveryPermissionStatus.granted) {
+      // Already searching or showing devices: nothing to restart.
+      if (state.scanning || state.devices.isNotEmpty) return;
       final run = ++_run;
       await _proceedToConnectivityAndScan(run, requiresLocation);
     } else if (status == DiscoveryPermissionStatus.locationServiceDisabled) {
@@ -380,7 +388,10 @@ class ConnectionController extends Notifier<CastConnection> {
     }
 
     try {
-      await ref.read(deviceRepositoryProvider).connect(device);
+      final repo = ref.read(deviceRepositoryProvider);
+      await repo.connect(device);
+      // Ask the TV how it is controlled, so any brand works (not just listed ones).
+      device = await repo.identify(device);
       // Pairing flow
       if (!await ref.read(pairingProvider.notifier).pair(device)) {
         state = const CastConnection();
@@ -396,6 +407,14 @@ class ConnectionController extends Notifier<CastConnection> {
       state = CastConnection(status: ConnectionStatus.failed, device: device, error: e.toString());
       _connectFailed(device, e.toString());
       return false;
+    }
+  }
+
+  /// Replaces the connected device with a better-identified copy of itself
+  /// (e.g. a DLNA-only smart TV that has just proved it takes Android TV keys).
+  void adopt(CastDevice better) {
+    if (state.isConnected && state.device?.id == better.id) {
+      state = CastConnection(status: ConnectionStatus.connected, device: better);
     }
   }
 

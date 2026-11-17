@@ -613,7 +613,10 @@ class _EmptyOneScreen extends StatelessWidget {
             builder: (context, c) => SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, navBottomPadding(context)),
               child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: c.maxHeight - AppSpace.sm - navBottomPadding(context)),
+                // Clamped: a negative minHeight throws and paints the red error screen.
+                constraints: BoxConstraints(
+                  minHeight: (c.maxHeight - AppSpace.sm - navBottomPadding(context)).clamp(0.0, double.infinity),
+                ),
                 child: IntrinsicHeight(
                   child: Column(
                     // Hero on top, actions at the bottom, message centred between them.

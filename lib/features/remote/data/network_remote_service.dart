@@ -11,6 +11,8 @@ import '../../pairing/data/android_tv_pairing.dart';
 import '../../pairing/data/approval_pairing.dart';
 import '../../pairing/domain/pairing.dart';
 import '../domain/remote_service.dart';
+import 'cast_volume_client.dart';
+import 'dlna_client.dart';
 
 /// Real remote control over the local network:
 /// - Roku: External Control Protocol (HTTP, port 8060).
@@ -18,11 +20,29 @@ import '../domain/remote_service.dart';
 /// - Samsung Tizen: remote-control WebSocket (paired token).
 /// Anything else throws a clear "not supported" error instead of pretending.
 class NetworkRemoteService implements RemoteService {
-  NetworkRemoteService(this._credentials, {this.rokuPort = 8060, this.samsungUri = _samsungDefaultUri});
+  NetworkRemoteService(
+    this._credentials, {
+    this.rokuPort = 8060,
+    this.samsungUri = _samsungDefaultUri,
+    this.lgUri = _lgDefaultUri,
+    DlnaClient? dlna,
+    CastVolumeClient? cast,
+    this.androidTvPorts = const [6466, 6467],
+  }) : _dlna = dlna ?? DlnaClient(),
+       _cast = cast ?? CastVolumeClient();
+
+  final DlnaClient _dlna;
+  final CastVolumeClient _cast;
+
+  /// Ports that show the Android TV remote service is up (overridable for tests).
+  final List<int> androidTvPorts;
 
   /// Overridable so tests can talk to a local fake TV.
   final int rokuPort;
   final Uri Function(CastDevice device, String name, String token) samsungUri;
+  final Uri Function(CastDevice device) lgUri;
+
+  static Uri _lgDefaultUri(CastDevice d) => Uri.parse('ws://${d.address}:3000');
 
   static Uri _samsungDefaultUri(CastDevice d, String name, String token) =>
       Uri.parse('wss://${d.address}:8002/api/v2/channels/samsung.remote.control?name=$name$token');
@@ -30,13 +50,132 @@ class NetworkRemoteService implements RemoteService {
   final CredentialStore _credentials;
   final _android = <String, _AndroidTvChannel>{};
   final _samsung = <String, _SamsungChannel>{};
+  final _lg = <String, _LgChannel>{};
 
   @override
   Future<void> send(CastDevice device, RemoteCommand command) async {
-    if (device.type == DeviceType.roku) return _roku(device, command);
-    if (AndroidTvPairing().handles(device)) return _androidTv(device, command);
-    if (SamsungPairing().handles(device)) return _samsungTv(device, command);
-    throw UnsupportedError('${command.label} isn’t supported by ${device.name}.');
+    // Dispatch on the protocol the TV answered to, never on its brand.
+    switch (device.effectiveProtocol) {
+      case RemoteProtocol.roku:
+        return _roku(device, command);
+      case RemoteProtocol.androidTv:
+        return _withMediaFallback(device, command, () => _androidTv(device, command));
+      case RemoteProtocol.samsung:
+        return _withMediaFallback(device, command, () => _samsungTv(device, command));
+      case RemoteProtocol.lg:
+        return _withMediaFallback(device, command, () => _lgTv(device, command));
+      case RemoteProtocol.dlna:
+        if (RemoteCommand.keys.contains(command) && device.type == DeviceType.smartTv) {
+          return _keysViaAndroidTv(device, command);
+        }
+        return _viaCastOrDlna(device, command);
+      case null:
+        throw UnsupportedError('${command.label} isn’t supported by ${device.name}.');
+    }
+  }
+
+  /// Navigation and channel keys exist on neither DLNA nor Cast. A smart TV that only showed
+  /// those may still run the Android TV remote service (it comes and goes on some
+  /// models), so try it: say so if it is off, ask for pairing if it is on but
+  /// this phone isn't paired, otherwise send the key.
+  Future<void> _keysViaAndroidTv(CastDevice d, RemoteCommand c) async {
+    var reachable = false;
+    for (final port in androidTvPorts) {
+      try {
+        final s = await Socket.connect(d.address, port, timeout: const Duration(milliseconds: 1500));
+        s.destroy();
+        reachable = true;
+        break;
+      } catch (_) {}
+    }
+    if (!reachable) {
+      throw UnsupportedError(
+        '${d.name} isn’t accepting remote keys over Wi-Fi right now (its Android TV remote service is off). '
+        'On the TV, open Settings → Apps → Show system apps → Android TV Remote Service and enable it, then try again.',
+      );
+    }
+    return _androidTv(d, c);
+  }
+
+  /// Volume, mute and play/seek keys: the TV's real volume over Cast when it has
+  /// a Cast receiver (DLNA's volume is often only the player's, not the TV's),
+  /// everything else over DLNA.
+  Future<void> _viaCastOrDlna(CastDevice device, RemoteCommand command) async {
+    if (CastVolumeClient.supported.contains(command) && _cast.available(device)) {
+      try {
+        return await _cast.send(device, command);
+      } on SocketException {
+        // No Cast receiver on this TV: fall back to DLNA below.
+      } on TimeoutException {
+        // Same.
+      }
+    }
+    return _dlna.send(device, command);
+  }
+
+  /// A key-protocol TV (Android TV, Samsung, LG) whose remote service is down or
+  /// not paired right now still plays media and has a volume over Cast/DLNA.
+  /// Those commands fall back to it; navigation keys cannot, so their error
+  /// (e.g. "needs pairing") is kept.
+  Future<void> _withMediaFallback(CastDevice device, RemoteCommand command, Future<void> Function() viaKeys) async {
+    try {
+      return await viaKeys();
+    } catch (e) {
+      final mediaKey = CastVolumeClient.supported.contains(command) || DlnaClient.supported.contains(command);
+      if (!mediaKey || e is UnsupportedError) rethrow;
+      try {
+        return await _viaCastOrDlna(device, command);
+      } catch (_) {
+        throw e; // report the original problem, not the fallback's
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------- LG
+
+  /// Arrow/OK/Back/Home/Menu/Mute go over webOS's pointer socket as button events.
+  @visibleForTesting
+  static const lgButtons = {
+    RemoteCommand.up: 'UP',
+    RemoteCommand.down: 'DOWN',
+    RemoteCommand.left: 'LEFT',
+    RemoteCommand.right: 'RIGHT',
+    RemoteCommand.ok: 'ENTER',
+    RemoteCommand.back: 'BACK',
+    RemoteCommand.home: 'HOME',
+    RemoteCommand.menu: 'MENU',
+    RemoteCommand.mute: 'MUTE',
+  };
+
+  /// Volume and seek are plain ssap:// requests.
+  @visibleForTesting
+  static const lgRequests = {
+    RemoteCommand.volumeUp: 'ssap://audio/volumeUp',
+    RemoteCommand.volumeDown: 'ssap://audio/volumeDown',
+    RemoteCommand.rewind: 'ssap://media.controls/rewind',
+    RemoteCommand.fastForward: 'ssap://media.controls/fastForward',
+    RemoteCommand.channelUp: 'ssap://tv/channelUp',
+    RemoteCommand.channelDown: 'ssap://tv/channelDown',
+  };
+
+  Future<void> _lgTv(CastDevice d, RemoteCommand c) async {
+    final button = lgButtons[c];
+    final request = lgRequests[c];
+    if (button == null && request == null) throw UnsupportedError('${c.label} isn’t supported by ${d.name}.');
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        final ch = _lg[d.id] ??= _LgChannel(d, await _credentials.read(d.id), lgUri);
+        if (button != null) {
+          await ch.button(button);
+        } else {
+          await ch.request(request!);
+        }
+        return;
+      } catch (_) {
+        _lg.remove(d.id)?.close();
+        if (attempt == 1) throw HttpException('${d.name} didn’t respond. Pair it again from Devices.');
+      }
+    }
   }
 
   // ------------------------------------------------------------------ Roku
@@ -60,6 +199,8 @@ class NetworkRemoteService implements RemoteService {
     RemoteCommand.volumeUp: 'VolumeUp',
     RemoteCommand.volumeDown: 'VolumeDown',
     RemoteCommand.mute: 'VolumeMute',
+    RemoteCommand.channelUp: 'ChannelUp',
+    RemoteCommand.channelDown: 'ChannelDown',
   };
 
   Future<void> _roku(CastDevice d, RemoteCommand c) async {
@@ -91,19 +232,25 @@ class NetworkRemoteService implements RemoteService {
     RemoteCommand.volumeUp: 24,
     RemoteCommand.volumeDown: 25,
     RemoteCommand.mute: 164,
+    RemoteCommand.channelUp: 166,
+    RemoteCommand.channelDown: 167,
   };
 
   Future<void> _androidTv(CastDevice d, RemoteCommand c) async {
     final code = androidKeyCodes[c];
     if (code == null) throw UnsupportedError('${c.label} isn’t supported by ${d.name}.');
+    // No paired certificate means the TV will drop the connection every time:
+    // say so (so pairing can start) instead of failing as "didn't respond".
+    final saved = await _credentials.read(d.id);
+    if (_android[d.id] == null && (saved == null || saved.isEmpty)) throw NotPairedException(d.name);
     for (var attempt = 0; attempt < 2; attempt++) {
       try {
-        final ch = _android[d.id] ??= _AndroidTvChannel(d, await _credentials.read(d.id));
+        final ch = _android[d.id] ??= _AndroidTvChannel(d, saved);
         await ch.press(code);
         return;
       } catch (_) {
         _android.remove(d.id)?.close();
-        if (attempt == 1) throw HttpException('${d.name} didn’t respond. Pair it again from Devices.');
+        if (attempt == 1) throw HttpException('${d.name} didn’t respond. Make sure it is on, then try again.');
       }
     }
   }
@@ -129,6 +276,8 @@ class NetworkRemoteService implements RemoteService {
     RemoteCommand.volumeUp: 'KEY_VOLUP',
     RemoteCommand.volumeDown: 'KEY_VOLDOWN',
     RemoteCommand.mute: 'KEY_MUTE',
+    RemoteCommand.channelUp: 'KEY_CHUP',
+    RemoteCommand.channelDown: 'KEY_CHDOWN',
   };
 
   Future<void> _samsungTv(CastDevice d, RemoteCommand c) async {
@@ -153,8 +302,12 @@ class NetworkRemoteService implements RemoteService {
     for (final c in _samsung.values) {
       c.close();
     }
+    for (final c in _lg.values) {
+      c.close();
+    }
     _android.clear();
     _samsung.clear();
+    _lg.clear();
   }
 }
 
@@ -299,4 +452,77 @@ class _SamsungChannel {
   }
 
   void close() => _ws?.close();
+}
+
+/// One persistent LG webOS (SSAP) connection plus its pointer-input socket.
+class _LgChannel {
+  _LgChannel(this._device, this._key, this._uri);
+
+  final CastDevice _device;
+  final String? _key;
+  final Uri Function(CastDevice) _uri;
+  WebSocket? _ws;
+  WebSocket? _pointer;
+  Future<void>? _ready;
+  int _next = 0;
+  final _pending = <String, Completer<Map<String, dynamic>>>{};
+
+  Future<void> _connect() async {
+    final ws = await WebSocket.connect(_uri(_device).toString()).timeout(const Duration(seconds: 5));
+    _ws = ws;
+    final registered = Completer<void>();
+    void fail(Object e) {
+      if (!registered.isCompleted) registered.completeError(e);
+      for (final p in _pending.values) {
+        if (!p.isCompleted) p.completeError(e);
+      }
+      _pending.clear();
+      _ws = null;
+      _pointer?.close();
+      _pointer = null;
+      _ready = null;
+    }
+
+    ws.listen(
+      (data) {
+        try {
+          final m = jsonDecode(data as String) as Map<String, dynamic>;
+          if (m['type'] == 'registered' && !registered.isCompleted) registered.complete();
+          if (m['type'] == 'error' && m['id'] == 'register_0' && !registered.isCompleted) {
+            registered.completeError('unauthorized');
+          }
+          _pending.remove(m['id'])?.complete(m);
+        } catch (_) {}
+      },
+      onError: fail,
+      onDone: () => fail('closed'),
+    );
+    ws.add(jsonEncode(lgRegisterMessage(_key)));
+    await registered.future.timeout(const Duration(seconds: 6));
+  }
+
+  Future<Map<String, dynamic>> request(String uri, [Map<String, Object?>? payload]) async {
+    await (_ready ??= _connect());
+    final id = 'req_${_next++}';
+    final reply = Completer<Map<String, dynamic>>();
+    _pending[id] = reply;
+    _ws?.add(jsonEncode({'type': 'request', 'id': id, 'uri': uri, 'payload': ?payload}));
+    return reply.future.timeout(const Duration(seconds: 4));
+  }
+
+  Future<void> button(String name) async {
+    if (_pointer == null) {
+      final r = await request('ssap://com.webos.service.networkinput/getPointerInputSocket');
+      final path = (r['payload'] as Map?)?['socketPath'] as String?;
+      if (path == null) throw StateError('no pointer socket');
+      _pointer = await WebSocket.connect(path).timeout(const Duration(seconds: 4));
+      _pointer!.listen((_) {}, onDone: () => _pointer = null, onError: (_) => _pointer = null);
+    }
+    _pointer!.add('type:button\nname:$name\n\n');
+  }
+
+  void close() {
+    _pointer?.close();
+    _ws?.close();
+  }
 }

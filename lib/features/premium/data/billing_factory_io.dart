@@ -8,6 +8,8 @@ import 'iap_billing_service.dart';
 const _forceFake = bool.fromEnvironment('FAKE_BILLING');
 
 BillingService createPlatformBilling(PreviewMode Function() mode) {
-  if (!_forceFake && (Platform.isAndroid || Platform.isIOS)) return IapBillingService();
+  if (!_forceFake && (Platform.isAndroid || Platform.isIOS)) {
+    return IapBillingService();
+  }
   return FakeBillingService(mode);
 }

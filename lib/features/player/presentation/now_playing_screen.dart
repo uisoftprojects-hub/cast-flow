@@ -101,6 +101,16 @@ class NowPlayingScreen extends ConsumerWidget {
                           Text('  ·  ${s.index + 1}/${s.queue.length}', style: context.text.bodySmall),
                       ],
                     ),
+                    if (s.error != null) ...[
+                      const SizedBox(height: AppSpace.sm),
+                      Text(
+                        s.error!,
+                        textAlign: TextAlign.center,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.text.bodySmall?.copyWith(color: context.palette.error),
+                      ),
+                    ],
                     const SizedBox(height: AppSpace.lg),
                     // Center: seek bar and previous / play-pause / next.
                     _Controls(state: s, media: media, ctrl: ctrl),

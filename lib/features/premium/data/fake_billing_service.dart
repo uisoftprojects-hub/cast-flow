@@ -13,8 +13,8 @@ class FakeBillingService implements BillingService {
     bool initialTrialEligible = true,
     String trialPeriodIso = 'P7D',
     this.weeklyPrice = 'US\$3.99',
-  })  : _trialEligible = initialTrialEligible,
-        _trialPeriod = trialPeriodIso;
+  }) : _trialEligible = initialTrialEligible,
+       _trialPeriod = trialPeriodIso;
 
   final PreviewMode Function() _mode;
   final _controller = StreamController<EntitlementState>.broadcast();
@@ -32,7 +32,11 @@ class FakeBillingService implements BillingService {
   }
 
   /// Simulate an expired subscription for testing.
-  void setSimulatedSubscription({required String productId, required bool active, DateTime? expiry}) {
+  void setSimulatedSubscription({
+    required String productId,
+    required bool active,
+    DateTime? expiry,
+  }) {
     _owned = active ? productId : null;
     _ownedExpiry = expiry;
   }
@@ -48,7 +52,9 @@ class FakeBillingService implements BillingService {
     }
     if (_mode() == PreviewMode.empty) return const [];
 
-    final durationText = _trialEligible ? TrialDurationParser.parse(_trialPeriod) : null;
+    final durationText = _trialEligible
+        ? TrialDurationParser.parse(_trialPeriod)
+        : null;
 
     return [
       StoreProduct(
@@ -94,7 +100,9 @@ class FakeBillingService implements BillingService {
   @override
   Future<void> restore() async {
     await Future<void>.delayed(const Duration(milliseconds: 100));
-    final hasActive = _owned != null && (_ownedExpiry == null || _ownedExpiry!.isAfter(DateTime.now()));
+    final hasActive =
+        _owned != null &&
+        (_ownedExpiry == null || _ownedExpiry!.isAfter(DateTime.now()));
     _controller.add(
       EntitlementState(
         productId: _owned,

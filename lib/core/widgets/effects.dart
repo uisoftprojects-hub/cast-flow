@@ -33,8 +33,12 @@ class PulseRipple extends StatefulWidget {
   State<PulseRipple> createState() => _PulseRippleState();
 }
 
-class _PulseRippleState extends State<PulseRipple> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: widget.duration);
+class _PulseRippleState extends State<PulseRipple>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+  );
 
   /// Loops only while active, and never when the OS asks for reduced motion
   /// (the rings then stay visible but still).
@@ -72,7 +76,13 @@ class _PulseRippleState extends State<PulseRipple> with SingleTickerProviderStat
       dimension: widget.size,
       child: RepaintBoundary(
         child: CustomPaint(
-          painter: _RipplePainter(_c, color, widget.rings, widget.active, widget.sweep),
+          painter: _RipplePainter(
+            _c,
+            color,
+            widget.rings,
+            widget.active,
+            widget.sweep,
+          ),
           child: Center(child: widget.child),
         ),
       ),
@@ -81,7 +91,8 @@ class _PulseRippleState extends State<PulseRipple> with SingleTickerProviderStat
 }
 
 class _RipplePainter extends CustomPainter {
-  _RipplePainter(this.anim, this.color, this.rings, this.active, this.sweep) : super(repaint: anim);
+  _RipplePainter(this.anim, this.color, this.rings, this.active, this.sweep)
+    : super(repaint: anim);
 
   final Animation<double> anim;
   final Color color;
@@ -107,7 +118,11 @@ class _RipplePainter extends CustomPainter {
     for (var i = 0; i < rings; i++) {
       final t = (anim.value + i / rings) % 1.0;
       final r = maxR * (0.25 + 0.75 * t);
-      canvas.drawCircle(center, r, Paint()..color = color.withValues(alpha: (1 - t) * 0.18));
+      canvas.drawCircle(
+        center,
+        r,
+        Paint()..color = color.withValues(alpha: (1 - t) * 0.18),
+      );
     }
 
     if (sweep) {
@@ -119,12 +134,19 @@ class _RipplePainter extends CustomPainter {
         colors: [color.withValues(alpha: 0), color.withValues(alpha: 0.28)],
         transform: GradientRotation(angle - math.pi / 2),
       ).createShader(rect);
-      canvas.drawArc(rect, angle - math.pi / 2, math.pi / 2, true, Paint()..shader = shader);
+      canvas.drawArc(
+        rect,
+        angle - math.pi / 2,
+        math.pi / 2,
+        true,
+        Paint()..shader = shader,
+      );
     }
   }
 
   @override
-  bool shouldRepaint(_RipplePainter old) => old.active != active || old.color != color;
+  bool shouldRepaint(_RipplePainter old) =>
+      old.active != active || old.color != color;
 }
 
 /// Frosted glass panel (blur + translucent surface).
@@ -154,7 +176,11 @@ class GlassPanel extends StatelessWidget {
           decoration: BoxDecoration(
             color: p.glass,
             borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: Colors.white.withValues(alpha: context.isDark ? 0.06 : 0.6)),
+            border: Border.all(
+              color: Colors.white.withValues(
+                alpha: context.isDark ? 0.06 : 0.6,
+              ),
+            ),
           ),
           child: child,
         ),
@@ -215,7 +241,10 @@ class MediaArt extends StatelessWidget {
               child: Container(
                 width: 90,
                 height: 90,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.18)),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.18),
+                ),
               ),
             ),
             Positioned(
@@ -224,12 +253,19 @@ class MediaArt extends StatelessWidget {
               child: Container(
                 width: 54,
                 height: 54,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.14)),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.14),
+                ),
               ),
             ),
             if (icon != null)
               Center(
-                child: Icon(icon, color: Colors.white.withValues(alpha: 0.9), size: iconSize),
+                child: Icon(
+                  icon,
+                  color: Colors.white.withValues(alpha: 0.9),
+                  size: iconSize,
+                ),
               ),
             ?child,
           ],

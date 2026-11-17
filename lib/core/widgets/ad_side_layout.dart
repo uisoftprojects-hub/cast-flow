@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_tokens.dart';
 
-bool isLandscape(BuildContext context) => MediaQuery.orientationOf(context) == Orientation.landscape;
+bool isLandscape(BuildContext context) =>
+    MediaQuery.orientationOf(context) == Orientation.landscape;
 
 /// A screen's content plus its native ad: the ad sits under the content in
 /// portrait and in its own column on the right in landscape, so it never
 /// squeezes or covers the content.
 class AdSideLayout extends StatelessWidget {
-  const AdSideLayout({super.key, required this.content, required this.ad, this.sideWidth = 300});
+  const AdSideLayout({
+    super.key,
+    required this.content,
+    required this.ad,
+    this.sideWidth = 300,
+  });
 
   final Widget content;
   final Widget ad;
@@ -34,7 +40,12 @@ class AdSideLayout extends StatelessWidget {
             width: sideWidth,
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(0, AppSpace.sm, AppSpace.page, AppSpace.sm),
+                padding: const EdgeInsets.fromLTRB(
+                  0,
+                  AppSpace.sm,
+                  AppSpace.page,
+                  AppSpace.sm,
+                ),
                 child: ad,
               ),
             ),

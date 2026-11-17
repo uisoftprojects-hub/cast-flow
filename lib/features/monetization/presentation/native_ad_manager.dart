@@ -90,12 +90,15 @@ class NativeAdManager {
     }
 
     // Fresh load
-    final placement = fromSettings ? AdPlacement.languageSettings : AdPlacement.languageFirstRun;
+    final placement = fromSettings
+        ? AdPlacement.languageSettings
+        : AdPlacement.languageFirstRun;
     AdLogger.i(
       AdState.requestStart,
       placement: placement,
       adType: 'Native',
-      message: 'Loading fresh Language native ad (fromSettings: $fromSettings).',
+      message:
+          'Loading fresh Language native ad (fromSettings: $fromSettings).',
     );
     try {
       return await _adapter.loadNative(
@@ -117,7 +120,10 @@ class NativeAdManager {
 
   /// Preloads the Onboarding native ad on the Paywall screen
   Future<void> preloadOnboardingAd({required bool isPremium}) async {
-    if (isPremium || _isLoadingOnboarding || _preloadedOnboardingAd != null || _activeOnboardingAd != null) {
+    if (isPremium ||
+        _isLoadingOnboarding ||
+        _preloadedOnboardingAd != null ||
+        _activeOnboardingAd != null) {
       return;
     }
     _isLoadingOnboarding = true;
@@ -128,7 +134,12 @@ class NativeAdManager {
       message: 'Preloading Onboarding native ad.',
     );
     try {
-      final ad = await _adapter.loadNative(AdPlacement.onboarding, medium: true, onImpression: () {}, onClicked: () {});
+      final ad = await _adapter.loadNative(
+        AdPlacement.onboarding,
+        medium: true,
+        onImpression: () {},
+        onClicked: () {},
+      );
       if (isPremium) {
         ad.dispose();
       } else {
@@ -226,7 +237,8 @@ class NativeAdManager {
     AdLogger.d(
       AdState.premiumPurge,
       adType: 'NativeManager',
-      message: 'Disposing all preloaded and active native ads due to premium purchase.',
+      message:
+          'Disposing all preloaded and active native ads due to premium purchase.',
     );
     _preloadedLanguageAd?.dispose();
     _preloadedLanguageAd = null;

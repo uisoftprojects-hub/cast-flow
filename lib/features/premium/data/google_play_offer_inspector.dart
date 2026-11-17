@@ -52,7 +52,9 @@ abstract final class GooglePlayOfferInspector {
     if (offers == null || offers.isEmpty) return null;
 
     // 1. Filter for the exact base plan ID
-    final matchingOffers = offers.where((o) => o.basePlanId == targetBasePlanId).toList();
+    final matchingOffers = offers
+        .where((o) => o.basePlanId == targetBasePlanId)
+        .toList();
     if (matchingOffers.isEmpty) return null;
 
     SubscriptionOfferDetailsWrapper? freeTrialOffer;
@@ -91,7 +93,8 @@ abstract final class GooglePlayOfferInspector {
       final durationText = TrialDurationParser.parse(isoPeriod);
 
       // Determine recurring price: either from the offer's second phase, or from the base plan
-      final recurring = recurringPhase ??
+      final recurring =
+          recurringPhase ??
           _findBasePlanRecurringPhase(matchingOffers) ??
           freeTrialOffer.pricingPhases.last;
 

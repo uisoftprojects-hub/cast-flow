@@ -8,7 +8,12 @@ import '../domain/ad_config.dart';
 import 'fake_ad_adapter.dart';
 import 'google_ad_adapter.dart';
 
-AdAdapter createPlatformAdAdapter(GlobalKey<NavigatorState> navigator, PreviewMode Function() mode) {
-  if (!AdConfig.forceFakeAds && (Platform.isAndroid || Platform.isIOS)) return GoogleAdAdapter();
+AdAdapter createPlatformAdAdapter(
+  GlobalKey<NavigatorState> navigator,
+  PreviewMode Function() mode,
+) {
+  if (!AdConfig.forceFakeAds && (Platform.isAndroid || Platform.isIOS)) {
+    return GoogleAdAdapter();
+  }
   return FakeAdAdapter(navigator, mode);
 }

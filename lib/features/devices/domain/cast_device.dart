@@ -16,6 +16,26 @@ enum DeviceType {
   final IconData icon;
 }
 
+/// How a TV is actually controlled, found by asking the TV (open control
+/// ports), never by guessing from its brand. Any brand that speaks one of these
+/// works, listed or not.
+enum RemoteProtocol {
+  /// Roku External Control Protocol (HTTP 8060). Also TCL/Hisense/… Roku TVs.
+  roku,
+
+  /// Android TV / Google TV remote v2 (6466 / 6467). Also TCL, Sony, Xiaomi, Philips…
+  androidTv,
+
+  /// Samsung Tizen remote WebSocket (8001 / 8002).
+  samsung,
+
+  /// LG webOS SSAP WebSocket (3000 / 3001).
+  lg,
+
+  /// Only a UPnP/DLNA media renderer was found: transport and volume, no keys.
+  dlna,
+}
+
 @immutable
 class CastDevice {
   const CastDevice({
@@ -27,6 +47,8 @@ class CastDevice {
     this.model,
     this.signal = 1,
     this.lastSeen,
+    this.protocol,
+    this.location,
   });
 
   final String id;
@@ -40,6 +62,26 @@ class CastDevice {
   final double signal;
   final DateTime? lastSeen;
 
+  /// Detected control protocol; null until the TV has been probed.
+  final RemoteProtocol? protocol;
+
+  /// UPnP device-description URL (from SSDP); the DLNA backend finds the
+  /// renderer's control URLs from it.
+  final String? location;
+
+  CastDevice copyWith({DeviceType? type, RemoteProtocol? protocol, String? location}) => CastDevice(
+    id: id,
+    name: name,
+    type: type ?? this.type,
+    address: address,
+    port: port,
+    model: model,
+    signal: signal,
+    lastSeen: lastSeen,
+    protocol: protocol ?? this.protocol,
+    location: location ?? this.location,
+  );
+
   CastDevice seenNow() => CastDevice(
     id: id,
     name: name,
@@ -49,6 +91,8 @@ class CastDevice {
     model: model,
     signal: signal,
     lastSeen: DateTime.now(),
+    protocol: protocol,
+    location: location,
   );
 
   Map<String, Object?> toMap() => {
@@ -59,6 +103,8 @@ class CastDevice {
     'port': port,
     'model': model,
     'lastSeen': lastSeen?.millisecondsSinceEpoch,
+    'protocol': protocol?.name,
+    'location': location,
   };
 
   factory CastDevice.fromMap(Map m) => CastDevice(
@@ -69,6 +115,8 @@ class CastDevice {
     port: m['port'] as int?,
     model: m['model'] as String?,
     lastSeen: m['lastSeen'] == null ? null : DateTime.fromMillisecondsSinceEpoch(m['lastSeen'] as int),
+    protocol: RemoteProtocol.values.asNameMap()[m['protocol']],
+    location: m['location'] as String?,
   );
 
   @override
@@ -208,6 +256,11 @@ abstract interface class DeviceRepository {
   Future<CastDevice?> findById(String id);
 
   Future<void> connect(CastDevice device);
+
+  /// Asks the receiver which control protocol it speaks and returns the device
+  /// tagged with it (and a corrected type). Never throws; on any failure the
+  /// device comes back unchanged.
+  Future<CastDevice> identify(CastDevice device);
 
   Future<void> disconnect();
 }

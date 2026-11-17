@@ -36,7 +36,9 @@ class SoftCard extends StatelessWidget {
         color: gradient == null ? (color ?? p.surface) : null,
         gradient: gradient,
         borderRadius: BorderRadius.circular(radius),
-        border: gradient == null && color == null ? Border.all(color: p.divider) : null,
+        border: gradient == null && color == null
+            ? Border.all(color: p.divider)
+            : null,
         boxShadow: shadow ? AppShadows.soft(p) : null,
       ),
       child: child,
@@ -48,7 +50,14 @@ class SoftCard extends StatelessWidget {
 
 /// An icon sitting in a tinted rounded square (solid when [filled]).
 class IconBubble extends StatelessWidget {
-  const IconBubble({super.key, required this.icon, this.color, this.size = 48, this.iconSize, this.filled = false});
+  const IconBubble({
+    super.key,
+    required this.icon,
+    this.color,
+    this.size = 48,
+    this.iconSize,
+    this.filled = false,
+  });
 
   final IconData icon;
   final Color? color;
@@ -67,7 +76,11 @@ class IconBubble extends StatelessWidget {
         color: filled ? c : c.withValues(alpha: context.isDark ? 0.24 : 0.12),
       ),
       alignment: Alignment.center,
-      child: Icon(icon, size: iconSize ?? size * 0.46, color: filled ? Colors.white : c),
+      child: Icon(
+        icon,
+        size: iconSize ?? size * 0.46,
+        color: filled ? Colors.white : c,
+      ),
     );
   }
 }
@@ -81,7 +94,11 @@ class ForwardChevron extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Icons.chevron_right already mirrors itself in RTL.
-    return Icon(Icons.chevron_right_rounded, size: size + 4, color: context.palette.textSecondary);
+    return Icon(
+      Icons.chevron_right_rounded,
+      size: size + 4,
+      color: context.palette.textSecondary,
+    );
   }
 }
 
@@ -103,8 +120,15 @@ class SectionHeader extends StatelessWidget {
           if (action != null)
             TextButton(
               onPressed: onAction,
-              style: TextButton.styleFrom(minimumSize: const Size(kMinTap, kMinTap)),
-              child: Text(action!, style: context.text.labelMedium?.copyWith(color: context.palette.primary)),
+              style: TextButton.styleFrom(
+                minimumSize: const Size(kMinTap, kMinTap),
+              ),
+              child: Text(
+                action!,
+                style: context.text.labelMedium?.copyWith(
+                  color: context.palette.primary,
+                ),
+              ),
             ),
         ],
       ),

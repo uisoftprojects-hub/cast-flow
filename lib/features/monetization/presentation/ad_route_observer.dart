@@ -48,14 +48,18 @@ class AdRouteObserver extends NavigatorObserver {
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     _stack.add(route);
     final name = route.settings.name;
-    if (name != null && eligibleClickRoutes.contains(name)) onEligiblePush?.call(name);
+    if (name != null && eligibleClickRoutes.contains(name)) {
+      onEligiblePush?.call(name);
+    }
   }
 
   @override
-  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) => _stack.remove(route);
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      _stack.remove(route);
 
   @override
-  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) => _stack.remove(route);
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      _stack.remove(route);
 
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {

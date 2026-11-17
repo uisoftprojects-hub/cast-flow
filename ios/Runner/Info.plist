@@ -56,16 +56,19 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- Portrait-only iPad apps must opt out of multitasking. -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cast to TV needs access to your photos and videos so you can cast them to your TV.</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Cast to TV needs access to your music so you can cast it to your TV.</string>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<!-- AdMob App ID: Google public TEST ID. Replace before release. -->
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-3940256099942544~1458002511</string>

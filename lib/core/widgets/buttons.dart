@@ -16,9 +16,12 @@ class GradientButton extends StatelessWidget {
     this.gradient = AppColors.mainGradient,
     this.foreground = Colors.white,
     this.loading = false,
+    this.loadingReplacesLabel = false,
     this.compact = false,
+    this.radius = AppRadius.pill,
   });
 
+  final double radius;
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
@@ -26,6 +29,9 @@ class GradientButton extends StatelessWidget {
   final Gradient gradient;
   final Color foreground;
   final bool loading;
+
+  /// While loading, show only the spinner (the button keeps its size).
+  final bool loadingReplacesLabel;
   final bool compact;
 
   @override
@@ -38,29 +44,67 @@ class GradientButton extends StatelessWidget {
         duration: AppDurations.fast,
         opacity: enabled || loading ? 1 : 0.5,
         child: Container(
-          constraints: BoxConstraints(minHeight: compact ? 40 : 54, minWidth: kMinTap),
-          padding: EdgeInsets.symmetric(horizontal: compact ? 18 : 26, vertical: compact ? 8 : 14),
+          constraints: BoxConstraints(
+            minHeight: compact ? 40 : 54,
+            minWidth: kMinTap,
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 18 : 26,
+            vertical: compact ? 8 : 14,
+          ),
           decoration: BoxDecoration(
             gradient: gradient,
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-            boxShadow: enabled && !compact ? AppShadows.glow(AppColors.primary) : null,
+            borderRadius: BorderRadius.circular(radius),
+            boxShadow: enabled && !compact
+                ? AppShadows.glow(AppColors.primary)
+                : null,
           ),
-          child: Row(
-            mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              if (loading)
-                SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: foreground))
-              else if (icon != null)
-                Icon(icon, color: foreground, size: 20),
-              if (loading || icon != null) const SizedBox(width: 10),
-              Flexible(
-                child: Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: (compact ? context.text.labelMedium : context.text.labelLarge)?.copyWith(color: foreground),
+              Opacity(
+                opacity: loading && loadingReplacesLabel ? 0 : 1,
+                child: Row(
+                  mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (!loading && icon != null) ...[
+                      Icon(icon, color: foreground, size: 20),
+                      const SizedBox(width: 10),
+                    ],
+                    Flexible(
+                      child: Text(
+                        label,
+                        textAlign: TextAlign.center,
+                        style:
+                            (compact
+                                    ? context.text.labelMedium
+                                    : context.text.labelLarge)
+                                ?.copyWith(color: foreground),
+                      ),
+                    ),
+                    // Loader sits on the right of the label.
+                    if (loading && !loadingReplacesLabel) ...[
+                      const SizedBox(width: 10),
+                      SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          color: foreground,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
+              if (loading && loadingReplacesLabel)
+                SizedBox.square(
+                  dimension: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.6,
+                    color: foreground,
+                  ),
+                ),
             ],
           ),
         ),
@@ -99,16 +143,31 @@ class TintedButton extends StatelessWidget {
       child: Opacity(
         opacity: onPressed == null ? 0.5 : 1,
         child: Container(
-          constraints: BoxConstraints(minHeight: compact ? 40 : 52, minWidth: kMinTap),
-          padding: EdgeInsets.symmetric(horizontal: compact ? 16 : 24, vertical: compact ? 8 : 13),
-          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(AppRadius.pill)),
+          constraints: BoxConstraints(
+            minHeight: compact ? 40 : 52,
+            minWidth: kMinTap,
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 16 : 24,
+            vertical: compact ? 8 : 13,
+          ),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+          ),
           child: Row(
             mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (icon != null) ...[Icon(icon, color: fg, size: compact ? 16 : 20), const SizedBox(width: 8)],
+              if (icon != null) ...[
+                Icon(icon, color: fg, size: compact ? 16 : 20),
+                const SizedBox(width: 8),
+              ],
               Flexible(
-                child: Text(label, style: context.text.labelMedium?.copyWith(color: fg)),
+                child: Text(
+                  label,
+                  style: context.text.labelMedium?.copyWith(color: fg),
+                ),
               ),
             ],
           ),
@@ -154,10 +213,16 @@ class SoftIconButton extends StatelessWidget {
             shape: BoxShape.circle,
             gradient: filled ? AppColors.mainGradient : null,
             color: filled ? null : (background ?? p.surface),
-            boxShadow: filled ? AppShadows.glow(AppColors.primary) : AppShadows.soft(p),
+            boxShadow: filled
+                ? AppShadows.glow(AppColors.primary)
+                : AppShadows.soft(p),
           ),
           alignment: Alignment.center,
-          child: Icon(icon, size: size * 0.44, color: filled ? Colors.white : (color ?? p.textPrimary)),
+          child: Icon(
+            icon,
+            size: size * 0.44,
+            color: filled ? Colors.white : (color ?? p.textPrimary),
+          ),
         ),
       ),
     );

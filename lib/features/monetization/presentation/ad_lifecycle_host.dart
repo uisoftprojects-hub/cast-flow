@@ -32,7 +32,9 @@ class _AdLifecycleHostState extends ConsumerState<AdLifecycleHost> {
       onShow: _resumed,
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => manager.ensureInitialized());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => manager.ensureInitialized(),
+    );
   }
 
   void _resumed() {

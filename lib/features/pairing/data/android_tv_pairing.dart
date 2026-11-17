@@ -1,3 +1,4 @@
+import '../../../core/debug_log.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -8,6 +9,7 @@ import 'package:pointycastle/asn1.dart';
 import 'package:pointycastle/export.dart' show RSAPrivateKey, RSAPublicKey, SHA256Digest;
 
 import '../../devices/domain/cast_device.dart';
+import '../../devices/domain/receiver_capabilities.dart';
 import '../domain/pairing.dart';
 
 /// Android TV / Google TV remote pairing ("polo" protocol v2): TLS on port
@@ -15,7 +17,7 @@ import '../domain/pairing.dart';
 /// The certificate is the credential reused on the remote port (6466).
 class AndroidTvPairing implements PairingProtocol {
   @override
-  bool handles(CastDevice d) => d.type == DeviceType.smartTv && d.port == 6466;
+  bool handles(CastDevice d) => d.effectiveProtocol == RemoteProtocol.androidTv;
 
   @override
   PairingSession start(CastDevice device, {String? saved}) => _AtvSession(device, saved);
@@ -140,17 +142,23 @@ class _AtvSession implements PairingSession {
         onBadCertificate: (_) => true, // TVs present self-signed certificates
         timeout: const Duration(seconds: 8),
       );
+      dlog('[Pairing] Android TV TLS connected to ${_device.address}:6467');
       _serverKey = _publicKeyOfCertDer(_socket!.peerCertificate!.der);
       _socket!.listen(
         _onData,
-        onError: (_) => _emit(const PairingFailed('connection')),
+        onError: (Object e) {
+          dlog('[Pairing] Android TV socket error: $e');
+          _emit(const PairingFailed('connection'));
+        },
         onDone: () {
+          dlog('[Pairing] Android TV closed the pairing socket (closed by us: $_closed)');
           if (!_closed && !(_secretAck?.isCompleted ?? true)) _secretAck!.complete(-1);
           if (!_closed) _emit(const PairingFailed('connection'));
         },
       );
       _socket!.add(_outer(10, [..._bytes(1, utf8.encode('atvremote')), ..._bytes(2, utf8.encode('Cast to TV'))]));
-    } catch (_) {
+    } catch (e) {
+      dlog('[Pairing] Android TV ${_device.address}:6467 failed: $e');
       _emit(const PairingFailed('connection'));
     }
   }
@@ -179,6 +187,7 @@ class _AtvSession implements PairingSession {
   }
 
   void _onData(List<int> data) {
+    dlog('[Pairing] Android TV sent ${data.length} bytes');
     _buffer.addAll(data);
     while (_buffer.isNotEmpty) {
       // Varint length prefix.

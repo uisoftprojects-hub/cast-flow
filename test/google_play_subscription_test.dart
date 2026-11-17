@@ -453,13 +453,24 @@ void main() {
 
   group('7. Global Premium Status & AdMob Response', () {
     test('when premium activates, AdManager disposes loaded ads immediately', () async {
-      final c = await makeContainer();
+      // Premium is store-authoritative: the store owns the subscription, and the
+      // status service (not the persisted settings flag) is the source of truth.
+      final store = FakeBillingService(() => PreviewMode.live)
+        ..setSimulatedSubscription(
+          productId: BillingConfig.weekly,
+          active: true,
+          expiry: DateTime.now().add(const Duration(days: 30)),
+        );
+      final c = await makeContainer(overrides: [billingServiceProvider.overrideWithValue(store)]);
       c.listen(adManagerProvider, (_, _) {});
 
       expect(c.read(settingsProvider).isPremium, isFalse);
+      expect(c.read(isPremiumProvider), isFalse);
 
       // Activate premium
-      c.read(settingsProvider.notifier).setPremium(true);
+      c
+          .read(premiumStatusServiceProvider)
+          .applyPurchase(productId: BillingConfig.weekly, expiry: DateTime.now().add(const Duration(days: 30)));
       await Future<void>.delayed(const Duration(milliseconds: 10));
 
       expect(c.read(settingsProvider).isPremium, isTrue);
