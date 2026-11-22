@@ -593,5 +593,6 @@
   "howHotspotWorks": "Truyền qua điểm phát sóng hoạt động thế nào?",
   "preparingForTv": "Đang chuẩn bị cho TV…",
   "convertingForTv": "Đang chuyển đổi cho TV… {percent}%",
-  "lookingForTvsOnHotspot": "Đang tìm TV trên điểm phát sóng của bạn"
+  "lookingForTvsOnHotspot": "Đang tìm TV trên điểm phát sóng của bạn",
+  "noInternetConnection": "Không có kết nối internet. Hãy kiểm tra kết nối và thử lại."
 }

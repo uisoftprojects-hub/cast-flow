@@ -1760,4 +1760,8 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String get lookingForTvsOnHotspot =>
       'آپ کے ہاٹ اسپاٹ پر ٹی وی تلاش کیے جا رہے ہیں';
+
+  @override
+  String get noInternetConnection =>
+      'انٹرنیٹ کنکشن نہیں ہے۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔';
 }

@@ -517,5 +517,6 @@
   "howHotspotWorks": "Bagaimana penghantaran melalui hotspot berfungsi?",
   "preparingForTv": "Menyediakan untuk TV anda…",
   "convertingForTv": "Menukar untuk TV anda… {percent}%",
-  "lookingForTvsOnHotspot": "Mencari TV pada hotspot anda"
+  "lookingForTvsOnHotspot": "Mencari TV pada hotspot anda",
+  "noInternetConnection": "Tiada sambungan internet. Semak sambungan anda dan cuba lagi."
 }

@@ -13,7 +13,9 @@ import '../../../core/widgets/app_logo.dart';
 import '../../app_flow/presentation/app_flow_controller.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../monetization/domain/ad_config.dart';
-import '../../monetization/presentation/ad_manager.dart';import '../../monetization/presentation/splash_interstitial_manager.dart';
+import '../../devices/presentation/network_controller.dart';
+import '../../monetization/presentation/ad_manager.dart';
+import '../../monetization/presentation/splash_interstitial_manager.dart';
 import '../../premium/domain/premium_status_service.dart';
 import '../../premium/presentation/billing_controller.dart';
 import '../../settings/presentation/settings_controller.dart';
@@ -28,6 +30,12 @@ class SplashScreen extends ConsumerStatefulWidget {
 class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   Timer? _timer;
+
+  /// No internet at launch: nothing to wait for (consent, prices, ads), so the
+  /// splash is short.
+  bool _offline = false;
+
+  Duration get _splashTime => _offline ? AdMobConfig.offlineSplashTimeout : AdMobConfig.splashTimeout;
 
   /// Progress bar: runs 0 -> 100% in exactly [AdMobConfig.splashTimeout] (9s),
   /// started together with the navigation timer so both end at the same moment.
@@ -47,8 +55,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   /// Starts the splash clock (progress bar + navigation timer).
   void _startClock() {
     if (_timer != null || !mounted) return;
+    _bar.duration = _splashTime;
     _bar.forward();
-    _timer = Timer(AdMobConfig.splashTimeout, () async {
+    _timer = Timer(_splashTime, () async {
       // An ad that is already on screen finishes the splash itself when closed.
       if (_showingAd) return;
       final premium = await _entitlement;
@@ -101,6 +110,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   Future<void> _runStartup() async {
     ref.read(appFlowProvider.notifier).splashShown();
+
+    // Without internet there is nothing to wait for: no consent form, no store
+    // prices, no ad. Show the splash briefly and move on instead of sitting
+    // through the 6 s service window and the 9 s clock.
+    _offline = !await ref
+        .read(internetCheckProvider)()
+        .timeout(const Duration(seconds: 2), onTimeout: () => true)
+        .catchError((_) => true);
+    if (!mounted) return;
+    if (_offline) {
+      // The cached entitlement decides what the app shows; give billing a moment only.
+      await _entitlement.timeout(const Duration(seconds: 1), onTimeout: () => false).catchError((_) => false);
+      if (!mounted) return;
+      _startClock();
+      return;
+    }
 
     // A cached Premium user never loads ads; if billing later proves Premium,
     // everything is purged.

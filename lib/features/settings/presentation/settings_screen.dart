@@ -32,80 +32,99 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: CastAppBar(title: context.l10n.settings),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, navBottomPadding(context)),
+      // The Pro card stays put at the top; only the settings below it scroll.
+      body: Column(
         children: [
-          // Section 2: Hide premium upgrade card for premium users and remove empty space naturally
-          if (showPromo) ...[const _PremiumCard(active: false), const SizedBox(height: AppSpace.xxl)],
-          _GroupTitle(context.l10n.general),
-          _Group(
-            children: [
-              _Tile(
-                icon: Iconsax.language_square_copy,
-                title: context.l10n.language,
-                trailing: _Value(supportedLanguages[s.languageCode]?.$1 ?? context.l10n.english),
-                onTap: () => context.push('/settings/language'),
+          if (showPromo)
+            const Padding(
+              padding: EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, AppSpace.md),
+              child: _PremiumCard(active: false),
+            ),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.fromLTRB(
+                AppSpace.page,
+                showPromo ? 0 : AppSpace.sm,
+                AppSpace.page,
+                navBottomPadding(context),
               ),
-              _Tile(
-                icon: Iconsax.video_horizontal_copy,
-                title: context.l10n.defaultQuality,
-                trailing: _Value(context.tr(s.defaultQuality.label)),
-                onTap: () => _pick<MirrorQuality>(
-                  context,
-                  title: context.l10n.defaultQuality,
-                  values: MirrorQuality.values,
-                  selected: s.defaultQuality,
-                  labelOf: (q) => context.tr(q.label),
-                  onSelected: ctrl.setDefaultQuality,
+              children: [
+                _GroupTitle(context.l10n.general),
+                _Group(
+                  children: [
+                    _Tile(
+                      icon: Iconsax.language_square_copy,
+                      title: context.l10n.language,
+                      trailing: _Value(supportedLanguages[s.languageCode]?.$1 ?? context.l10n.english),
+                      onTap: () => context.push('/settings/language'),
+                    ),
+                    _Tile(
+                      icon: Iconsax.video_horizontal_copy,
+                      title: context.l10n.defaultQuality,
+                      trailing: _Value(context.tr(s.defaultQuality.label)),
+                      onTap: () => _pick<MirrorQuality>(
+                        context,
+                        title: context.l10n.defaultQuality,
+                        values: MirrorQuality.values,
+                        selected: s.defaultQuality,
+                        labelOf: (q) => context.tr(q.label),
+                        onSelected: ctrl.setDefaultQuality,
+                      ),
+                    ),
+                    _Tile(
+                      icon: Iconsax.refresh_copy,
+                      title: context.l10n.autoConnectToLast,
+                      trailing: Switch(value: s.autoConnect, onChanged: ctrl.setAutoConnect),
+                      onTap: () => ctrl.setAutoConnect(!s.autoConnect),
+                    ),
+                  ],
                 ),
-              ),
-              _Tile(
-                icon: Iconsax.refresh_copy,
-                title: context.l10n.autoConnectToLast,
-                trailing: Switch(value: s.autoConnect, onChanged: ctrl.setAutoConnect),
-                onTap: () => ctrl.setAutoConnect(!s.autoConnect),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpace.xxl),
-          _GroupTitle(context.l10n.appearance),
-          SegmentedPills<ThemeMode>(
-            values: const [ThemeMode.system, ThemeMode.light, ThemeMode.dark],
-            selected: s.themeMode,
-            labelOf: (m) => switch (m) {
-              ThemeMode.light => context.l10n.light,
-              ThemeMode.dark => context.l10n.dark,
-              ThemeMode.system => context.l10n.system,
-            },
-            onChanged: ctrl.setThemeMode,
-          ),
-          const SizedBox(height: AppSpace.xxl),
-          _GroupTitle(context.l10n.aboutSupport),
-          _Group(
-            children: [
-              _Tile(
-                icon: Iconsax.message_question_copy,
-                title: context.l10n.howToConnect,
-                onTap: () => context.push('/guide'),
-              ),
-              _Tile(icon: Iconsax.info_circle_copy, title: context.l10n.helpFaq, onTap: () => context.push('/faq')),
-              _Tile(icon: Iconsax.star_1_copy, title: context.l10n.rateApp, onTap: () => showRateDialog(context)),
-              _Tile(
-                icon: Iconsax.message_edit_copy,
-                title: context.l10n.feedback,
-                onTap: () => sendFeedback(context, ref),
-              ),
-              _Tile(
-                icon: Iconsax.shield_tick_copy,
-                title: context.l10n.privacyPolicy,
-                onTap: () => openExternal(context, AppLinks.privacyPolicy),
-              ),
-              _Tile(
-                icon: Iconsax.document_text_copy,
-                title: context.l10n.termsConditions,
-                onTap: () => openExternal(context, AppLinks.terms),
-              ),
-            ],
+                const SizedBox(height: AppSpace.xxl),
+                _GroupTitle(context.l10n.appearance),
+                SegmentedPills<ThemeMode>(
+                  values: const [ThemeMode.system, ThemeMode.light, ThemeMode.dark],
+                  selected: s.themeMode,
+                  labelOf: (m) => switch (m) {
+                    ThemeMode.light => context.l10n.light,
+                    ThemeMode.dark => context.l10n.dark,
+                    ThemeMode.system => context.l10n.system,
+                  },
+                  onChanged: ctrl.setThemeMode,
+                ),
+                const SizedBox(height: AppSpace.xxl),
+                _GroupTitle(context.l10n.aboutSupport),
+                _Group(
+                  children: [
+                    _Tile(
+                      icon: Iconsax.message_question_copy,
+                      title: context.l10n.howToConnect,
+                      onTap: () => context.push('/guide'),
+                    ),
+                    _Tile(
+                      icon: Iconsax.info_circle_copy,
+                      title: context.l10n.helpFaq,
+                      onTap: () => context.push('/faq'),
+                    ),
+                    _Tile(icon: Iconsax.star_1_copy, title: context.l10n.rateApp, onTap: () => showRateDialog(context)),
+                    _Tile(
+                      icon: Iconsax.message_edit_copy,
+                      title: context.l10n.feedback,
+                      onTap: () => sendFeedback(context, ref),
+                    ),
+                    _Tile(
+                      icon: Iconsax.shield_tick_copy,
+                      title: context.l10n.privacyPolicy,
+                      onTap: () => openExternal(context, AppLinks.privacyPolicy),
+                    ),
+                    _Tile(
+                      icon: Iconsax.document_text_copy,
+                      title: context.l10n.termsConditions,
+                      onTap: () => openExternal(context, AppLinks.terms),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),

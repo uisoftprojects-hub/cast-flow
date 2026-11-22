@@ -10,7 +10,8 @@ import '../../features/monetization/domain/ad_suppression.dart';
 abstract final class CastSessionChannel {
   static const _channel = MethodChannel('castflow/cast_session');
 
-  static bool get _android => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  static bool get _android =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
   static bool _askedForNotifications = false;
   static bool _running = false;
@@ -25,7 +26,11 @@ abstract final class CastSessionChannel {
       // Not awaited: the prompt must never delay the cast.
       _askNotifications();
     }
-    _running = await _channel.invokeMethod<bool>('start', {'title': title}).catchError((_) => false) ?? false;
+    _running =
+        await _channel
+            .invokeMethod<bool>('start', {'title': title})
+            .catchError((_) => false) ??
+        false;
   }
 
   static Future<void> stop() async {
@@ -38,7 +43,8 @@ abstract final class CastSessionChannel {
     try {
       final status = await ph.Permission.notification.status;
       // Denied once already, or blocked: don't nag.
-      if (status.isGranted || status.isPermanentlyDenied || status.isRestricted) return;
+      if (status.isGranted || status.isPermanentlyDenied || status.isRestricted)
+        return;
       await AdSuppression.around(() => ph.Permission.notification.request());
     } catch (_) {}
   }

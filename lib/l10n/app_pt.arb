@@ -593,5 +593,6 @@
   "howHotspotWorks": "Como funciona transmitir pelo ponto de acesso?",
   "preparingForTv": "Preparando para sua TV…",
   "convertingForTv": "Convertendo para sua TV… {percent}%",
-  "lookingForTvsOnHotspot": "Procurando TVs no seu ponto de acesso"
+  "lookingForTvsOnHotspot": "Procurando TVs no seu ponto de acesso",
+  "noInternetConnection": "Sem conexão com a internet. Verifique sua conexão e tente novamente."
 }

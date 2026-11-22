@@ -1690,4 +1690,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get lookingForTvsOnHotspot => '핫스팟에서 TV를 찾는 중';
+
+  @override
+  String get noInternetConnection => '인터넷에 연결되어 있지 않습니다. 연결을 확인한 후 다시 시도하세요.';
 }

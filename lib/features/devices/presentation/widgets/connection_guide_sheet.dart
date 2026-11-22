@@ -77,7 +77,7 @@ class ConnectionGuideSheet extends StatelessWidget {
                 body: context.tr(body),
                 visual: visual,
               ),
-            ).animate(delay: (90 * i).ms).fadeIn().slideY(begin: 0.06, end: 0),
+            ),
           GradientButton(label: context.l10n.gotIt, expand: true, onPressed: () => Navigator.of(context).pop()),
         ],
       ),

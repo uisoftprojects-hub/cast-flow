@@ -517,5 +517,6 @@
   "howHotspotWorks": "Hoe werk uitsending oor 'n hotspot?",
   "preparingForTv": "Berei voor vir jou TV…",
   "convertingForTv": "Skakel om vir jou TV… {percent}%",
-  "lookingForTvsOnHotspot": "Soek TV's op jou hotspot"
+  "lookingForTvsOnHotspot": "Soek TV's op jou hotspot",
+  "noInternetConnection": "Geen internetverbinding nie. Gaan jou verbinding na en probeer weer."
 }

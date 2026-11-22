@@ -12,6 +12,9 @@ final networkStatusReaderProvider = Provider<Future<NetworkStatus> Function()>(
       () async => NetworkStatus.fromMap(await NetworkChannel.networkStatus()),
 );
 
+/// Whether the internet is reachable (overridable in tests).
+final internetCheckProvider = Provider<Future<bool> Function()>((ref) => NetworkChannel.hasInternet);
+
 /// Network changes pushed by the platform as they happen (Android:
 /// ConnectivityManager.NetworkCallback + the hotspot state broadcast).
 /// Overridable in tests; empty off Android.
@@ -55,14 +58,9 @@ class NetworkController extends Notifier<NetworkStatus?> {
   }
 
   void _listen() {
-    _events ??= ref
-        .read(networkEventsProvider)
-        .listen(
-          (next) {
-            if (ref.mounted && next != state) state = next;
-          },
-          onError: (Object _) {},
-        );
+    _events ??= ref.read(networkEventsProvider).listen((next) {
+      if (ref.mounted && next != state) state = next;
+    }, onError: (Object _) {});
   }
 
   void _startPolling() {

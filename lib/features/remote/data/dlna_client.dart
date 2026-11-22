@@ -13,7 +13,8 @@ import '../../player/domain/tv_formats.dart';
 /// (RenderingControl) over SOAP. Works for any brand that publishes a
 /// description XML, which is how the control URLs are found.
 class DlnaClient {
-  DlnaClient({http.Client? client, this.timeout = const Duration(seconds: 4)}) : _http = client ?? http.Client();
+  DlnaClient({http.Client? client, this.timeout = const Duration(seconds: 4)})
+    : _http = client ?? http.Client();
 
   final http.Client _http;
   final Duration timeout;
@@ -36,7 +37,9 @@ class DlnaClient {
 
   Future<void> send(CastDevice device, RemoteCommand command) async {
     if (!supported.contains(command)) {
-      throw UnsupportedError('${command.label} isn’t supported by ${device.name}.');
+      throw UnsupportedError(
+        '${command.label} isn’t supported by ${device.name}.',
+      );
     }
     final s = await _servicesFor(device);
     try {
@@ -44,19 +47,34 @@ class DlnaClient {
     } on HttpException {
       // An idle renderer answers transport commands with a SOAP error. Say what
       // the user can do instead of "failed (500)".
-      final idle = const {'', 'STOPPED', 'NO_MEDIA_PRESENT'}.contains(await _transportState(s).catchError((_) => ''));
-      if (idle && command != RemoteCommand.volumeUp && command != RemoteCommand.volumeDown && command != RemoteCommand.mute) {
-        throw UnsupportedError('Nothing is playing on ${device.name} yet. Cast a video, photo or song first.');
+      final idle = const {
+        '',
+        'STOPPED',
+        'NO_MEDIA_PRESENT',
+      }.contains(await _transportState(s).catchError((_) => ''));
+      if (idle &&
+          command != RemoteCommand.volumeUp &&
+          command != RemoteCommand.volumeDown &&
+          command != RemoteCommand.mute) {
+        throw UnsupportedError(
+          'Nothing is playing on ${device.name} yet. Cast a video, photo or song first.',
+        );
       }
       rethrow;
     }
   }
 
-  Future<void> _dispatch(CastDevice device, _Services s, RemoteCommand command) async {
+  Future<void> _dispatch(
+    CastDevice device,
+    _Services s,
+    RemoteCommand command,
+  ) async {
     switch (command) {
       case RemoteCommand.playPause:
         final state = await _transportState(s);
-        await _av(s, state == 'PLAYING' ? 'Pause' : 'Play', {if (state != 'PLAYING') 'Speed': '1'});
+        await _av(s, state == 'PLAYING' ? 'Pause' : 'Play', {
+          if (state != 'PLAYING') 'Speed': '1',
+        });
       case RemoteCommand.next:
         await _av(s, 'Next');
       case RemoteCommand.previous:
@@ -73,7 +91,9 @@ class DlnaClient {
         final muted = (await _rc(s, 'GetMute', {}))['CurrentMute'] == '1';
         await _rc(s, 'SetMute', {'DesiredMute': muted ? '0' : '1'});
       default:
-        throw UnsupportedError('${command.label} isn’t supported by ${device.name}.');
+        throw UnsupportedError(
+          '${command.label} isn’t supported by ${device.name}.',
+        );
     }
   }
 
@@ -107,11 +127,20 @@ class DlnaClient {
 
   /// Points the renderer at [url] and starts playing it.
   /// [mime] and [kind] go into the DIDL-Lite metadata TVs use to pick a decoder.
-  Future<void> load(CastDevice device, {required String url, required String title, required String mime, required String kind}) async {
+  Future<void> load(
+    CastDevice device, {
+    required String url,
+    required String title,
+    required String mime,
+    required String kind,
+  }) async {
     final s = await _servicesFor(device);
     // A previous item must be stopped first on many renderers; failure is fine.
     await _av(s, 'Stop').catchError((_) => <String, String>{});
-    await _av(s, 'SetAVTransportURI', {'CurrentURI': url, 'CurrentURIMetaData': didl(url, title, mime, kind)});
+    await _av(s, 'SetAVTransportURI', {
+      'CurrentURI': url,
+      'CurrentURIMetaData': didl(url, title, mime, kind),
+    });
     try {
       await _av(s, 'Play', {'Speed': '1'});
     } catch (_) {
@@ -121,24 +150,36 @@ class DlnaClient {
     }
   }
 
-  Future<void> play(CastDevice d) async => _av(await _servicesFor(d), 'Play', {'Speed': '1'});
+  Future<void> play(CastDevice d) async =>
+      _av(await _servicesFor(d), 'Play', {'Speed': '1'});
   Future<void> pause(CastDevice d) async => _av(await _servicesFor(d), 'Pause');
   Future<void> stop(CastDevice d) async => _av(await _servicesFor(d), 'Stop');
 
-  Future<void> seekTo(CastDevice d, Duration to) async =>
-      _av(await _servicesFor(d), 'Seek', {'Unit': 'REL_TIME', 'Target': _format(to)});
+  Future<void> seekTo(CastDevice d, Duration to) async => _av(
+    await _servicesFor(d),
+    'Seek',
+    {'Unit': 'REL_TIME', 'Target': _format(to)},
+  );
 
   /// [level] is 0..1.
-  Future<void> setVolumeLevel(CastDevice d, double level) async => _rc(await _servicesFor(d), 'SetVolume', {
-    'DesiredVolume': '${(level * 100).round().clamp(0, 100)}',
-  });
+  Future<void> setVolumeLevel(CastDevice d, double level) async => _rc(
+    await _servicesFor(d),
+    'SetVolume',
+    {'DesiredVolume': '${(level * 100).round().clamp(0, 100)}'},
+  );
 
   /// What the TV is doing right now.
-  Future<({String state, Duration position, Duration length})> status(CastDevice d) async {
+  Future<({String state, Duration position, Duration length})> status(
+    CastDevice d,
+  ) async {
     final s = await _servicesFor(d);
     final state = await _transportState(s);
     final info = await _av(s, 'GetPositionInfo');
-    return (state: state, position: _parse(info['RelTime'] ?? ''), length: _parse(info['TrackDuration'] ?? ''));
+    return (
+      state: state,
+      position: _parse(info['RelTime'] ?? ''),
+      length: _parse(info['TrackDuration'] ?? ''),
+    );
   }
 
   /// DIDL-Lite item describing [url] (unescaped; escaped when put in SOAP).
@@ -164,10 +205,15 @@ class DlnaClient {
     if (cached != null) return cached;
     final location = d.location;
     if (location == null || location.isEmpty) {
-      throw UnsupportedError('${d.name} must be found again (Devices → search) before it can be controlled.');
+      throw UnsupportedError(
+        '${d.name} must be found again (Devices → search) before it can be controlled.',
+      );
     }
     final res = await _http.get(Uri.parse(location)).timeout(timeout);
-    if (res.statusCode != 200) throw HttpException('${d.name} didn’t describe itself (${res.statusCode}).');
+    if (res.statusCode != 200)
+      throw HttpException(
+        '${d.name} didn’t describe itself (${res.statusCode}).',
+      );
     final doc = XmlDocument.parse(res.body);
     final base = doc.findAllElements('URLBase').firstOrNull?.innerText.trim();
     final root = Uri.parse(base == null || base.isEmpty ? location : base);
@@ -186,7 +232,8 @@ class DlnaClient {
     final av = find('AVTransport');
     final rc = find('RenderingControl');
     final cm = find('ConnectionManager');
-    if (av == null && rc == null) throw UnsupportedError('${d.name} exposes no DLNA controls.');
+    if (av == null && rc == null)
+      throw UnsupportedError('${d.name} exposes no DLNA controls.');
     return _services[d.id] = _Services(av, rc, cm);
   }
 
@@ -197,11 +244,16 @@ class DlnaClient {
     String action,
     Map<String, String> args,
   ) async {
-    if (service == null) throw UnsupportedError('The TV doesn’t offer this control.');
+    if (service == null)
+      throw UnsupportedError('The TV doesn’t offer this control.');
     final body = StringBuffer()
       ..write('<?xml version="1.0" encoding="utf-8"?>')
-      ..write('<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" ')
-      ..write('s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body>')
+      ..write(
+        '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" ',
+      )
+      ..write(
+        's:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body>',
+      )
       ..write('<u:$action xmlns:u="${service.type}">');
     args.forEach((k, v) => body.write('<$k>${_esc(v)}</$k>'));
     body.write('</u:$action></s:Body></s:Envelope>');
@@ -209,11 +261,15 @@ class DlnaClient {
     final res = await _http
         .post(
           service.url,
-          headers: {'Content-Type': 'text/xml; charset="utf-8"', 'SOAPACTION': '"${service.type}#$action"'},
+          headers: {
+            'Content-Type': 'text/xml; charset="utf-8"',
+            'SOAPACTION': '"${service.type}#$action"',
+          },
           body: body.toString(),
         )
         .timeout(timeout);
-    if (res.statusCode != 200) throw HttpException('$action failed (${res.statusCode}).');
+    if (res.statusCode != 200)
+      throw HttpException('$action failed (${res.statusCode}).');
     final out = <String, String>{};
     try {
       // Match on the local name: renderers use any namespace prefix (u:, ns0:, none…).
@@ -228,13 +284,27 @@ class DlnaClient {
     return out;
   }
 
-  static String _esc(String v) => v.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  static String _esc(String v) => v
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
 
-  Future<Map<String, String>> _av(_Services s, String action, [Map<String, String> args = const {}]) =>
-      _call(s.av, action, {'InstanceID': '0', ...args});
+  Future<Map<String, String>> _av(
+    _Services s,
+    String action, [
+    Map<String, String> args = const {},
+  ]) => _call(s.av, action, {'InstanceID': '0', ...args});
 
-  Future<Map<String, String>> _rc(_Services s, String action, Map<String, String> args) =>
-      _call(s.rc, action, {'InstanceID': '0', if (action.endsWith('Volume') || action.endsWith('Mute')) 'Channel': 'Master', ...args});
+  Future<Map<String, String>> _rc(
+    _Services s,
+    String action,
+    Map<String, String> args,
+  ) => _call(s.rc, action, {
+    'InstanceID': '0',
+    if (action.endsWith('Volume') || action.endsWith('Mute'))
+      'Channel': 'Master',
+    ...args,
+  });
 
   // ------------------------------------------------------------- helpers
 
@@ -242,15 +312,23 @@ class DlnaClient {
   /// mean "not playing", so Play/Pause must still work.
   Future<String> _transportState(_Services s) async {
     try {
-      return (await _av(s, 'GetTransportInfo'))['CurrentTransportState']?.toUpperCase() ?? '';
+      return (await _av(
+            s,
+            'GetTransportInfo',
+          ))['CurrentTransportState']?.toUpperCase() ??
+          '';
     } on HttpException {
       return 'STOPPED';
     }
   }
 
   Future<void> _stepVolume(_Services s, int delta) async {
-    final now = int.tryParse((await _rc(s, 'GetVolume', {}))['CurrentVolume'] ?? '') ?? 30;
-    await _rc(s, 'SetVolume', {'DesiredVolume': '${(now + delta).clamp(0, 100)}'});
+    final now =
+        int.tryParse((await _rc(s, 'GetVolume', {}))['CurrentVolume'] ?? '') ??
+        30;
+    await _rc(s, 'SetVolume', {
+      'DesiredVolume': '${(now + delta).clamp(0, 100)}',
+    });
   }
 
   Future<void> _seekBy(_Services s, Duration delta) async {
@@ -267,7 +345,11 @@ class DlnaClient {
     final p = t.split(':');
     if (p.length != 3) return Duration.zero;
     final sec = double.tryParse(p[2]) ?? 0;
-    return Duration(hours: int.tryParse(p[0]) ?? 0, minutes: int.tryParse(p[1]) ?? 0, seconds: sec.floor());
+    return Duration(
+      hours: int.tryParse(p[0]) ?? 0,
+      minutes: int.tryParse(p[1]) ?? 0,
+      seconds: sec.floor(),
+    );
   }
 
   static String _format(Duration d) {

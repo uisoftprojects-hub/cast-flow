@@ -16,8 +16,10 @@ import 'protocol_prober.dart';
 ///   (Samsung, LG, Fire TV, Android TV…).
 /// - mDNS: Google Cast devices and Android TVs.
 class NetworkDeviceRepository implements DeviceRepository {
-  NetworkDeviceRepository({this.scanTime = const Duration(seconds: 8), ProtocolProber? prober})
-    : _prober = prober ?? ProtocolProber();
+  NetworkDeviceRepository({
+    this.scanTime = const Duration(seconds: 8),
+    ProtocolProber? prober,
+  }) : _prober = prober ?? ProtocolProber();
 
   final Duration scanTime;
   final ProtocolProber _prober;
@@ -55,7 +57,9 @@ class NetworkDeviceRepository implements DeviceRepository {
     // no TV ever hears the search. On the phone's own hotspot that LAN is the
     // AP interface (ap0 / swlan0 / wlan1...), not wlan0, and the hotspot
     // subnet is also probed directly because many phones filter multicast there.
-    final hotspotIp = network?.mode == NetworkMode.hotspot ? network?.hotspotIp : null;
+    final hotspotIp = network?.mode == NetworkMode.hotspot
+        ? network?.hotspotIp
+        : null;
     final lanIp = network?.discoveryAddress?.ip ?? hotspotIp;
     unidentifiedClients = 0;
     final found = <String, CastDevice>{};
@@ -64,7 +68,9 @@ class NetworkDeviceRepository implements DeviceRepository {
       final existing = found[d.address];
       // Prefer the more specific type (e.g. Roku over generic DLNA).
       if (existing == null || existing.type == DeviceType.dlna) {
-        found[d.address] = d.copyWith(location: d.location ?? existing?.location);
+        found[d.address] = d.copyWith(
+          location: d.location ?? existing?.location,
+        );
         if (!out.isClosed) out.add(List.unmodifiable(found.values));
       } else if (existing.location == null && d.location != null) {
         // Keep the UPnP description URL: the DLNA backend needs it even when
@@ -83,7 +89,11 @@ class NetworkDeviceRepository implements DeviceRepository {
       await NetworkChannel.acquireMulticastLock();
       try {
         await Future.wait([
-          _ssdp(add, bindTo: hotspotIp, multicastFrom: lanIp).catchError((_) {}),
+          _ssdp(
+            add,
+            bindTo: hotspotIp,
+            multicastFrom: lanIp,
+          ).catchError((_) {}),
           _mdns(add, interfaceIp: lanIp).catchError((_) {}),
           if (hotspotIp != null) _scanSubnet(hotspotIp, add).catchError((_) {}),
         ]).timeout(scanTime + const Duration(seconds: 4), onTimeout: () => []);
@@ -100,8 +110,12 @@ class NetworkDeviceRepository implements DeviceRepository {
 
   Future<bool> _onWifi() async {
     try {
-      final ifaces = await NetworkInterface.list(type: InternetAddressType.IPv4);
-      return ifaces.any((i) => i.addresses.any((a) => !a.isLoopback && a.isPrivateLan));
+      final ifaces = await NetworkInterface.list(
+        type: InternetAddressType.IPv4,
+      );
+      return ifaces.any(
+        (i) => i.addresses.any((a) => !a.isLoopback && a.isPrivateLan),
+      );
     } catch (_) {
       return false;
     }
@@ -109,8 +123,15 @@ class NetworkDeviceRepository implements DeviceRepository {
 
   // ------------------------------------------------------------------ SSDP
 
-  Future<void> _ssdp(void Function(CastDevice) add, {String? bindTo, String? multicastFrom}) async {
-    final socket = await RawDatagramSocket.bind(bindTo != null ? InternetAddress(bindTo) : InternetAddress.anyIPv4, 0);
+  Future<void> _ssdp(
+    void Function(CastDevice) add, {
+    String? bindTo,
+    String? multicastFrom,
+  }) async {
+    final socket = await RawDatagramSocket.bind(
+      bindTo != null ? InternetAddress(bindTo) : InternetAddress.anyIPv4,
+      0,
+    );
     socket.multicastHops = 4;
     if (multicastFrom != null) pinMulticastInterface(socket, multicastFrom);
     final seen = <String>{};
@@ -154,18 +175,27 @@ class NetworkDeviceRepository implements DeviceRepository {
     final map = <String, String>{};
     for (final line in const LineSplitter().convert(response)) {
       final i = line.indexOf(':');
-      if (i > 0) map[line.substring(0, i).trim().toLowerCase()] = line.substring(i + 1).trim();
+      if (i > 0)
+        map[line.substring(0, i).trim().toLowerCase()] = line
+            .substring(i + 1)
+            .trim();
     }
     return map;
   }
 
   /// Reads the UPnP description to get the TV's real name and brand.
-  Future<CastDevice?> _describe(String location, Map<String, String> headers) async {
+  Future<CastDevice?> _describe(
+    String location,
+    Map<String, String> headers,
+  ) async {
     final uri = Uri.parse(location);
     final res = await http.get(uri).timeout(const Duration(seconds: 3));
     if (res.statusCode != 200) return null;
-    final doc = XmlDocument.parse(utf8.decode(res.bodyBytes, allowMalformed: true));
-    String text(String tag) => doc.findAllElements(tag).firstOrNull?.innerText.trim() ?? '';
+    final doc = XmlDocument.parse(
+      utf8.decode(res.bodyBytes, allowMalformed: true),
+    );
+    String text(String tag) =>
+        doc.findAllElements(tag).firstOrNull?.innerText.trim() ?? '';
 
     final name = text('friendlyName');
     final manufacturer = text('manufacturer');
@@ -174,7 +204,9 @@ class NetworkDeviceRepository implements DeviceRepository {
     final udn = text('UDN');
     final st = headers['st'] ?? '';
     final m = manufacturer.toLowerCase();
-    final hasAvTransport = doc.findAllElements('serviceType').any((e) => e.innerText.contains(':AVTransport:'));
+    final hasAvTransport = doc
+        .findAllElements('serviceType')
+        .any((e) => e.innerText.contains(':AVTransport:'));
 
     final DeviceType type;
     if (st.contains('roku') || m.contains('roku')) {
@@ -225,19 +257,37 @@ class NetworkDeviceRepository implements DeviceRepository {
       final addr = InternetAddress.tryParse(ip);
       if (addr == null || addr.type != InternetAddressType.IPv4) return;
       socket.setRawOption(
-        RawSocketOption(RawSocketOption.levelIPv4, RawSocketOption.IPv4MulticastInterface, addr.rawAddress),
+        RawSocketOption(
+          RawSocketOption.levelIPv4,
+          RawSocketOption.IPv4MulticastInterface,
+          addr.rawAddress,
+        ),
       );
     } catch (_) {}
   }
 
   // ------------------------------------------------------------------ mDNS
 
-  Future<void> _mdns(void Function(CastDevice) add, {String? interfaceIp}) async {
+  Future<void> _mdns(
+    void Function(CastDevice) add, {
+    String? interfaceIp,
+  }) async {
     final client = MDnsClient(
       // Android doesn't support SO_REUSEPORT on these sockets.
       rawDatagramSocketFactory:
-          (dynamic host, int port, {bool reuseAddress = true, bool reusePort = false, int ttl = 1}) =>
-              RawDatagramSocket.bind(host, port, reuseAddress: true, reusePort: false, ttl: ttl),
+          (
+            dynamic host,
+            int port, {
+            bool reuseAddress = true,
+            bool reusePort = false,
+            int ttl = 1,
+          }) => RawDatagramSocket.bind(
+            host,
+            port,
+            reuseAddress: true,
+            reusePort: false,
+            ttl: ttl,
+          ),
     );
     await client.start(
       // Query only on the LAN interface (Wi-Fi or the hotspot's AP), never on
@@ -245,8 +295,14 @@ class NetworkDeviceRepository implements DeviceRepository {
       interfacesFactory: interfaceIp == null
           ? null
           : (type) async {
-              final all = await NetworkInterface.list(type: InternetAddressType.IPv4);
-              final lan = all.where((i) => i.addresses.any((a) => a.address == interfaceIp)).toList();
+              final all = await NetworkInterface.list(
+                type: InternetAddressType.IPv4,
+              );
+              final lan = all
+                  .where(
+                    (i) => i.addresses.any((a) => a.address == interfaceIp),
+                  )
+                  .toList();
               return lan.isEmpty ? all : lan;
             },
     );
@@ -260,21 +316,30 @@ class NetworkDeviceRepository implements DeviceRepository {
             .toList();
         for (final ptr in ptrs) {
           final srv = await client
-              .lookup<SrvResourceRecord>(ResourceRecordQuery.service(ptr.domainName))
+              .lookup<SrvResourceRecord>(
+                ResourceRecordQuery.service(ptr.domainName),
+              )
               .first
               .timeout(const Duration(seconds: 2));
           final txt = await client
-              .lookup<TxtResourceRecord>(ResourceRecordQuery.text(ptr.domainName))
+              .lookup<TxtResourceRecord>(
+                ResourceRecordQuery.text(ptr.domainName),
+              )
               .toList()
               .timeout(const Duration(seconds: 2), onTimeout: () => []);
           final ip = await client
-              .lookup<IPAddressResourceRecord>(ResourceRecordQuery.addressIPv4(srv.target))
+              .lookup<IPAddressResourceRecord>(
+                ResourceRecordQuery.addressIPv4(srv.target),
+              )
               .first
               .timeout(const Duration(seconds: 2));
           final props = <String, String>{
             for (final r in txt)
               for (final line in r.text.split('\n'))
-                if (line.contains('=')) line.substring(0, line.indexOf('=')): line.substring(line.indexOf('=') + 1),
+                if (line.contains('='))
+                  line.substring(0, line.indexOf('=')): line.substring(
+                    line.indexOf('=') + 1,
+                  ),
           };
           final label = ptr.domainName.split('._').first;
           add(
@@ -319,12 +384,17 @@ class NetworkDeviceRepository implements DeviceRepository {
     final results = await Future.wait(
       _tvPorts.map((port) async {
         try {
-          final s = await Socket.connect(host, port, timeout: const Duration(milliseconds: 400));
+          final s = await Socket.connect(
+            host,
+            port,
+            timeout: const Duration(milliseconds: 400),
+          );
           s.destroy();
           return true;
         } on SocketException catch (e) {
           // "Connection refused" means a device is there, just not on this port.
-          if (e.osError?.errorCode == 111 || e.osError?.errorCode == 10061) alive = true;
+          if (e.osError?.errorCode == 111 || e.osError?.errorCode == 10061)
+            alive = true;
           return false;
         }
       }),
@@ -341,16 +411,26 @@ class NetworkDeviceRepository implements DeviceRepository {
 
   Future<CastDevice?> _identify(String host, int port) async {
     Future<String?> get(String path) async {
-      final r = await http.get(Uri.parse('http://$host:$port$path')).timeout(const Duration(seconds: 2));
-      return r.statusCode == 200 ? utf8.decode(r.bodyBytes, allowMalformed: true) : null;
+      final r = await http
+          .get(Uri.parse('http://$host:$port$path'))
+          .timeout(const Duration(seconds: 2));
+      return r.statusCode == 200
+          ? utf8.decode(r.bodyBytes, allowMalformed: true)
+          : null;
     }
 
-    String? xmlTag(String? body, String tag) =>
-        body == null ? null : XmlDocument.parse(body).findAllElements(tag).firstOrNull?.innerText.trim();
+    String? xmlTag(String? body, String tag) => body == null
+        ? null
+        : XmlDocument.parse(
+            body,
+          ).findAllElements(tag).firstOrNull?.innerText.trim();
 
     switch (port) {
       case 8008:
-        final name = xmlTag(await get('/ssdp/device-desc.xml').catchError((_) => null), 'friendlyName');
+        final name = xmlTag(
+          await get('/ssdp/device-desc.xml').catchError((_) => null),
+          'friendlyName',
+        );
         return CastDevice(
           id: 'cast-$host',
           name: name ?? 'Chromecast',
@@ -360,13 +440,23 @@ class NetworkDeviceRepository implements DeviceRepository {
         );
       case 8060:
         final info = await get('/query/device-info').catchError((_) => null);
-        final name = xmlTag(info, 'user-device-name') ?? xmlTag(info, 'friendly-device-name');
-        return CastDevice(id: 'roku-$host', name: name ?? 'Roku', type: DeviceType.roku, address: host, port: 8060);
+        final name =
+            xmlTag(info, 'user-device-name') ??
+            xmlTag(info, 'friendly-device-name');
+        return CastDevice(
+          id: 'roku-$host',
+          name: name ?? 'Roku',
+          type: DeviceType.roku,
+          address: host,
+          port: 8060,
+        );
       case 8001:
         final body = await get('/api/v2/').catchError((_) => null);
         String? name;
         try {
-          name = ((jsonDecode(body ?? '{}') as Map)['device'] as Map?)?['name'] as String?;
+          name =
+              ((jsonDecode(body ?? '{}') as Map)['device'] as Map?)?['name']
+                  as String?;
         } catch (_) {}
         return CastDevice(
           id: 'samsung-$host',
@@ -376,9 +466,21 @@ class NetworkDeviceRepository implements DeviceRepository {
           port: 8001,
         );
       case 3000:
-        return CastDevice(id: 'lg-$host', name: 'LG TV', type: DeviceType.smartTv, address: host, port: 3000);
+        return CastDevice(
+          id: 'lg-$host',
+          name: 'LG TV',
+          type: DeviceType.smartTv,
+          address: host,
+          port: 3000,
+        );
       default:
-        return CastDevice(id: 'tv-$host', name: 'TV ($host)', type: DeviceType.dlna, address: host, port: port);
+        return CastDevice(
+          id: 'tv-$host',
+          name: 'TV ($host)',
+          type: DeviceType.dlna,
+          address: host,
+          port: port,
+        );
     }
   }
 
@@ -402,10 +504,16 @@ class NetworkDeviceRepository implements DeviceRepository {
           _ => 80,
         };
     try {
-      final s = await Socket.connect(device.address, port, timeout: const Duration(seconds: 4));
+      final s = await Socket.connect(
+        device.address,
+        port,
+        timeout: const Duration(seconds: 4),
+      );
       s.destroy();
     } catch (_) {
-      throw SocketException('${device.name} isn’t reachable. Make sure it’s on and on the same Wi-Fi.');
+      throw SocketException(
+        '${device.name} isn’t reachable. Make sure it’s on and on the same Wi-Fi.',
+      );
     }
   }
 
@@ -416,6 +524,9 @@ class NetworkDeviceRepository implements DeviceRepository {
 extension on InternetAddress {
   bool get isPrivateLan {
     final b = rawAddress;
-    return b.length == 4 && (b[0] == 10 || (b[0] == 172 && b[1] >= 16 && b[1] <= 31) || (b[0] == 192 && b[1] == 168));
+    return b.length == 4 &&
+        (b[0] == 10 ||
+            (b[0] == 172 && b[1] >= 16 && b[1] <= 31) ||
+            (b[0] == 192 && b[1] == 168));
   }
 }

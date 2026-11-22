@@ -593,5 +593,6 @@
   "howHotspotWorks": "Bagaimana cara transmisi lewat hotspot?",
   "preparingForTv": "Menyiapkan untuk TV Anda…",
   "convertingForTv": "Mengonversi untuk TV Anda… {percent}%",
-  "lookingForTvsOnHotspot": "Mencari TV di hotspot Anda"
+  "lookingForTvsOnHotspot": "Mencari TV di hotspot Anda",
+  "noInternetConnection": "Tidak ada koneksi internet. Periksa koneksi Anda dan coba lagi."
 }

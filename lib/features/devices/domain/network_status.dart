@@ -52,6 +52,7 @@ class NetworkStatus {
     this.wifiInterface,
     this.wifiPrefix,
     this.vpn = false,
+    this.internet = true,
   });
 
   final bool wifi;
@@ -70,6 +71,10 @@ class NetworkStatus {
 
   /// A VPN is on (it usually hides TVs from the phone).
   final bool vpn;
+
+  /// The phone can reach the internet (store, ads), by any network. Unknown
+  /// platforms report true.
+  final bool internet;
 
   bool get ready => wifi || hotspot;
 
@@ -109,6 +114,7 @@ class NetworkStatus {
     wifiInterface: m['wifiInterface'] as String?,
     wifiPrefix: (m['wifiPrefix'] as num?)?.toInt(),
     vpn: m['vpn'] == true,
+    internet: m['internet'] != false,
   );
 
   @override
@@ -121,8 +127,10 @@ class NetworkStatus {
       other.hotspotPrefix == hotspotPrefix &&
       other.wifiIp == wifiIp &&
       other.wifiPrefix == wifiPrefix &&
-      other.vpn == vpn;
+      other.vpn == vpn &&
+      other.internet == internet;
 
   @override
-  int get hashCode => Object.hash(wifi, hotspot, hotspotIp, hotspotInterface, hotspotPrefix, wifiIp, wifiPrefix, vpn);
+  int get hashCode =>
+      Object.hash(wifi, hotspot, hotspotIp, hotspotInterface, hotspotPrefix, wifiIp, wifiPrefix, vpn, internet);
 }

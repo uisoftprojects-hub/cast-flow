@@ -472,7 +472,12 @@ class PreparingForTv extends StatelessWidget {
     final pct = progress == null ? null : (progress! * 100).round().clamp(0, 100);
     final label = pct == null ? l.preparingForTv : l.convertingForTv(pct);
     if (compact) {
-      return Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.bodySmall?.copyWith(color: p.primary));
+      return Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: context.text.bodySmall?.copyWith(color: p.primary),
+      );
     }
     return Semantics(
       liveRegion: true,
@@ -484,7 +489,9 @@ class PreparingForTv extends StatelessWidget {
             children: [
               SizedBox.square(dimension: 14, child: CircularProgressIndicator(strokeWidth: 2, color: p.primary)),
               const SizedBox(width: 8),
-              Flexible(child: Text(label, style: context.text.labelMedium?.copyWith(color: p.primary))),
+              Flexible(
+                child: Text(label, style: context.text.labelMedium?.copyWith(color: p.primary)),
+              ),
             ],
           ),
           const SizedBox(height: 6),

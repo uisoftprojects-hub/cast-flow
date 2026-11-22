@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -124,7 +123,7 @@ class NoDevicesContent extends StatelessWidget {
           style: context.text.bodySmall?.copyWith(fontSize: 12.5),
         ),
         const SizedBox(height: AppSpace.md),
-        for (final (i, (_, title, body)) in _checks.indexed)
+        for (final (_, title, body) in _checks)
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
             child: Row(
@@ -155,7 +154,7 @@ class NoDevicesContent extends StatelessWidget {
                 ),
               ],
             ),
-          ).animate(delay: (80 * i).ms).fadeIn(duration: 300.ms),
+          ),
       ],
     );
   }

@@ -11,7 +11,8 @@ class TvFormats {
 
   /// Parses the comma-separated Sink value.
   factory TvFormats.parse(String sink) => TvFormats([
-    for (final e in sink.split(',')) if (e.trim().isNotEmpty) e.trim(),
+    for (final e in sink.split(','))
+      if (e.trim().isNotEmpty) e.trim(),
   ]);
 
   final List<String> entries;
@@ -22,7 +23,8 @@ class TvFormats {
   Iterable<String> get _mimes sync* {
     for (final e in entries) {
       final parts = e.split(':');
-      if (parts.length >= 3 && parts[0].toLowerCase().startsWith('http')) yield parts[2].trim().toLowerCase();
+      if (parts.length >= 3 && parts[0].toLowerCase().startsWith('http'))
+        yield parts[2].trim().toLowerCase();
     }
   }
 
@@ -31,7 +33,11 @@ class TvFormats {
     final m = mime.toLowerCase();
     final family = m.split('/').first;
     for (final listed in _mimes) {
-      if (listed == m || listed == '*' || listed == '*/*' || listed == '$family/*') return true;
+      if (listed == m ||
+          listed == '*' ||
+          listed == '*/*' ||
+          listed == '$family/*')
+        return true;
       // Common aliases renderers use for the same container.
       if (_aliases[m]?.contains(listed) ?? false) return true;
     }
@@ -39,7 +45,8 @@ class TvFormats {
   }
 
   /// Whether any entry mentions [token] (a DLNA profile such as "HEVC").
-  bool mentions(String token) => entries.any((e) => e.toUpperCase().contains(token.toUpperCase()));
+  bool mentions(String token) =>
+      entries.any((e) => e.toUpperCase().contains(token.toUpperCase()));
 
   static const _aliases = {
     'video/x-matroska': {'video/x-mkv', 'video/mkv'},
@@ -107,7 +114,8 @@ Conversion conversionFor({
       final video = probe?.videoCodec?.toLowerCase();
       if (video != null) {
         final needs = switch (video) {
-          'video/hevc' => !formats.mentions('HEVC') && !formats.mentions('H265'),
+          'video/hevc' =>
+            !formats.mentions('HEVC') && !formats.mentions('H265'),
           'video/x-vnd.on2.vp9' => !formats.mentions('VP9'),
           'video/x-vnd.on2.vp8' => !formats.mentions('VP8'),
           'video/av01' => !formats.mentions('AV1'),

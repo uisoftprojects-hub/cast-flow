@@ -120,7 +120,16 @@ class NetworkMonitor(
             "hotspotIp" to ap?.ip,
             "hotspotPrefix" to ap?.prefix,
             "vpn" to isVpnActive(),
+            "internet" to hasInternet(),
         )
+    }
+
+    /** The default network reaches the internet (Wi-Fi, mobile data or hotspot upstream), validated by Android. */
+    private fun hasInternet(): Boolean {
+        val net = connectivity.activeNetwork ?: return false
+        val caps = connectivity.getNetworkCapabilities(net) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
     }
 
     /** True when any connected network uses the Wi-Fi transport. */

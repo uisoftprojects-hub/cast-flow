@@ -593,5 +593,6 @@
   "howHotspotWorks": "핫스팟으로 전송은 어떻게 하나요?",
   "preparingForTv": "TV용으로 준비 중…",
   "convertingForTv": "TV용으로 변환 중… {percent}%",
-  "lookingForTvsOnHotspot": "핫스팟에서 TV를 찾는 중"
+  "lookingForTvsOnHotspot": "핫스팟에서 TV를 찾는 중",
+  "noInternetConnection": "인터넷에 연결되어 있지 않습니다. 연결을 확인한 후 다시 시도하세요."
 }

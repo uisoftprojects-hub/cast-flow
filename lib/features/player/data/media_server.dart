@@ -18,8 +18,10 @@ import '../../devices/domain/network_status.dart';
 /// phone, and the phone fetches the page's video with the page's headers.
 /// HLS playlists are rewritten so their segments go through the phone too.
 class MediaServer {
-  MediaServer({http.Client? client, this.preferredPorts = const [8765, 8766, 8767, 8768, 8769]})
-    : _client = client ?? http.Client();
+  MediaServer({
+    http.Client? client,
+    this.preferredPorts = const [8765, 8766, 8767, 8768, 8769],
+  }) : _client = client ?? http.Client();
 
   final http.Client _client;
 
@@ -79,7 +81,9 @@ class MediaServer {
 
   static bool isPlaylistMime(String mime) {
     final m = mime.toLowerCase();
-    return m == 'application/vnd.apple.mpegurl' || m == 'application/x-mpegurl' || m == 'audio/mpegurl';
+    return m == 'application/vnd.apple.mpegurl' ||
+        m == 'application/x-mpegurl' ||
+        m == 'audio/mpegurl';
   }
 
   /// This phone's LAN address as the TV at [tvHost] can reach it.
@@ -91,26 +95,36 @@ class MediaServer {
   /// interface list where the platform reports nothing (tests, desktop).
   static Future<String?> lanIpFor(String tvHost) async {
     try {
-      final status = NetworkStatus.fromMap(await NetworkChannel.networkStatus());
+      final status = NetworkStatus.fromMap(
+        await NetworkChannel.networkStatus(),
+      );
       final ip = status.addressFor(tvHost);
       if (ip != null) return ip;
     } catch (_) {}
     try {
-      final ifaces = await NetworkInterface.list(type: InternetAddressType.IPv4);
+      final ifaces = await NetworkInterface.list(
+        type: InternetAddressType.IPv4,
+      );
       return pickLanAddress(tvHost, [
         for (final i in ifaces)
-          for (final a in i.addresses.where((a) => !a.isLoopback)) (iface: i.name, ip: a.address),
+          for (final a in i.addresses.where((a) => !a.isLoopback))
+            (iface: i.name, ip: a.address),
       ]);
     } catch (_) {}
     return null;
   }
 
   /// Interfaces that never reach a TV on the LAN.
-  static final _notLan = RegExp(r'^(rmnet|r_rmnet|ccmni|pdp|tun|ppp|ipsec|dummy|clat|v4-|utun|wwan)');
+  static final _notLan = RegExp(
+    r'^(rmnet|r_rmnet|ccmni|pdp|tun|ppp|ipsec|dummy|clat|v4-|utun|wwan)',
+  );
 
   /// Picks our address for [tvHost] from [addresses]: the one on the TV's
   /// /24, otherwise the first private address on a LAN-type interface.
-  static String? pickLanAddress(String tvHost, List<({String iface, String ip})> addresses) {
+  static String? pickLanAddress(
+    String tvHost,
+    List<({String iface, String ip})> addresses,
+  ) {
     final lan = addresses.where((a) => !_notLan.hasMatch(a.iface)).toList();
     final prefix = tvHost.split('.').take(3).join('.');
     for (final a in lan) {
@@ -125,22 +139,51 @@ class MediaServer {
   static bool _isPrivate(String a) {
     final p = a.split('.').map(int.tryParse).toList();
     if (p.length != 4 || p.contains(null)) return false;
-    return p[0] == 10 || (p[0] == 172 && p[1]! >= 16 && p[1]! <= 31) || (p[0] == 192 && p[1] == 168);
+    return p[0] == 10 ||
+        (p[0] == 172 && p[1]! >= 16 && p[1]! <= 31) ||
+        (p[0] == 192 && p[1] == 168);
   }
 
   /// Makes a local file reachable and returns the URL the TV should open.
-  Future<Uri> publishFile(String path, {required String host, String? mime}) async {
+  Future<Uri> publishFile(
+    String path, {
+    required String host,
+    String? mime,
+  }) async {
     final file = File(path);
-    if (!await file.exists()) throw FileSystemException('The file is no longer available.', path);
+    if (!await file.exists())
+      throw FileSystemException('The file is no longer available.', path);
     final name = path.split(RegExp(r'[\\/]')).last;
-    return _publish(_Entry(file: file, mime: mime ?? mimeFor(name, fallback: 'application/octet-stream')), name, host);
+    return _publish(
+      _Entry(
+        file: file,
+        mime: mime ?? mimeFor(name, fallback: 'application/octet-stream'),
+      ),
+      name,
+      host,
+    );
   }
 
   /// Makes a web URL reachable through this phone, so request headers the
   /// page needs (Referer, Cookie, User-Agent) are attached for the TV.
-  Future<Uri> publishProxy(String url, Map<String, String> headers, {required String host, String? mime}) {
-    final name = Uri.parse(url).pathSegments.lastWhere((s) => s.isNotEmpty, orElse: () => 'media');
-    return _publish(_Entry(url: url, headers: headers, mime: mime ?? mimeFor(url, fallback: 'video/mp4')), name, host);
+  Future<Uri> publishProxy(
+    String url,
+    Map<String, String> headers, {
+    required String host,
+    String? mime,
+  }) {
+    final name = Uri.parse(
+      url,
+    ).pathSegments.lastWhere((s) => s.isNotEmpty, orElse: () => 'media');
+    return _publish(
+      _Entry(
+        url: url,
+        headers: headers,
+        mime: mime ?? mimeFor(url, fallback: 'video/mp4'),
+      ),
+      name,
+      host,
+    );
   }
 
   /// Forgets every published item (the cast session ended) and stops the
@@ -149,10 +192,18 @@ class MediaServer {
 
   Future<Uri> _publish(_Entry entry, String name, String host) async {
     final server = await _ensureStarted();
-    final token = List.generate(16, (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0')).join();
+    final token = List.generate(
+      16,
+      (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+    ).join();
     _entries[token] = entry;
     // The file name's extension helps TVs choose a decoder.
-    return Uri(scheme: 'http', host: host, port: server.port, pathSegments: ['m', token, name]);
+    return Uri(
+      scheme: 'http',
+      host: host,
+      port: server.port,
+      pathSegments: ['m', token, name],
+    );
   }
 
   /// One server at a time; a server that died (closed by the OS, a network
@@ -206,8 +257,14 @@ class MediaServer {
     res.headers
       ..set('Access-Control-Allow-Origin', '*')
       ..set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS')
-      ..set('Access-Control-Allow-Headers', 'Range, Content-Type, Origin, Accept')
-      ..set('Access-Control-Expose-Headers', 'Content-Length, Content-Range, Accept-Ranges, Content-Type');
+      ..set(
+        'Access-Control-Allow-Headers',
+        'Range, Content-Type, Origin, Accept',
+      )
+      ..set(
+        'Access-Control-Expose-Headers',
+        'Content-Length, Content-Range, Accept-Ranges, Content-Type',
+      );
   }
 
   Future<void> _handle(HttpRequest req) async {
@@ -253,7 +310,10 @@ class MediaServer {
   void _dlnaHeaders(HttpResponse res, String mime, {bool seekable = true}) {
     res.headers
       ..set('Accept-Ranges', seekable ? 'bytes' : 'none')
-      ..set('transferMode.dlna.org', mime.startsWith('image/') ? 'Interactive' : 'Streaming')
+      ..set(
+        'transferMode.dlna.org',
+        mime.startsWith('image/') ? 'Interactive' : 'Streaming',
+      )
       ..set(
         'contentFeatures.dlna.org',
         'DLNA.ORG_OP=${seekable ? '01' : '00'};DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000',
@@ -289,7 +349,11 @@ class MediaServer {
     }
     _dlnaHeaders(res, e.mime);
     res.statusCode = partial ? HttpStatus.partialContent : HttpStatus.ok;
-    if (partial) res.headers.set(HttpHeaders.contentRangeHeader, 'bytes $start-$end/$length');
+    if (partial)
+      res.headers.set(
+        HttpHeaders.contentRangeHeader,
+        'bytes $start-$end/$length',
+      );
     res.contentLength = end - start + 1;
     if (req.method == 'HEAD') {
       await res.close();
@@ -302,7 +366,12 @@ class MediaServer {
   /// Opens [url] upstream with the page's headers. One retry on a dropped
   /// connection: a TV that reconnects (seek, buffer) shouldn't fail because
   /// the first attempt hit a stale keep-alive socket.
-  Future<http.StreamedResponse> _fetch(String method, String url, Map<String, String> headers, String? range) async {
+  Future<http.StreamedResponse> _fetch(
+    String method,
+    String url,
+    Map<String, String> headers,
+    String? range,
+  ) async {
     Object? last;
     for (var attempt = 0; attempt < 2; attempt++) {
       final upstream = http.Request(method, Uri.parse(url))
@@ -312,7 +381,9 @@ class MediaServer {
         ..headers['Accept-Encoding'] = 'identity';
       if (range != null) upstream.headers['Range'] = range;
       try {
-        return await _client.send(upstream).timeout(const Duration(seconds: 20));
+        return await _client
+            .send(upstream)
+            .timeout(const Duration(seconds: 20));
       } on TimeoutException {
         rethrow;
       } catch (e) {
@@ -322,11 +393,20 @@ class MediaServer {
     throw last!;
   }
 
-  Future<void> _serveProxy(HttpRequest req, _Entry e, String url, String token) async {
+  Future<void> _serveProxy(
+    HttpRequest req,
+    _Entry e,
+    String url,
+    String token,
+  ) async {
     final res = req.response;
     final range = req.headers.value(HttpHeaders.rangeHeader);
     final r = await _fetch(req.method, url, e.headers, range);
-    final upstreamType = r.headers['content-type']?.split(';').first.trim().toLowerCase();
+    final upstreamType = r.headers['content-type']
+        ?.split(';')
+        .first
+        .trim()
+        .toLowerCase();
     final mime = _bestMime(upstreamType, url, url == e.url ? e.mime : null);
 
     if (isPlaylistMime(mime) && r.statusCode < 300) {
@@ -352,7 +432,13 @@ class MediaServer {
   /// The upstream's own media type when it says something useful, else the
   /// published one, else a guess from the URL.
   static String _bestMime(String? upstream, String url, String? published) {
-    const vague = {'application/octet-stream', 'binary/octet-stream', 'text/plain', 'text/html', ''};
+    const vague = {
+      'application/octet-stream',
+      'binary/octet-stream',
+      'text/plain',
+      'text/html',
+      '',
+    };
     if (upstream != null && !vague.contains(upstream)) return upstream;
     final byUrl = mimeFor(url, fallback: '');
     if (byUrl.isNotEmpty) return byUrl;
@@ -363,18 +449,27 @@ class MediaServer {
   /// init maps, alternate renditions) points back at this server under the
   /// same token: segments then get the page's headers too, and relative URIs
   /// no longer resolve against the phone's URL (which used to 404).
-  Future<void> _servePlaylist(HttpRequest req, http.StreamedResponse r, String url, String token, String mime) async {
+  Future<void> _servePlaylist(
+    HttpRequest req,
+    http.StreamedResponse r,
+    String url,
+    String token,
+    String mime,
+  ) async {
     final res = req.response;
     final bytes = <int>[];
     await for (final chunk in r.stream) {
       bytes.addAll(chunk);
-      if (bytes.length > _maxPlaylistBytes) throw const HttpException('Playlist too large');
+      if (bytes.length > _maxPlaylistBytes)
+        throw const HttpException('Playlist too large');
     }
     final base = Uri.parse(url);
     final origin = req.requestedUri;
     String proxied(String ref) {
       final abs = base.resolve(ref.trim()).toString();
-      final name = Uri.parse(abs).pathSegments.lastWhere((s) => s.isNotEmpty, orElse: () => 'media');
+      final name = Uri.parse(
+        abs,
+      ).pathSegments.lastWhere((s) => s.isNotEmpty, orElse: () => 'media');
       return Uri(
         scheme: 'http',
         host: origin.host,
@@ -383,7 +478,10 @@ class MediaServer {
       ).toString();
     }
 
-    final text = rewritePlaylist(utf8.decode(bytes, allowMalformed: true), proxied);
+    final text = rewritePlaylist(
+      utf8.decode(bytes, allowMalformed: true),
+      proxied,
+    );
     final body = utf8.encode(text);
     res.statusCode = HttpStatus.ok;
     res.headers
@@ -396,7 +494,10 @@ class MediaServer {
 
   /// Applies [map] to every URI of an M3U8 playlist: plain URI lines and
   /// URI="..." attributes of tags (EXT-X-KEY, EXT-X-MAP, EXT-X-MEDIA, ...).
-  static String rewritePlaylist(String playlist, String Function(String uri) map) {
+  static String rewritePlaylist(
+    String playlist,
+    String Function(String uri) map,
+  ) {
     final attr = RegExp(r'URI="([^"]*)"');
     return const LineSplitter()
         .convert(playlist)
@@ -405,7 +506,12 @@ class MediaServer {
           if (t.isEmpty) return line;
           if (t.startsWith('#')) {
             return t.contains('URI="')
-                ? line.replaceAllMapped(attr, (m) => m.group(1)!.startsWith('data:') ? m.group(0)! : 'URI="${map(m.group(1)!)}"')
+                ? line.replaceAllMapped(
+                    attr,
+                    (m) => m.group(1)!.startsWith('data:')
+                        ? m.group(0)!
+                        : 'URI="${map(m.group(1)!)}"',
+                  )
                 : line;
           }
           return map(t);
@@ -413,7 +519,8 @@ class MediaServer {
         .join('\n');
   }
 
-  static String _encodeTarget(String url) => base64Url.encode(utf8.encode(url)).replaceAll('=', '');
+  static String _encodeTarget(String url) =>
+      base64Url.encode(utf8.encode(url)).replaceAll('=', '');
 
   static String? _decodeTarget(String s) {
     try {

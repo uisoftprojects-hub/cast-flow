@@ -57,10 +57,14 @@ class DeviceMediaRepository implements MediaRepository {
       var statuses = [for (final p in perms) await p.status];
       if (!statuses.any(ok)) {
         final result = await AdSuppression.around(() => perms.request());
-        statuses = [for (final p in perms) result[p] ?? ph.PermissionStatus.denied];
+        statuses = [
+          for (final p in perms) result[p] ?? ph.PermissionStatus.denied,
+        ];
       }
       if (!statuses.any(ok)) {
-        final permanent = statuses.every((s) => s.isPermanentlyDenied || s.isRestricted);
+        final permanent = statuses.every(
+          (s) => s.isPermanentlyDenied || s.isRestricted,
+        );
         throw MediaPermissionDenied(permanent: permanent);
       }
     }
@@ -69,7 +73,10 @@ class DeviceMediaRepository implements MediaRepository {
     final state = await AdSuppression.around(
       () => PhotoManager.requestPermissionExtend(
         requestOption: PermissionRequestOption(
-          androidPermission: AndroidPermission(type: type, mediaLocation: false),
+          androidPermission: AndroidPermission(
+            type: type,
+            mediaLocation: false,
+          ),
         ),
       ),
     );

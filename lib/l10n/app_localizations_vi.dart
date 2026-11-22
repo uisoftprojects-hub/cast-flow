@@ -1754,4 +1754,8 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get lookingForTvsOnHotspot =>
       'Đang tìm TV trên điểm phát sóng của bạn';
+
+  @override
+  String get noInternetConnection =>
+      'Không có kết nối internet. Hãy kiểm tra kết nối và thử lại.';
 }

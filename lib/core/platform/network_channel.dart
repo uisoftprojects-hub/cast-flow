@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -39,6 +41,24 @@ abstract final class NetworkChannel {
     };
   }
 
+  /// Whether the phone can reach the internet right now (any network). Android
+  /// says no when the default network isn't validated; that is double-checked
+  /// with a short DNS lookup so a network that just connected isn't reported
+  /// as offline. Off Android: assumed online.
+  static Future<bool> hasInternet() async {
+    if (!_android) return true;
+    final status = await networkStatus();
+    if (status['internet'] != false) return true;
+    try {
+      final r = await InternetAddress.lookup(
+        'google.com',
+      ).timeout(const Duration(seconds: 3));
+      return r.isNotEmpty && r.first.rawAddress.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Pushed by Android on every Wi-Fi / hotspot / VPN change (a
   /// ConnectivityManager.NetworkCallback plus the hotspot state broadcast).
   /// Empty off Android.
@@ -46,7 +66,8 @@ abstract final class NetworkChannel {
     if (!_android) return const Stream.empty();
     return _events.receiveBroadcastStream().map(
       (raw) => {
-        for (final e in (raw as Map<Object?, Object?>? ?? const {}).entries) e.key.toString(): e.value,
+        for (final e in (raw as Map<Object?, Object?>? ?? const {}).entries)
+          e.key.toString(): e.value,
       },
     );
   }
@@ -56,7 +77,9 @@ abstract final class NetworkChannel {
   static Future<bool> _openOutside(String method) async {
     if (!_android) return false;
     AdSuppression.suppressNextAppOpen();
-    final ok = await _channel.invokeMethod<bool>(method).catchError((_) => false) ?? false;
+    final ok =
+        await _channel.invokeMethod<bool>(method).catchError((_) => false) ??
+        false;
     if (!ok) AdSuppression.clear();
     return ok;
   }
@@ -68,10 +91,12 @@ abstract final class NetworkChannel {
   static Future<bool> openWifiPanel() => _openOutside('openWifiPanel');
 
   /// Opens the system location settings screen.
-  static Future<bool> openLocationSettings() => _openOutside('openLocationSettings');
+  static Future<bool> openLocationSettings() =>
+      _openOutside('openLocationSettings');
 
   /// System hotspot / tethering screen (falls back to wireless settings).
-  static Future<bool> openHotspotSettings() => _openOutside('openHotspotSettings');
+  static Future<bool> openHotspotSettings() =>
+      _openOutside('openHotspotSettings');
 
   /// Whether the screen is being mirrored right now (Smart View / Cast adds
   /// a presentation display), and the TV's name.

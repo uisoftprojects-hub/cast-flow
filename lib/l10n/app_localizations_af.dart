@@ -1757,4 +1757,8 @@ class AppLocalizationsAf extends AppLocalizations {
 
   @override
   String get lookingForTvsOnHotspot => 'Soek TV\'s op jou hotspot';
+
+  @override
+  String get noInternetConnection =>
+      'Geen internetverbinding nie. Gaan jou verbinding na en probeer weer.';
 }

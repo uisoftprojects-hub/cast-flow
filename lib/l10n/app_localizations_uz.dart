@@ -1781,4 +1781,8 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get lookingForTvsOnHotspot =>
       'Hotspotingizdagi televizorlar qidirilmoqda';
+
+  @override
+  String get noInternetConnection =>
+      'Internet aloqasi yo‘q. Ulanishni tekshirib, qayta urinib ko‘ring.';
 }

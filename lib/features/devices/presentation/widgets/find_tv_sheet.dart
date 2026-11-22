@@ -157,7 +157,7 @@ class _FindTvSheetState extends ConsumerState<FindTvSheet> {
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpace.sm),
               child: _DeviceRow(device: d, connection: conn, onConnect: () => _connect(d)),
-            ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.15, end: 0),
+            ),
           const SizedBox(height: AppSpace.sm),
           Row(
             children: [

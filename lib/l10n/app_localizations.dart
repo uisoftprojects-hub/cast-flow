@@ -3253,6 +3253,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Looking for TVs on your hotspot'**
   String get lookingForTvsOnHotspot;
+
+  /// No description provided for @noInternetConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Check your connection and try again.'**
+  String get noInternetConnection;
 }
 
 class _AppLocalizationsDelegate

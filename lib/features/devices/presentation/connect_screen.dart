@@ -317,7 +317,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                           connection: conn,
                           onConnect: () => _connect(d),
                           onDisconnect: () => ref.read(connectionProvider.notifier).disconnect(),
-                        ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.15, end: 0, curve: Curves.easeOutCubic);
+                        );
                       },
                     ),
                   ),
@@ -353,8 +353,8 @@ class _Radar extends StatelessWidget {
         statusOverride ??
         (scanning
             ? (found == 0
-                ? (hotspot ? context.l10n.lookingForTvsOnHotspot : context.l10n.lookingForTvsOn)
-                : context.l10n.foundSoFar(found))
+                  ? (hotspot ? context.l10n.lookingForTvsOnHotspot : context.l10n.lookingForTvsOn)
+                  : context.l10n.foundSoFar(found))
             : context.l10n.deviceFound(found, found == 1 ? '' : 's'));
 
     return Padding(

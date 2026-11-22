@@ -18,7 +18,8 @@ class MediaConverter {
 
   final _progress = <String, void Function(double)>{};
 
-  bool get available => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  bool get available =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
   Future<Object?> _onCall(MethodCall call) async {
     if (call.method == 'progress') {
@@ -34,7 +35,9 @@ class MediaConverter {
   Future<MediaProbe?> probe(String path) async {
     if (!available) return null;
     try {
-      final raw = await _channel.invokeMethod<Map<Object?, Object?>>('probe', {'path': path});
+      final raw = await _channel.invokeMethod<Map<Object?, Object?>>('probe', {
+        'path': path,
+      });
       return raw == null ? null : MediaProbe.fromMap(raw);
     } catch (_) {
       return null;
@@ -43,17 +46,26 @@ class MediaConverter {
 
   /// Returns the path of a JPEG copy of the image at [path].
   Future<String> toJpeg(String path) async {
-    final out = await _channel.invokeMethod<String>('convertImage', {'path': path});
+    final out = await _channel.invokeMethod<String>('convertImage', {
+      'path': path,
+    });
     if (out == null) throw StateError('The photo couldn’t be converted.');
     return out;
   }
 
   /// Returns the path of an MP4 (H.264 + AAC) copy of the video at [path].
   /// [onProgress] gets 0..1 while it runs.
-  Future<String> toMp4(String path, {required String id, void Function(double)? onProgress}) async {
+  Future<String> toMp4(
+    String path, {
+    required String id,
+    void Function(double)? onProgress,
+  }) async {
     if (onProgress != null) _progress[id] = onProgress;
     try {
-      final out = await _channel.invokeMethod<String>('convertVideo', {'path': path, 'id': id});
+      final out = await _channel.invokeMethod<String>('convertVideo', {
+        'path': path,
+        'id': id,
+      });
       if (out == null) throw StateError('The video couldn’t be converted.');
       return out;
     } finally {

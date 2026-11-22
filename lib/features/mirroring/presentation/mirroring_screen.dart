@@ -56,10 +56,7 @@ class _MirroringScreenState extends ConsumerState<MirroringScreen> {
       if (!mounted) return;
       // When this tap shows an interstitial, wait until it is dismissed (or
       // failed to load / show) so the Cast screen never opens behind the ad.
-      await ClickCountInterstitialManager.recordClick(
-        context,
-        contextTag: 'start_mirroring',
-      );
+      await ClickCountInterstitialManager.recordClick(context, contextTag: 'start_mirroring');
       if (!mounted) return;
       await ref.read(mirroringProvider.notifier).start();
     } finally {
@@ -76,10 +73,7 @@ class _MirroringScreenState extends ConsumerState<MirroringScreen> {
     final l = context.l10n;
 
     // Came back from Android's cast picker without starting: no device chosen.
-    final noDevice =
-        !m.isLive &&
-        !m.isBusy &&
-        (m.phase == MirrorPhase.error || m.error == mirrorNotStarted);
+    final noDevice = !m.isLive && !m.isBusy && (m.phase == MirrorPhase.error || m.error == mirrorNotStarted);
 
     return Scaffold(
       appBar: CastAppBar(title: l.screenMirroring),
@@ -88,44 +82,24 @@ class _MirroringScreenState extends ConsumerState<MirroringScreen> {
       body: LayoutBuilder(
         builder: (context, c) {
           final rest = m.isLive ? 270.0 : (noDevice ? 400.0 : 380.0);
-          final startSize = (c.maxHeight - rest - 24)
-              .clamp(190.0, 320.0)
-              .clamp(0.0, c.maxWidth - 2 * AppSpace.page);
+          final startSize = (c.maxHeight - rest - 24).clamp(190.0, 320.0).clamp(0.0, c.maxWidth - 2 * AppSpace.page);
           return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpace.page,
-              0,
-              AppSpace.page,
-              AppSpace.lg,
-            ),
+            padding: const EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, AppSpace.lg),
             child: Column(
               children: [
-                _StartArea(
-                  size: startSize,
-                  state: m,
-                  onTap: m.isLive ? ctrl.stop : _start,
-                ),
+                _StartArea(size: startSize, state: m, onTap: m.isLive ? ctrl.stop : _start),
                 AnimatedSize(
                   duration: AppDurations.medium,
                   curve: Curves.easeOutCubic,
-                  child: m.isLive
-                      ? _LiveStatus(state: m)
-                      : const SizedBox(width: double.infinity),
+                  child: m.isLive ? _LiveStatus(state: m) : const SizedBox(width: double.infinity),
                 ),
                 if (noDevice) ...[
                   const SizedBox(height: AppSpace.md),
-                  _NoDevice(
-                    message: m.error == mirrorNotStarted
-                        ? l.mirroringDidntStartTap
-                        : l.openSmartViewOr,
-                  ),
+                  _NoDevice(message: m.error == mirrorNotStarted ? l.mirroringDidntStartTap : l.openSmartViewOr),
                   const SizedBox(height: AppSpace.lg),
                   Align(
                     alignment: AlignmentDirectional.centerStart,
-                    child: Text(
-                      l.castPhotosVideosMusic,
-                      style: context.text.labelLarge,
-                    ),
+                    child: Text(l.castPhotosVideosMusic, style: context.text.labelLarge),
                   ),
                   const SizedBox(height: 8),
                   const MediaShortcuts(),
@@ -158,23 +132,14 @@ class _MirroringScreenState extends ConsumerState<MirroringScreen> {
                 Align(
                   alignment: AlignmentDirectional.centerStart,
                   child: Text(
-                    m.quality == MirrorQuality.auto
-                        ? l.adjustsToYourWi
-                        : l.upToLowerIt(m.quality.label),
+                    m.quality == MirrorQuality.auto ? l.adjustsToYourWi : l.upToLowerIt(m.quality.label),
                     style: context.text.bodySmall?.copyWith(fontSize: 12),
                   ),
                 ),
                 TextButton.icon(
                   onPressed: () => context.push('/guide?topic=mirroring'),
-                  icon: Icon(
-                    Iconsax.message_question_copy,
-                    size: 16,
-                    color: p.primary,
-                  ),
-                  label: Text(
-                    l.stillNeedHelp,
-                    style: context.text.labelMedium?.copyWith(color: p.primary),
-                  ),
+                  icon: Icon(Iconsax.message_question_copy, size: 16, color: p.primary),
+                  label: Text(l.stillNeedHelp, style: context.text.labelMedium?.copyWith(color: p.primary)),
                 ),
               ],
             ),
@@ -206,11 +171,7 @@ class _MirrorOfflineCast extends StatelessWidget {
 /// The button always animates: a slow ripple invites a tap while ready, a fast
 /// ripple with a spinner shows it is starting, a red ripple means live.
 class _StartArea extends StatelessWidget {
-  const _StartArea({
-    required this.size,
-    required this.state,
-    required this.onTap,
-  });
+  const _StartArea({required this.size, required this.state, required this.onTap});
 
   /// Diameter of the ripple; the button is half of it.
   final double size;
@@ -243,21 +204,14 @@ class _StartArea extends StatelessWidget {
         height: size * 0.52,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: live
-              ? LinearGradient(
-                  colors: [p.error.withValues(alpha: 0.85), p.error],
-                )
-              : AppColors.mainGradient,
+          gradient: live ? LinearGradient(colors: [p.error.withValues(alpha: 0.85), p.error]) : AppColors.mainGradient,
           boxShadow: AppShadows.glow(color),
         ),
         child: Center(
           child: busy
               ? const SizedBox.square(
                   dimension: 38,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 3.5,
-                  ),
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3.5),
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,
@@ -268,12 +222,7 @@ class _StartArea extends StatelessWidget {
                       size: size * 0.17,
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      live ? l.stop : l.start,
-                      style: context.text.titleSmall?.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
+                    Text(live ? l.stop : l.start, style: context.text.titleSmall?.copyWith(color: Colors.white)),
                   ],
                 ),
         ),
@@ -289,9 +238,7 @@ class _StartArea extends StatelessWidget {
           active: !stopping,
           color: color,
           sweep: starting,
-          duration: Duration(
-            milliseconds: starting ? 1100 : (live ? 1800 : 2600),
-          ),
+          duration: Duration(milliseconds: starting ? 1100 : (live ? 1800 : 2600)),
           child: button,
         ),
         AnimatedSwitcher(
@@ -304,14 +251,9 @@ class _StartArea extends StatelessWidget {
                 Container(
                       width: 7,
                       height: 7,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                      ),
+                      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
                     )
-                    .animate(
-                      onPlay: (c) => context.loopMotion(c, reverse: true),
-                    )
+                    .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
                     .fade(begin: 1, end: 0.2, duration: 700.ms),
               if (live) const SizedBox(width: 6),
               Flexible(
@@ -319,9 +261,7 @@ class _StartArea extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: context.text.labelMedium?.copyWith(
-                    color: live ? color : p.textSecondary,
-                  ),
+                  style: context.text.labelMedium?.copyWith(color: live ? color : p.textSecondary),
                 ),
               ),
             ],
@@ -353,29 +293,16 @@ class _Tips extends StatelessWidget {
             child: Container(
               width: 5,
               height: 5,
-              decoration: BoxDecoration(
-                color: p.textSecondary,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: p.textSecondary, shape: BoxShape.circle),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              text,
-              style: context.text.bodySmall?.copyWith(
-                fontSize: 13,
-                color: p.textPrimary,
-              ),
-            ),
+            child: Text(text, style: context.text.bodySmall?.copyWith(fontSize: 13, color: p.textPrimary)),
           ),
           if (ok != null) ...[
             const SizedBox(width: 6),
-            Icon(
-              ok ? Iconsax.tick_circle_copy : Iconsax.close_circle_copy,
-              size: 16,
-              color: ok ? p.success : p.error,
-            ),
+            Icon(ok ? Iconsax.tick_circle_copy : Iconsax.close_circle_copy, size: 16, color: ok ? p.success : p.error),
           ],
         ],
       ),
@@ -457,13 +384,7 @@ class _NoDevice extends StatelessWidget {
               children: [
                 Text(context.l10n.noTvFound, style: context.text.labelLarge),
                 const SizedBox(height: 2),
-                Text(
-                  message,
-                  style: context.text.bodySmall?.copyWith(
-                    fontSize: 12.5,
-                    color: p.textPrimary,
-                  ),
-                ),
+                Text(message, style: context.text.bodySmall?.copyWith(fontSize: 12.5, color: p.textPrimary)),
               ],
             ),
           ),

@@ -1,5 +1,7 @@
 import 'package:castflow/core/navigation.dart';
+import 'package:castflow/core/widgets/buttons.dart';
 import 'package:castflow/core/theme/app_theme.dart';
+import 'package:castflow/features/devices/presentation/network_controller.dart';
 import 'package:castflow/features/monetization/data/fake_ad_adapter.dart';
 import 'package:castflow/features/monetization/presentation/ad_manager.dart';
 import 'package:castflow/features/premium/data/fake_billing_service.dart';
@@ -56,6 +58,9 @@ void main() {
       final cancel = tester.getRect(find.text(l.cancelAnytime));
       expect((privacy.center.dy - terms.center.dy).abs(), lessThan(4), reason: 'privacy and terms on one line');
       expect((terms.center.dy - cancel.center.dy).abs(), lessThan(4), reason: 'terms and cancel on one line');
+      // Order: Privacy | Terms | Cancel anytime (cancel is third).
+      final ltr = lang != 'ar';
+      expect(ltr == (privacy.center.dx < terms.center.dx && terms.center.dx < cancel.center.dx), isTrue, reason: 'cancel third');
       expect(tester.takeException(), isNull);
 
       await tester.pumpWidget(const SizedBox.shrink());
@@ -63,4 +68,42 @@ void main() {
       await tester.pump(const Duration(seconds: 5));
     });
   }
+
+  testWidgets('Continue without internet says so instead of doing nothing', (tester) async {
+    final c = await tester.runAsync(
+      () => makeContainer(
+        overrides: [
+          adAdapterProvider.overrideWithValue(FakeAdAdapter(rootNavigatorKey, () => PreviewMode.live)),
+          billingServiceProvider.overrideWithValue(FakeBillingService(() => PreviewMode.live)),
+          internetCheckProvider.overrideWithValue(() async => false),
+        ],
+      ),
+    );
+    final router = GoRouter(
+      navigatorKey: rootNavigatorKey,
+      routes: [GoRoute(path: '/', builder: (_, _) => const PaywallScreen())],
+    );
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: c!,
+        child: MaterialApp.router(
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    final l = lookupAppLocalizations(const Locale('en'));
+    await tester.tap(find.byType(GradientButton), warnIfMissed: false);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text(l.noInternetConnection), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    c.dispose();
+    await tester.pump(const Duration(seconds: 5));
+  });
 }

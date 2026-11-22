@@ -117,7 +117,9 @@ class PlaybackState {
       slideshowInterval: slideshowInterval ?? this.slideshowInterval,
       error: clearError ? null : (error ?? this.error),
       preparing: isPreparing,
-      prepareProgress: !isPreparing || clearProgress ? null : (prepareProgress ?? this.prepareProgress),
+      prepareProgress: !isPreparing || clearProgress
+          ? null
+          : (prepareProgress ?? this.prepareProgress),
     );
   }
 }

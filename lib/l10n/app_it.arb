@@ -593,5 +593,6 @@
   "howHotspotWorks": "Come funziona la trasmissione tramite hotspot?",
   "preparingForTv": "Preparazione per la tua TV…",
   "convertingForTv": "Conversione per la tua TV… {percent}%",
-  "lookingForTvsOnHotspot": "Ricerca di TV sul tuo hotspot"
+  "lookingForTvsOnHotspot": "Ricerca di TV sul tuo hotspot",
+  "noInternetConnection": "Nessuna connessione a internet. Controlla la connessione e riprova."
 }

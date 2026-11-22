@@ -779,5 +779,6 @@
       }
     }
   },
-  "lookingForTvsOnHotspot": "Looking for TVs on your hotspot"
+  "lookingForTvsOnHotspot": "Looking for TVs on your hotspot",
+  "noInternetConnection": "No internet connection. Check your connection and try again."
 }

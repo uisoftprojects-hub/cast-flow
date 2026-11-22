@@ -54,7 +54,11 @@ class PlayerController extends Notifier<PlaybackState> {
     return const PlaybackState();
   }
 
-  void play(List<CastMedia> queue, {int index = 0, Duration? slideshowInterval}) {
+  void play(
+    List<CastMedia> queue, {
+    int index = 0,
+    Duration? slideshowInterval,
+  }) {
     if (queue.isEmpty) return;
     ref.read(analyticsProvider).log(AnalyticsEvent.castStart, {
       AnalyticsParam.mediaType: queue[index].kind,
@@ -97,7 +101,9 @@ class PlayerController extends Notifier<PlaybackState> {
   void seek(Duration to) {
     final media = state.media;
     if (media == null) return;
-    final clamped = to < Duration.zero ? Duration.zero : (to > _length(media) ? _length(media) : to);
+    final clamped = to < Duration.zero
+        ? Duration.zero
+        : (to > _length(media) ? _length(media) : to);
     state = state.copyWith(position: clamped);
     final tv = _device;
     if (tv != null && _isStream(media)) _run(_caster.seek(tv, clamped));
@@ -107,7 +113,11 @@ class PlayerController extends Notifier<PlaybackState> {
 
   void next() {
     if (!state.hasNext) return;
-    state = state.copyWith(index: state.index + 1, position: Duration.zero, clearError: true);
+    state = state.copyWith(
+      index: state.index + 1,
+      position: Duration.zero,
+      clearError: true,
+    );
     _loadCurrent();
   }
 
@@ -116,7 +126,11 @@ class PlayerController extends Notifier<PlaybackState> {
       seek(Duration.zero);
       return;
     }
-    state = state.copyWith(index: state.index - 1, position: Duration.zero, clearError: true);
+    state = state.copyWith(
+      index: state.index - 1,
+      position: Duration.zero,
+      clearError: true,
+    );
     _loadCurrent();
   }
 
@@ -129,7 +143,12 @@ class PlayerController extends Notifier<PlaybackState> {
   /// Plays the queue item at [index] (from the "Up next" list).
   void jumpTo(int index) {
     if (index < 0 || index >= state.queue.length) return;
-    state = state.copyWith(index: index, position: Duration.zero, playing: true, clearError: true);
+    state = state.copyWith(
+      index: index,
+      position: Duration.zero,
+      playing: true,
+      clearError: true,
+    );
     _loadCurrent();
     _startTicker();
     _record(state.queue[index]);
@@ -173,7 +192,12 @@ class PlayerController extends Notifier<PlaybackState> {
     _sawPlaying = false;
     _loadedAt = null;
     _converted = forceConvert;
-    if (forceConvert) state = state.copyWith(preparing: true, clearProgress: true, clearError: true);
+    if (forceConvert)
+      state = state.copyWith(
+        preparing: true,
+        clearProgress: true,
+        clearError: true,
+      );
     _caster
         .load(
           tv,
@@ -181,13 +205,22 @@ class PlayerController extends Notifier<PlaybackState> {
           forceConvert: forceConvert,
           onPrepare: (p) {
             if (gen != _loadGen || state.media != media) return;
-            state = state.copyWith(preparing: true, prepareProgress: p, clearProgress: p == null, clearError: true);
+            state = state.copyWith(
+              preparing: true,
+              prepareProgress: p,
+              clearProgress: p == null,
+              clearError: true,
+            );
           },
         )
         .then((_) {
           if (gen != _loadGen || state.media != media) return;
           _loadedAt = DateTime.now();
-          state = state.copyWith(playing: true, clearError: true, preparing: false);
+          state = state.copyWith(
+            playing: true,
+            clearError: true,
+            preparing: false,
+          );
         })
         .catchError((Object e) {
           if (gen != _loadGen) return;
@@ -198,7 +231,11 @@ class PlayerController extends Notifier<PlaybackState> {
             _loadCurrent(forceConvert: true);
             return;
           }
-          state = state.copyWith(playing: false, error: _message(e, tv), preparing: false);
+          state = state.copyWith(
+            playing: false,
+            error: _message(e, tv),
+            preparing: false,
+          );
           _ticker?.cancel();
         });
   }
@@ -221,9 +258,11 @@ class PlayerController extends Notifier<PlaybackState> {
   }
 
   static String _message(Object e, CastDevice tv) {
-    if (e is UnsupportedError) return e.message ?? '${tv.name} can’t play this.';
+    if (e is UnsupportedError)
+      return e.message ?? '${tv.name} can’t play this.';
     if (e is StateError) return e.message;
-    if (e is TimeoutException) return '${tv.name} didn’t respond. Check it is on and on the same Wi-Fi.';
+    if (e is TimeoutException)
+      return '${tv.name} didn’t respond. Check it is on and on the same Wi-Fi.';
     return '${tv.name} couldn’t play this. Try another file or format.';
   }
 
@@ -260,7 +299,8 @@ class PlayerController extends Notifier<PlaybackState> {
       _loadCurrent(forceConvert: true);
       return;
     }
-    final ended = _sawPlaying && (s.state == 'STOPPED' || s.state == 'NO_MEDIA_PRESENT');
+    final ended =
+        _sawPlaying && (s.state == 'STOPPED' || s.state == 'NO_MEDIA_PRESENT');
 
     if (ended) {
       if (state.hasNext) {
@@ -274,7 +314,13 @@ class PlayerController extends Notifier<PlaybackState> {
     if (media.duration == Duration.zero && s.length > Duration.zero) {
       queue = [...queue]..[state.index] = media.withDuration(s.length);
     }
-    state = state.copyWith(queue: queue, position: s.position, playing: playing || s.state == 'PAUSED_PLAYBACK' ? playing : state.playing);
+    state = state.copyWith(
+      queue: queue,
+      position: s.position,
+      playing: playing || s.state == 'PAUSED_PLAYBACK'
+          ? playing
+          : state.playing,
+    );
   }
 
   Duration _length(CastMedia m) {
@@ -293,7 +339,10 @@ class PlayerController extends Notifier<PlaybackState> {
       if (_device != null && _isStream(media)) {
         // The TV is in charge: advance the clock between polls, then correct it.
         if (state.preparing) return;
-        if (state.playing) state = state.copyWith(position: state.position + const Duration(seconds: 1));
+        if (state.playing)
+          state = state.copyWith(
+            position: state.position + const Duration(seconds: 1),
+          );
         if (++_tick % 2 == 0) unawaited(_poll());
         return;
       }
@@ -302,7 +351,10 @@ class PlayerController extends Notifier<PlaybackState> {
       final next = state.position + const Duration(seconds: 1);
       if (next >= _length(media)) {
         if (state.hasNext) {
-          state = state.copyWith(index: state.index + 1, position: Duration.zero);
+          state = state.copyWith(
+            index: state.index + 1,
+            position: Duration.zero,
+          );
           _loadCurrent();
         } else if (state.slideshowInterval != null) {
           state = state.copyWith(index: 0, position: Duration.zero);
@@ -334,16 +386,24 @@ class PlayerController extends Notifier<PlaybackState> {
   }
 }
 
-final playerProvider = NotifierProvider<PlayerController, PlaybackState>(PlayerController.new);
+final playerProvider = NotifierProvider<PlayerController, PlaybackState>(
+  PlayerController.new,
+);
 
 /// Makes sure a receiver is connected (opening the device picker if needed),
 /// returns whether the caller may proceed.
-Future<bool> ensureConnected(BuildContext context, WidgetRef ref, {String? reason}) async {
+Future<bool> ensureConnected(
+  BuildContext context,
+  WidgetRef ref, {
+  String? reason,
+}) async {
   if (ref.read(connectionProvider).isConnected) return true;
   // Pre-cast check: no Wi-Fi and no hotspot means no TV can be reached.
   if (!await requireNetwork(context, source: reason ?? 'cast')) return false;
   if (!context.mounted) return false;
-  final ok = await context.push<bool>(reason == null ? '/connect' : '/connect?reason=$reason');
+  final ok = await context.push<bool>(
+    reason == null ? '/connect' : '/connect?reason=$reason',
+  );
   return ok == true || ref.read(connectionProvider).isConnected;
 }
 
@@ -356,6 +416,8 @@ Future<void> castAndOpenRemote(
   Duration? slideshowInterval,
 }) async {
   if (!await ensureConnected(context, ref)) return;
-  ref.read(playerProvider.notifier).play(queue, index: index, slideshowInterval: slideshowInterval);
+  ref
+      .read(playerProvider.notifier)
+      .play(queue, index: index, slideshowInterval: slideshowInterval);
   if (context.mounted) context.push('/player');
 }

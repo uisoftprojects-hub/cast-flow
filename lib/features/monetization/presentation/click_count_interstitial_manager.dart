@@ -23,9 +23,9 @@ class ClickCountInterstitialManager {
     required AdAdapter adapter,
     required AdDisplayCoordinator coordinator,
     SplashInterstitialManager? splash,
-  })  : _adapter = adapter,
-        _coordinator = coordinator,
-        _splash = splash;
+  }) : _adapter = adapter,
+       _coordinator = coordinator,
+       _splash = splash;
 
   final AdAdapter _adapter;
   final AdDisplayCoordinator _coordinator;
@@ -71,7 +71,9 @@ class ClickCountInterstitialManager {
   }) async {
     try {
       final container = ProviderScope.containerOf(context, listen: false);
-      await container.read(clickCountInterstitialManagerProvider).onUserClick(
+      await container
+          .read(clickCountInterstitialManagerProvider)
+          .onUserClick(
             isPremium: container.read(isPremiumProvider),
             targetRoute: targetRoute,
             contextTag: contextTag,
@@ -84,13 +86,12 @@ class ClickCountInterstitialManager {
     required bool isPremium,
     VoidCallback? onImpression,
     VoidCallback? onClicked,
-  }) =>
-      onUserClick(
-        isPremium: isPremium,
-        contextTag: 'bottom_nav',
-        onImpression: onImpression,
-        onClicked: onClicked,
-      );
+  }) => onUserClick(
+    isPremium: isPremium,
+    contextTag: 'bottom_nav',
+    onImpression: onImpression,
+    onClicked: onClicked,
+  );
 
   /// Handles an eligible user click anywhere in the app (excluding Settings screen).
   Future<void> onUserClick({
@@ -142,7 +143,8 @@ class ClickCountInterstitialManager {
         AdState.coordinatorLockRejected,
         placement: AdPlacement.clickInterstitial,
         adType: 'ClickInterstitial',
-        message: 'Click ignored: another full-screen ad is actively presenting.',
+        message:
+            'Click ignored: another full-screen ad is actively presenting.',
       );
       return;
     }
@@ -290,7 +292,8 @@ class ClickCountInterstitialManager {
         AdState.loadFailed,
         placement: AdPlacement.clickInterstitial,
         adType: 'ClickInterstitial',
-        message: 'ad_no_fill / load failed ($e). Opportunity remains open for next click.',
+        message:
+            'ad_no_fill / load failed ($e). Opportunity remains open for next click.',
         error: e,
       );
     }
@@ -317,13 +320,13 @@ class ClickCountInterstitialManager {
 
 final clickCountInterstitialManagerProvider =
     Provider<ClickCountInterstitialManager>((ref) {
-  final adapter = ref.watch(adAdapterProvider);
-  final coordinator = ref.watch(adDisplayCoordinatorProvider);
-  final manager = ClickCountInterstitialManager(
-    adapter: adapter,
-    coordinator: coordinator,
-    splash: ref.read(splashInterstitialManagerProvider),
-  );
-  ref.onDispose(manager.dispose);
-  return manager;
-});
+      final adapter = ref.watch(adAdapterProvider);
+      final coordinator = ref.watch(adDisplayCoordinatorProvider);
+      final manager = ClickCountInterstitialManager(
+        adapter: adapter,
+        coordinator: coordinator,
+        splash: ref.read(splashInterstitialManagerProvider),
+      );
+      ref.onDispose(manager.dispose);
+      return manager;
+    });

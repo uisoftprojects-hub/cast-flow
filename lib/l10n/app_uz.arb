@@ -517,5 +517,6 @@
   "howHotspotWorks": "Hotspot orqali translatsiya qanday ishlaydi?",
   "preparingForTv": "Televizoringiz uchun tayyorlanmoqda…",
   "convertingForTv": "Televizoringiz uchun o‘zgartirilmoqda… {percent}%",
-  "lookingForTvsOnHotspot": "Hotspotingizdagi televizorlar qidirilmoqda"
+  "lookingForTvsOnHotspot": "Hotspotingizdagi televizorlar qidirilmoqda",
+  "noInternetConnection": "Internet aloqasi yo‘q. Ulanishni tekshirib, qayta urinib ko‘ring."
 }

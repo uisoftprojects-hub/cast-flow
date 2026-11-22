@@ -1691,4 +1691,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get lookingForTvsOnHotspot => 'テザリングでテレビを探しています';
+
+  @override
+  String get noInternetConnection => 'インターネットに接続されていません。接続を確認してもう一度お試しください。';
 }

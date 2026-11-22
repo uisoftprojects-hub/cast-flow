@@ -1671,4 +1671,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get lookingForTvsOnHotspot => '正在您的热点上查找电视';
+
+  @override
+  String get noInternetConnection => '没有网络连接。请检查网络后重试。';
 }

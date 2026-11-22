@@ -1747,4 +1747,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lookingForTvsOnHotspot => 'Looking for TVs on your hotspot';
+
+  @override
+  String get noInternetConnection =>
+      'No internet connection. Check your connection and try again.';
 }

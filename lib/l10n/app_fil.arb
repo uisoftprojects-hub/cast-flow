@@ -517,5 +517,6 @@
   "howHotspotWorks": "Paano gumagana ang pag-cast gamit ang hotspot?",
   "preparingForTv": "Inihahanda para sa TV mo…",
   "convertingForTv": "Kino-convert para sa TV mo… {percent}%",
-  "lookingForTvsOnHotspot": "Hinahanap ang mga TV sa hotspot mo"
+  "lookingForTvsOnHotspot": "Hinahanap ang mga TV sa hotspot mo",
+  "noInternetConnection": "Walang koneksyon sa internet. Tingnan ang koneksyon mo at subukan ulit."
 }

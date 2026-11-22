@@ -1776,4 +1776,8 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get lookingForTvsOnHotspot =>
       'Пошук телевізорів у вашій точці доступу';
+
+  @override
+  String get noInternetConnection =>
+      'Немає підключення до інтернету. Перевірте з\'єднання й спробуйте ще раз.';
 }

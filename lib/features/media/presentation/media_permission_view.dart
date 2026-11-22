@@ -34,7 +34,11 @@ class MediaPermissionView extends StatefulWidget {
   /// Use as `errorBuilder`: only permission errors get this view.
   static Widget? forError(Object error, IconData icon, VoidCallback onRetry) =>
       error is MediaPermissionDenied
-      ? MediaPermissionView(icon: icon, onRetry: onRetry, permanent: error.permanent)
+      ? MediaPermissionView(
+          icon: icon,
+          onRetry: onRetry,
+          permanent: error.permanent,
+        )
       : null;
 
   @override

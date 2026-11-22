@@ -1762,4 +1762,8 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get lookingForTvsOnHotspot =>
       'در حال جست‌وجوی تلویزیون در هات‌اسپات شما';
+
+  @override
+  String get noInternetConnection =>
+      'اتصال اینترنت وجود ندارد. اتصال خود را بررسی کرده و دوباره تلاش کنید.';
 }

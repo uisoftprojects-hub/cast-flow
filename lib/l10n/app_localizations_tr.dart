@@ -1761,4 +1761,8 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get lookingForTvsOnHotspot => 'Hotspot\'unuzda TV\'ler aranıyor';
+
+  @override
+  String get noInternetConnection =>
+      'İnternet bağlantısı yok. Bağlantınızı kontrol edip tekrar deneyin.';
 }

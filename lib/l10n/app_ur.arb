@@ -593,5 +593,6 @@
   "howHotspotWorks": "ہاٹ اسپاٹ سے کاسٹنگ کیسے کام کرتی ہے؟",
   "preparingForTv": "آپ کے ٹی وی کے لیے تیار کیا جا رہا ہے…",
   "convertingForTv": "آپ کے ٹی وی کے لیے تبدیل کیا جا رہا ہے… {percent}%",
-  "lookingForTvsOnHotspot": "آپ کے ہاٹ اسپاٹ پر ٹی وی تلاش کیے جا رہے ہیں"
+  "lookingForTvsOnHotspot": "آپ کے ہاٹ اسپاٹ پر ٹی وی تلاش کیے جا رہے ہیں",
+  "noInternetConnection": "انٹرنیٹ کنکشن نہیں ہے۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔"
 }

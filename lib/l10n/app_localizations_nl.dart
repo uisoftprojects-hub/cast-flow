@@ -1760,4 +1760,8 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get lookingForTvsOnHotspot => 'Zoeken naar tv\'s op je hotspot';
+
+  @override
+  String get noInternetConnection =>
+      'Geen internetverbinding. Controleer je verbinding en probeer het opnieuw.';
 }

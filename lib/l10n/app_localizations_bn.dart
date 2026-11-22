@@ -1752,4 +1752,8 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get lookingForTvsOnHotspot => 'আপনার হটস্পটে টিভি খোঁজা হচ্ছে';
+
+  @override
+  String get noInternetConnection =>
+      'ইন্টারনেট সংযোগ নেই। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।';
 }

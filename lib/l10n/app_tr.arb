@@ -593,5 +593,6 @@
   "howHotspotWorks": "Hotspot üzerinden yayın nasıl çalışır?",
   "preparingForTv": "TV'niz için hazırlanıyor…",
   "convertingForTv": "TV'niz için dönüştürülüyor… %{percent}",
-  "lookingForTvsOnHotspot": "Hotspot'unuzda TV'ler aranıyor"
+  "lookingForTvsOnHotspot": "Hotspot'unuzda TV'ler aranıyor",
+  "noInternetConnection": "İnternet bağlantısı yok. Bağlantınızı kontrol edip tekrar deneyin."
 }

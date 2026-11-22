@@ -1730,4 +1730,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lookingForTvsOnHotspot => 'جارٍ البحث عن تلفازات على نقطة الاتصال';
+
+  @override
+  String get noInternetConnection =>
+      'لا يوجد اتصال بالإنترنت. تحقق من الاتصال وحاول مرة أخرى.';
 }
