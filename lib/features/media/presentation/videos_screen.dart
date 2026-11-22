@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
@@ -44,44 +43,49 @@ class VideosScreen extends ConsumerWidget {
           title: context.l10n.noVideosYet,
           message: context.l10n.videosYouRecordOr,
         ),
-        data: (items) => RefreshIndicator(
-          onRefresh: () => ref.refresh(videosProvider.future),
-          child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpace.page,
-              AppSpace.sm,
-              AppSpace.page,
-              AppSpace.xxxl,
+        data: (items) {
+          // Built once per list, not once per row.
+          final queue = [
+            for (final x in items)
+              CastMedia(
+                id: x.id,
+                title: x.title,
+                subtitle: context.l10n.video2(x.resolution),
+                kind: CastKind.video,
+                seed: x.seed,
+                duration: x.duration,
+                url: 'asset:${x.id}',
+              ),
+          ];
+          return RefreshIndicator(
+            onRefresh: () => ref.refresh(videosProvider.future),
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpace.page,
+                AppSpace.sm,
+                AppSpace.page,
+                AppSpace.xxxl,
+              ),
+              itemCount: items.length,
+              // Build well ahead of the viewport so fast scrolling doesn't reveal blank rows.
+              cacheExtent: 1500,
+              separatorBuilder: (_, _) => const SizedBox(height: AppSpace.md),
+              itemBuilder: (context, i) {
+                final v = items[i];
+                return _VideoTile(
+                  video: v,
+                  onTap: () {
+                    ClickCountInterstitialManager.recordClick(
+                      context,
+                      contextTag: 'video_cast',
+                    );
+                    castAndOpenRemote(context, ref, queue, index: i);
+                  },
+                );
+              },
             ),
-            itemCount: items.length,
-            separatorBuilder: (_, _) => const SizedBox(height: AppSpace.md),
-            itemBuilder: (context, i) {
-              final v = items[i];
-              final queue = [
-                for (final x in items)
-                  CastMedia(
-                    id: x.id,
-                    title: x.title,
-                    subtitle: context.l10n.video2(x.resolution),
-                    kind: CastKind.video,
-                    seed: x.seed,
-                    duration: x.duration,
-                    url: 'asset:${x.id}',
-                  ),
-              ];
-              return _VideoTile(
-                    video: v,
-                    onTap: () {
-                      ClickCountInterstitialManager.recordClick(context, contextTag: 'video_cast');
-                      castAndOpenRemote(context, ref, queue, index: i);
-                    },
-                  )
-                  .animate(delay: (50 * i).ms)
-                  .fadeIn(duration: 350.ms)
-                  .slideY(begin: 0.1, end: 0);
-            },
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -110,35 +114,37 @@ class _VideoTile extends StatelessWidget {
             child: AssetThumbnail(
               assetId: video.id,
               radius: AppRadius.sm,
-              child: Stack(children: [
-               PositionedDirectional(
-                top: 4,
-                start: 4,
-                child: PreviewButton(
-                  onTap: () => showVideoPreview(context, video.id),
-                ),
-               ),
-               PositionedDirectional(
-                end: 6,
-                bottom: 6,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                  ),
-                  child: Text(
-                    formatDuration(video.duration),
-                    style: context.text.labelSmall?.copyWith(
-                      color: Colors.white,
+              child: Stack(
+                children: [
+                  PositionedDirectional(
+                    top: 4,
+                    start: 4,
+                    child: PreviewButton(
+                      onTap: () => showVideoPreview(context, video.id),
                     ),
                   ),
-                ),
+                  PositionedDirectional(
+                    end: 6,
+                    bottom: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                      ),
+                      child: Text(
+                        formatDuration(video.duration),
+                        style: context.text.labelSmall?.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              ]),
             ),
           ),
           const SizedBox(width: AppSpace.md),
