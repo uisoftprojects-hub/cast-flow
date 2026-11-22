@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Medium native ad (Screens: Language, Result, Settings, History, etc.):
+    [ MediaView 120dp full width, 12dp corners, centerCrop ]
+    [ Icon 48x48 (16dp corners) | Headline (1 line, 16sp) / [Ad] amber badge + Body (2 lines, 12.5sp) ]
+    [ CTA 44dp, full width, 22dp pill, primary color, 0.04 letter spacing ]
+  Card: 1dp border, square corners, 14dp sides, 12dp top, 10dp bottom padding.
+  Light theme.
+-->
+<com.google.android.gms.ads.nativead.NativeAdView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/native_ad_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/native_ad_bg_light"
+    android:clipToOutline="true">
+
+    <LinearLayout
+        android:id="@+id/ad_content_root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="14dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="10dp">
+
+        <!-- MediaView: full width, 120dp height, 12dp rounded corners, centerCrop -->
+        <FrameLayout
+            android:id="@+id/ad_media_container"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:background="@drawable/native_ad_media_bg"
+            android:clipToOutline="true">
+
+            <com.google.android.gms.ads.nativead.MediaView
+                android:id="@+id/ad_media"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+
+        <!-- Middle row: Icon (48x48dp, 16dp corners) + Title & [Ad] Description -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:baselineAligned="false"
+            android:gravity="top"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/ad_app_icon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/native_ad_icon_bg"
+                android:clipToOutline="true"
+                android:contentDescription="Ad Icon"
+                android:scaleType="centerCrop" />
+
+            <LinearLayout
+                android:id="@+id/ad_text_column"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <!-- Title: 16sp bold, max 1 line, light: #202124 -->
+                <TextView
+                    android:id="@+id/ad_headline"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAlignment="viewStart"
+                    android:textColor="#202124"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!-- Badge + Description row: 8dp gap -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:baselineAligned="false"
+                    android:gravity="top"
+                    android:orientation="horizontal">
+
+                    <!-- "Ad" badge: 10sp bold, amber #FFC107 background, 4dp corners -->
+                    <TextView
+                        android:id="@+id/ad_attribution"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:background="@drawable/native_ad_badge_amber"
+                        android:paddingStart="5dp"
+                        android:paddingTop="1dp"
+                        android:paddingEnd="5dp"
+                        android:paddingBottom="1dp"
+                        android:text="Ad"
+                        android:textColor="#1F2937"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <!-- Description: 12.5sp, max 2 lines, 8dp gap from badge, light: #777777 -->
+                    <TextView
+                        android:id="@+id/ad_body"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:textAlignment="viewStart"
+                        android:textColor="#777777"
+                        android:textSize="12.5sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- CTA: 14sp bold white, 22dp pill, primary color, 0.04 letter spacing, 10dp margin top & bottom -->
+        <Button
+            android:id="@+id/ad_call_to_action"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="0dp"
+            android:background="@drawable/native_ad_cta_pill"
+            android:gravity="center"
+            android:letterSpacing="0.04"
+            android:minHeight="44dp"
+            android:padding="0dp"
+            android:stateListAnimator="@null"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</com.google.android.gms.ads.nativead.NativeAdView>

@@ -11,6 +11,10 @@ import 'ad_manager.dart';
 /// Centralized manager for native advertisements.
 /// Handles preloading for Language and Onboarding screens, and guarantees a single
 /// native ad instance across the entire Onboarding sequence.
+///
+/// Every placement has at most one request in flight; anyone asking while it is
+/// loading joins it, and anyone asking after it finished gets the cached ad. So a
+/// screen that is left and reopened mid-load never triggers a second request.
 class NativeAdManager {
   // ignore: prefer_initializing_formals
   NativeAdManager({required AdAdapter adapter}) : _adapter = adapter;
@@ -18,10 +22,13 @@ class NativeAdManager {
   final AdAdapter _adapter;
 
   LoadedNativeAd? _preloadedLanguageAd;
-  bool _isLoadingLanguage = false;
+  DateTime? _languageAdLoadedAt;
+  static const _languageAdMaxAge = Duration(minutes: 45);
+  Future<LoadedNativeAd?>? _languageInFlight;
+  bool _languageImpressed = false;
 
   LoadedNativeAd? _preloadedOnboardingAd;
-  bool _isLoadingOnboarding = false;
+  Future<LoadedNativeAd?>? _onboardingInFlight;
 
   LoadedNativeAd? _activeOnboardingAd;
 
@@ -30,42 +37,73 @@ class NativeAdManager {
 
   /// Preloads the Language native ad during splash after the splash interstitial is requested
   Future<void> preloadLanguageAd({required bool isPremium}) async {
-    if (isPremium || _isLoadingLanguage || _preloadedLanguageAd != null) return;
-    _isLoadingLanguage = true;
+    if (isPremium || _preloadedLanguageAd != null) return;
     AdLogger.i(
       AdState.preloadStart,
       placement: AdPlacement.languageFirstRun,
       adType: 'Native',
       message: 'Preloading Language native ad during startup.',
     );
-    try {
-      final ad = await _adapter.loadNative(
-        AdPlacement.languageFirstRun,
-        medium: true,
-        onImpression: () {},
-        onClicked: () {},
+    await _loadLanguage(AdPlacement.languageFirstRun, isPremium: isPremium);
+  }
+
+  /// Starts (or joins) the single Language request and caches the result.
+  Future<LoadedNativeAd?> _loadLanguage(
+    AdPlacement placement, {
+    required bool isPremium,
+    VoidCallback? onImpression,
+    VoidCallback? onClicked,
+  }) {
+    final running = _languageInFlight;
+    if (running != null) {
+      AdLogger.i(
+        AdState.preloadConsumed,
+        placement: placement,
+        adType: 'Native',
+        message: 'Language native ad already loading; joining that request.',
       );
-      if (isPremium) {
-        ad.dispose();
-      } else {
+      return running;
+    }
+    final future = () async {
+      try {
+        _languageImpressed = false;
+        final ad = await _adapter.loadNative(
+          placement,
+          medium: true,
+          onImpression: () {
+            _languageImpressed = true;
+            onImpression?.call();
+          },
+          onClicked: onClicked ?? () {},
+        );
+        if (isPremium) {
+          ad.dispose();
+          return null;
+        }
+        _preloadedLanguageAd?.dispose();
         _preloadedLanguageAd = ad;
+        _languageAdLoadedAt = DateTime.now();
         AdLogger.i(
           AdState.preloadSuccess,
-          placement: AdPlacement.languageFirstRun,
+          placement: placement,
           adType: 'Native',
-          message: 'Language native ad preloaded and cached.',
+          message: 'Language native ad loaded and cached.',
         );
+        return ad;
+      } catch (e) {
+        AdLogger.w(
+          AdState.loadFailed,
+          placement: placement,
+          adType: 'Native',
+          message: 'Language native ad load failed: $e',
+        );
+        return null;
+      } finally {
+        _languageInFlight = null;
       }
-    } catch (e) {
-      AdLogger.w(
-        AdState.preloadFailed,
-        placement: AdPlacement.languageFirstRun,
-        adType: 'Native',
-        message: 'Language native ad preload failed: $e',
-      );
-    } finally {
-      _isLoadingLanguage = false;
-    }
+    }();
+    _languageInFlight = future;
+    return future;
   }
 
   /// Retrieves preloaded Language ad or loads a fresh one (e.g. from Settings)
@@ -77,90 +115,109 @@ class NativeAdManager {
   }) async {
     if (isPremium) return null;
 
-    if (!fromSettings && _preloadedLanguageAd != null) {
-      AdLogger.i(
-        AdState.preloadConsumed,
-        placement: AdPlacement.languageFirstRun,
-        adType: 'Native',
-        message: 'Consuming cached preloaded Language native ad.',
+    // One Language ad is shared by first-run and Settings and reused while it is
+    // still fresh, so reopening the screen never requests it again.
+    final cached = _preloadedLanguageAd;
+    if (cached != null) {
+      final age = DateTime.now().difference(
+        _languageAdLoadedAt ?? DateTime.now(),
       );
-      final ad = _preloadedLanguageAd;
+      if (age < _languageAdMaxAge) {
+        AdLogger.i(
+          AdState.preloadConsumed,
+          placement: fromSettings
+              ? AdPlacement.languageSettings
+              : AdPlacement.languageFirstRun,
+          adType: 'Native',
+          message:
+              'Reusing already loaded Language native ad (no new request).',
+        );
+        return cached;
+      }
+      cached.dispose();
       _preloadedLanguageAd = null;
-      return ad;
     }
 
-    // Fresh load
-    final placement = fromSettings
-        ? AdPlacement.languageSettings
-        : AdPlacement.languageFirstRun;
-    AdLogger.i(
-      AdState.requestStart,
-      placement: placement,
-      adType: 'Native',
-      message:
-          'Loading fresh Language native ad (fromSettings: $fromSettings).',
+    return _loadLanguage(
+      fromSettings ? AdPlacement.languageSettings : AdPlacement.languageFirstRun,
+      isPremium: isPremium,
+      onImpression: onImpression,
+      onClicked: onClicked,
     );
-    try {
-      return await _adapter.loadNative(
-        placement,
-        medium: true,
-        onImpression: onImpression ?? () {},
-        onClicked: onClicked ?? () {},
-      );
-    } catch (e) {
-      AdLogger.w(
-        AdState.loadFailed,
-        placement: placement,
-        adType: 'Native',
-        message: 'Fresh load failed for Language native ad: $e',
-      );
-      return null;
-    }
+  }
+
+  /// Called when the Language screen is left. An ad that was never shown (still
+  /// loading, or loaded but no impression) is kept for the next visit; one that
+  /// already counted an impression is disposed so the next visit requests a new one.
+  void releaseLanguageAdIfShown() {
+    if (!_languageImpressed) return;
+    final ad = _preloadedLanguageAd;
+    _preloadedLanguageAd = null;
+    _languageImpressed = false;
+    if (ad == null) return;
+    // Let the leaving route finish tearing down its AdWidget first.
+    Future<void>.delayed(const Duration(milliseconds: 600), ad.dispose);
   }
 
   /// Preloads the Onboarding native ad on the Paywall screen
   Future<void> preloadOnboardingAd({required bool isPremium}) async {
     if (isPremium ||
-        _isLoadingOnboarding ||
         _preloadedOnboardingAd != null ||
         _activeOnboardingAd != null) {
       return;
     }
-    _isLoadingOnboarding = true;
     AdLogger.i(
       AdState.preloadStart,
       placement: AdPlacement.onboarding,
       adType: 'Native',
       message: 'Preloading Onboarding native ad.',
     );
-    try {
-      final ad = await _adapter.loadNative(
-        AdPlacement.onboarding,
-        medium: true,
-        onImpression: () {},
-        onClicked: () {},
-      );
-      if (isPremium) {
-        ad.dispose();
-      } else {
+    await _loadOnboarding(isPremium: isPremium);
+  }
+
+  /// Starts (or joins) the single Onboarding request; the result is cached.
+  Future<LoadedNativeAd?> _loadOnboarding({
+    required bool isPremium,
+    VoidCallback? onImpression,
+    VoidCallback? onClicked,
+  }) {
+    final running = _onboardingInFlight;
+    if (running != null) return running;
+    final future = () async {
+      try {
+        final ad = await _adapter.loadNative(
+          AdPlacement.onboarding,
+          medium: true,
+          onImpression: onImpression ?? () {},
+          onClicked: onClicked ?? () {},
+        );
+        if (isPremium) {
+          ad.dispose();
+          return null;
+        }
+        _preloadedOnboardingAd?.dispose();
         _preloadedOnboardingAd = ad;
         AdLogger.i(
           AdState.preloadSuccess,
           placement: AdPlacement.onboarding,
           adType: 'Native',
-          message: 'Onboarding native ad preloaded and cached.',
+          message: 'Onboarding native ad loaded and cached.',
         );
+        return ad;
+      } catch (e) {
+        AdLogger.w(
+          AdState.preloadFailed,
+          placement: AdPlacement.onboarding,
+          adType: 'Native',
+          message: 'Onboarding native ad load failed: $e',
+        );
+        return null;
+      } finally {
+        _onboardingInFlight = null;
       }
-    } catch (e) {
-      AdLogger.w(
-        AdState.preloadFailed,
-        placement: AdPlacement.onboarding,
-        adType: 'Native',
-        message: 'Onboarding native ad preload failed: $e',
-      );
-    } finally {
-      _isLoadingOnboarding = false;
-    }
+    }();
+    _onboardingInFlight = future;
+    return future;
   }
 
   /// Retrieves the single persistent native ad instance for Onboarding
@@ -171,51 +228,28 @@ class NativeAdManager {
   }) async {
     if (isPremium) return null;
 
-    if (_activeOnboardingAd != null) {
-      AdLogger.d(
-        AdState.preloadConsumed,
-        placement: AdPlacement.onboarding,
-        adType: 'Native',
-        message: 'Reusing existing active Onboarding native ad instance.',
-      );
-      return _activeOnboardingAd;
-    }
+    if (_activeOnboardingAd != null) return _activeOnboardingAd;
 
-    if (_preloadedOnboardingAd != null) {
-      AdLogger.i(
-        AdState.preloadConsumed,
-        placement: AdPlacement.onboarding,
-        adType: 'Native',
-        message: 'Promoting preloaded Onboarding native ad to active instance.',
+    // Preloaded, or still loading from the preload: use that, never request again.
+    if (_preloadedOnboardingAd == null) {
+      await _loadOnboarding(
+        isPremium: isPremium,
+        onImpression: onImpression,
+        onClicked: onClicked,
       );
-      _activeOnboardingAd = _preloadedOnboardingAd;
-      _preloadedOnboardingAd = null;
-      return _activeOnboardingAd;
     }
-
+    if (_activeOnboardingAd != null) return _activeOnboardingAd;
+    final ready = _preloadedOnboardingAd;
+    if (ready == null) return null;
     AdLogger.i(
-      AdState.requestStart,
+      AdState.preloadConsumed,
       placement: AdPlacement.onboarding,
       adType: 'Native',
-      message: 'Loading fresh Onboarding native ad instance.',
+      message: 'Promoting preloaded Onboarding native ad to active instance.',
     );
-    try {
-      _activeOnboardingAd = await _adapter.loadNative(
-        AdPlacement.onboarding,
-        medium: true,
-        onImpression: onImpression ?? () {},
-        onClicked: onClicked ?? () {},
-      );
-      return _activeOnboardingAd;
-    } catch (e) {
-      AdLogger.w(
-        AdState.loadFailed,
-        placement: AdPlacement.onboarding,
-        adType: 'Native',
-        message: 'Failed to load Onboarding native ad: $e',
-      );
-      return null;
-    }
+    _activeOnboardingAd = ready;
+    _preloadedOnboardingAd = null;
+    return ready;
   }
 
   /// Disposes the single Onboarding native ad when completing or skipping Onboarding

@@ -15,9 +15,11 @@ import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
 import '../../player/domain/cast_media.dart';
 import '../../player/presentation/player_controller.dart';
+import '../../monetization/presentation/click_count_interstitial_manager.dart';
 import '../domain/media_models.dart';
 import 'asset_thumbnail.dart';
 import 'media_permission_view.dart';
+import 'media_preview.dart';
 import 'media_providers.dart';
 
 import '../../../core/l10n.dart';
@@ -182,6 +184,7 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> {
                               if (_selecting) {
                                 _toggle(photo.id);
                               } else {
+                                ClickCountInterstitialManager.recordClick(context, contextTag: 'photo_cast');
                                 castAndOpenRemote(
                                   context,
                                   ref,
@@ -190,6 +193,7 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> {
                                 );
                               }
                             },
+                            onPreview: () => showPhotoPreview(context, photo.id),
                             onLongPress: () => setState(() {
                               _selecting = true;
                               _selected.add(photo.id);
@@ -273,8 +277,10 @@ class _PhotoTile extends StatelessWidget {
     required this.selected,
     required this.onTap,
     required this.onLongPress,
+    required this.onPreview,
   });
 
+  final VoidCallback onPreview;
   final PhotoItem photo;
   final bool selecting;
   final bool selected;
@@ -319,7 +325,11 @@ class _PhotoTile extends StatelessWidget {
                           : null,
                     ),
                   )
-                : null,
+                : PositionedDirectional(
+                    bottom: 4,
+                    end: 4,
+                    child: PreviewButton(onTap: onPreview),
+                  ),
           ),
         ),
       ),

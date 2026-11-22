@@ -103,7 +103,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   /// Persists completion once the user finishes the last slide
+  bool _finishing = false;
+
   Future<void> _finish() async {
+    if (_finishing) return;
+    _finishing = true;
     ref.read(nativeAdManagerProvider).releaseOnboardingAd();
     await ref.read(settingsProvider.notifier).completeOnboarding();
     if (!mounted) return;
@@ -177,7 +181,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       canPop: false,
       // Back moves forward: slide 1 -> 2 -> 3 -> Home.
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _next();
+        // Back does nothing while the loader is showing.
+        if (!didPop && !_adLoading && !_finishing) _next();
       },
       child: Stack(
         children: [

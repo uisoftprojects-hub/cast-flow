@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/ad_logger.dart';
@@ -10,6 +13,15 @@ import '../domain/ad_models.dart';
 class AdDisplayCoordinator {
   bool _isFullScreenShowing = false;
   bool _isPurchaseInProgress = false;
+
+  static const _backLock = MethodChannel('castflow/ad_back_lock');
+
+  /// Android: Back button / gesture does nothing while a full-screen ad is up.
+  /// (Google's ad activity lives outside Flutter, so it is blocked natively.)
+  static void _setBackLocked(bool locked) {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    _backLock.invokeMethod<void>('setLocked', {'locked': locked}).catchError((_) {});
+  }
 
   bool get isFullScreenShowing => _isFullScreenShowing;
   bool get isPurchaseInProgress => _isPurchaseInProgress;
@@ -54,6 +66,7 @@ class AdDisplayCoordinator {
     }
 
     _isFullScreenShowing = true;
+    _setBackLocked(true);
     _displayStream.add(true);
     AdLogger.i(
       AdState.coordinatorLockAcquired,
@@ -76,6 +89,7 @@ class AdDisplayCoordinator {
       return false;
     } finally {
       _isFullScreenShowing = false;
+      _setBackLocked(false);
       _displayStream.add(false);
       AdLogger.i(
         AdState.coordinatorLockReleased,
@@ -93,6 +107,7 @@ class AdDisplayCoordinator {
       message: 'Force-resetting all full-screen presentation locks.',
     );
     _isFullScreenShowing = false;
+    _setBackLocked(false);
     _displayStream.add(false);
   }
 

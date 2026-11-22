@@ -22,11 +22,11 @@ List<FlowStep> _flow({
 
 void main() {
   group('buildFlow', () {
-    test('Flow A (first run): Splash → Language → Paywall → Onboarding → Home', () {
+    test('Flow A (first run): Splash → Language → Onboarding → Paywall → Home', () {
       expect(_flow(), [
         FlowStep.language,
-        FlowStep.paywall,
         FlowStep.onboarding,
+        FlowStep.paywall,
         FlowStep.home,
       ]);
     });
@@ -51,7 +51,7 @@ void main() {
     });
 
     test('an interrupted first run resumes at the next unfinished step', () {
-      expect(_flow(languageChosen: true), [FlowStep.paywall, FlowStep.onboarding, FlowStep.home]);
+      expect(_flow(languageChosen: true), [FlowStep.onboarding, FlowStep.paywall, FlowStep.home]);
       expect(_flow(languageChosen: true, onboardingDone: true), [FlowStep.paywall, FlowStep.home]);
     });
   });
@@ -61,22 +61,22 @@ void main() {
     final flow = c.read(appFlowProvider.notifier);
 
     expect(flow.start(), '/language');
-    expect(flow.advance(FlowStep.language), '/paywall?slot=first');
+    expect(flow.advance(FlowStep.language), '/onboarding');
     // A stale/double tap on the previous step is ignored.
     expect(flow.advance(FlowStep.language), isNull);
-    expect(flow.advance(FlowStep.paywall), '/onboarding');
+    expect(flow.advance(FlowStep.onboarding), '/paywall?slot=first');
     expect(c.read(settingsProvider).firstLaunchCompleted, isFalse);
-    expect(flow.advance(FlowStep.onboarding), '/home');
+    expect(flow.advance(FlowStep.paywall), '/home');
     expect(c.read(settingsProvider).firstLaunchCompleted, isTrue);
     expect(c.read(appFlowProvider).finished, isTrue);
   });
 
-  test('buying Pro mid-flow on paywall continues to onboarding then home without ads', () async {
+  test('buying Pro on the paywall continues straight to home', () async {
     final c = await makeContainer();
     final flow = c.read(appFlowProvider.notifier)..start();
-    expect(flow.advance(FlowStep.language), '/paywall?slot=first');
+    expect(flow.advance(FlowStep.language), '/onboarding');
+    expect(flow.advance(FlowStep.onboarding), '/paywall?slot=first');
     c.read(settingsProvider.notifier).setPremium(true);
-    expect(flow.advance(FlowStep.paywall), '/onboarding');
-    expect(flow.advance(FlowStep.onboarding), '/home');
+    expect(flow.advance(FlowStep.paywall), '/home');
   });
 }

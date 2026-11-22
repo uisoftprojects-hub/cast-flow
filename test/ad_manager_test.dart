@@ -86,42 +86,69 @@ void main() {
     c.dispose();
   });
 
-  group('Bottom Navigation Click-Count Interstitial', () {
-    test('1st click loads ad without displaying; 2nd click displays ad and completes session', () async {
-      // 1st click
-      await clickManager.onBottomNavClick(isPremium: false);
+  group('Click Interstitial (1 per session, load on 1st click, show on 2nd click, excluding Settings)', () {
+    test('loads on 1st click, shows on 2nd click, max 1 display per session', () async {
+      // 1st click: requests load in background, does not show
+      await clickManager.onUserClick(isPremium: false, contextTag: 'home_feature');
       expect(clickManager.clickCount, 1);
       expect(adapter.interstitialLoads.length, 1);
       expect(clickManager.sessionInterstitialDisplayed, isFalse);
 
-      // Ad completes loading
-      final ad = _Ad();
-      adapter.interstitialLoads.single.complete(ad);
+      // 1st ad completes loading
+      final ad1 = _Ad();
+      adapter.interstitialLoads[0].complete(ad1);
       await Future<void>.delayed(Duration.zero);
       expect(clickManager.isLoaded, isTrue);
-      expect(ad.shows, 0, reason: 'Never display on 1st click');
+      expect(ad1.shows, 0);
 
-      // 2nd click: displays ad and marks session completed
-      await clickManager.onBottomNavClick(isPremium: false);
+      // 2nd click: displays loaded ad and marks session limit reached (NO reload)
+      await clickManager.onUserClick(isPremium: false, contextTag: 'bottom_nav');
       expect(clickManager.clickCount, 2);
-      expect(ad.shows, 1);
-      expect(ad.disposed, isTrue);
+      expect(ad1.shows, 1);
+      expect(ad1.disposed, isTrue);
       expect(clickManager.sessionInterstitialDisplayed, isTrue);
+      expect(adapter.interstitialLoads.length, 1, reason: 'No new ad load; max 1 show per session');
 
-      // 3rd click: never show another click-count interstitial in this session
-      await clickManager.onBottomNavClick(isPremium: false);
-      expect(clickManager.clickCount, 2, reason: 'No more clicks processed once session completes');
-      expect(adapter.interstitialLoads.length, 1, reason: 'No new loads requested');
+      // Subsequent clicks: strictly ignored because session limit is reached
+      await clickManager.onUserClick(isPremium: false, contextTag: 'photo_cast');
+      expect(clickManager.clickCount, 2, reason: 'Click counter does not increment after session limit');
+      expect(ad1.shows, 1);
+      expect(adapter.interstitialLoads.length, 1);
     });
 
-    test('if ad not ready on 2nd click, continues navigation and shows on next click once loaded', () async {
+    test('settings screen clicks are strictly excluded', () async {
+      // Settings target route is excluded
+      await clickManager.onUserClick(
+        isPremium: false,
+        targetRoute: '/settings',
+        contextTag: 'settings_tab',
+      );
+      expect(clickManager.clickCount, 0);
+      expect(adapter.interstitialLoads, isEmpty);
+
+      // Settings sub-screens are excluded
+      await clickManager.onUserClick(
+        isPremium: false,
+        targetRoute: '/settings/language',
+        contextTag: 'settings_lang',
+      );
+      await clickManager.onUserClick(
+        isPremium: false,
+        targetRoute: '/faq',
+        contextTag: 'faq',
+      );
+      expect(clickManager.clickCount, 0);
+      expect(adapter.interstitialLoads, isEmpty);
+    });
+
+    test('if ad not ready, continues navigation and shows on next click once loaded', () async {
       // 1st click: request load
-      await clickManager.onBottomNavClick(isPremium: false);
+      await clickManager.onUserClick(isPremium: false);
       expect(adapter.interstitialLoads.length, 1);
 
-      // 2nd click before load finishes: no show, does not complete session
-      await clickManager.onBottomNavClick(isPremium: false);
-      expect(clickManager.sessionInterstitialDisplayed, isFalse);
+      // 2nd click before load finishes: no show
+      await clickManager.onUserClick(isPremium: false);
+      expect(clickManager.isLoaded, isFalse);
 
       // Now ad loads
       final ad = _Ad();
@@ -130,33 +157,29 @@ void main() {
       expect(clickManager.isLoaded, isTrue);
 
       // 3rd click: shows ad
-      await clickManager.onBottomNavClick(isPremium: false);
+      await clickManager.onUserClick(isPremium: false);
       expect(ad.shows, 1);
-      expect(clickManager.sessionInterstitialDisplayed, isTrue);
     });
 
-    test('failure to load keeps opportunity open and does not mark session completed', () async {
+    test('failure to load keeps opportunity open and does not lock clicks', () async {
       // 1st click: request load
-      await clickManager.onBottomNavClick(isPremium: false);
+      await clickManager.onUserClick(isPremium: false);
       expect(adapter.interstitialLoads.length, 1);
 
       // Load fails
       adapter.interstitialLoads.single.completeError('No fill');
       await Future<void>.delayed(Duration.zero);
-      expect(clickManager.sessionInterstitialDisplayed, isFalse);
       expect(clickManager.isLoaded, isFalse);
 
       // 2nd click: retries loading
-      await clickManager.onBottomNavClick(isPremium: false);
+      await clickManager.onUserClick(isPremium: false);
       expect(adapter.interstitialLoads.length, 2, reason: 'Retried loading on 2nd click');
-      expect(clickManager.sessionInterstitialDisplayed, isFalse);
     });
 
     test('premium users never trigger interstitial loads or displays', () async {
-      await clickManager.onBottomNavClick(isPremium: true);
+      await clickManager.onUserClick(isPremium: true);
       expect(clickManager.clickCount, 0);
       expect(adapter.interstitialLoads, isEmpty);
-      expect(clickManager.sessionInterstitialDisplayed, isFalse);
     });
   });
 

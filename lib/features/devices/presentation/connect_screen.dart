@@ -12,6 +12,7 @@ import '../../../core/widgets/buttons.dart';
 import '../../../core/widgets/soft_card.dart';
 import '../../../core/widgets/state_views.dart';
 import '../domain/cast_device.dart';
+import '../../monetization/presentation/click_count_interstitial_manager.dart';
 import 'device_providers.dart';
 import 'widgets/connection_chip.dart';
 import 'widgets/connection_guide_sheet.dart';
@@ -81,6 +82,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   }
 
   Future<void> _connect(CastDevice device) async {
+    ClickCountInterstitialManager.recordClick(context, contextTag: 'device_connect');
     final ok = await ref.read(connectionProvider.notifier).connect(device);
     if (!mounted) return;
     if (ok) {

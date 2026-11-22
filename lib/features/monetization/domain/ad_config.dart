@@ -51,6 +51,10 @@ class AdMobConfig {
 
   static const String testNativeAndroid =
       'ca-app-pub-3940256099942544/2247696110';
+
+  /// Google's video native test unit (Android) for the media-layout screens.
+  static const String testNativeVideoAndroid =
+      'ca-app-pub-3940256099942544/1044960115';
   static const String testNativeIOS = 'ca-app-pub-3940256099942544/3986624511';
 
   static const String testAppOpenAndroid =
@@ -110,9 +114,11 @@ class AdMobConfig {
     if (!isRelease) {
       // In debug mode: NEVER load production ads
       return switch (placement) {
+        // Media layout screens: Google's VIDEO native test unit, so debug shows a real video.
         AdPlacement.languageFirstRun ||
         AdPlacement.languageSettings ||
-        AdPlacement.onboarding ||
+        AdPlacement.onboarding =>
+          isIOS ? testNativeIOS : testNativeVideoAndroid,
         AdPlacement.homeNative => isIOS ? testNativeIOS : testNativeAndroid,
         AdPlacement.splashInterstitialFirst ||
         AdPlacement.splashInterstitialSecond ||
@@ -227,6 +233,13 @@ class AdMobConfig {
   }
 
   static const double nativeSmallHeight = 112.0;
+
+  /// Estimate for the video layout (12 pad + 120 media + 10 + 53 info + 10 + 44 CTA + 12 pad)
+  /// until the native view reports its measured height.
+  static const double nativeMediaHeight = 264.0;
+
+  /// Onboarding layout: 8 + 122 content + 8 = 138dp, fixed.
+  static const double nativeOnboardingHeight = 138.0;
 
   static const int loadAtClick = 3;
   static const int showAtClick = 5;

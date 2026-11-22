@@ -19,6 +19,8 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import com.google.android.gms.ads.nativead.AdChoicesView
+import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
 import io.flutter.embedding.android.FlutterActivity
@@ -36,11 +38,20 @@ object NativeAdTheme {
     }
 
     fun apply(view: NativeAdView, dark: Boolean) {
-        view.setBackgroundResource(if (dark) R.drawable.native_ad_bg_dark else R.drawable.native_ad_bg_light)
-        view.findViewById<TextView>(R.id.ad_headline)
-            ?.setTextColor(android.graphics.Color.parseColor(if (dark) "#FFFFFF" else "#111827"))
-        view.findViewById<TextView>(R.id.ad_body)
-            ?.setTextColor(android.graphics.Color.parseColor(if (dark) "#9CA3AF" else "#6B7280"))
+        val isOnboarding = view.findViewById<View>(R.id.ad_choices) != null
+        if (isOnboarding) {
+            view.setBackgroundResource(if (dark) R.drawable.native_ad_bg_onboarding_dark else R.drawable.native_ad_bg_onboarding_light)
+            view.findViewById<TextView>(R.id.ad_headline)
+                ?.setTextColor(android.graphics.Color.parseColor(if (dark) "#F4F5F8" else "#333333"))
+            view.findViewById<TextView>(R.id.ad_body)
+                ?.setTextColor(android.graphics.Color.parseColor(if (dark) "#9CA3AF" else "#777777"))
+        } else {
+            view.setBackgroundResource(if (dark) R.drawable.native_ad_bg_dark else R.drawable.native_ad_bg_light)
+            view.findViewById<TextView>(R.id.ad_headline)
+                ?.setTextColor(android.graphics.Color.parseColor(if (dark) "#F4F5F8" else "#202124"))
+            view.findViewById<TextView>(R.id.ad_body)
+                ?.setTextColor(android.graphics.Color.parseColor(if (dark) "#9CA3AF" else "#777777"))
+        }
     }
 
     fun setDark(dark: Boolean) {
@@ -60,8 +71,19 @@ object NativeAdSizer {
     /** Height in dp of the text column (title, description, CTA) for a full ad width of [widthDp]. */
     fun measureDp(id: String, widthDp: Double): Double? {
         val view = views[id]?.get() ?: return null
-        val column = view.findViewById<View>(R.id.ad_text_column) ?: return null
         val density = view.resources.displayMetrics.density
+        // Video layout: the whole stacked content (media + info row + CTA) at full width.
+        val content = view.findViewById<View>(R.id.ad_content_root)
+        if (content != null) {
+            val widthPx = (widthDp * density).toInt()
+            if (widthPx <= 0) return null
+            content.measure(
+                View.MeasureSpec.makeMeasureSpec(widthPx, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            )
+            return content.measuredHeight / density.toDouble()
+        }
+        val column = view.findViewById<View>(R.id.ad_text_column) ?: return null
         val columnPx = (widthDp * density * 0.65).toInt()
         if (columnPx <= 0) return null
         column.measure(
@@ -83,21 +105,65 @@ class CustomNativeAdFactory(private val layoutInflater: LayoutInflater) : Native
     ): NativeAdView {
         val isDark = customOptions?.get("isDark") as? Boolean ?: false
         Log.d(TAG, "[NativeAdFactory] STATE: INFLATING_LAYOUT | isDark: $isDark | headline: ${nativeAd.headline}")
-        val layoutId = if (isDark) R.layout.custom_native_ad_dark else R.layout.custom_native_ad
+        val layoutKind = customOptions?.get("layout") as? String
+        val withMedia = layoutKind == "media"
+        val onboarding = layoutKind == "onboarding"
+        val layoutId = when {
+            onboarding && isDark -> R.layout.custom_native_ad_onboarding_dark
+            onboarding -> R.layout.custom_native_ad_onboarding
+            withMedia && isDark -> R.layout.custom_native_ad_media_dark
+            withMedia -> R.layout.custom_native_ad_media
+            isDark -> R.layout.custom_native_ad_dark
+            else -> R.layout.custom_native_ad
+        }
         val nativeAdView = layoutInflater.inflate(layoutId, null) as NativeAdView
 
-        val iconView = nativeAdView.findViewById<ImageView>(R.id.ad_app_icon)
+        if (withMedia) {
+            val mediaContainer = nativeAdView.findViewById<View>(R.id.ad_media_container)
+            val mediaView = nativeAdView.findViewById<MediaView>(R.id.ad_media)
+            val content = nativeAd.mediaContent
+            if (content != null) {
+                mediaView.mediaContent = content
+                mediaView.setImageScaleType(ImageView.ScaleType.CENTER_CROP)
+                nativeAdView.mediaView = mediaView
+                mediaContainer.visibility = View.VISIBLE
+            } else {
+                mediaContainer.visibility = View.GONE
+            }
+        }
+
+        if (onboarding) {
+            // ~138dp layout: Media (w45, 120dp tall, FIT_CENTER, 8dp rounded), AdChoices 22x22 in left gutter 34dp.
+            val mediaContainer = nativeAdView.findViewById<View>(R.id.ad_media_container)
+            val mediaView = nativeAdView.findViewById<MediaView>(R.id.ad_media)
+            val content = nativeAd.mediaContent
+            if (content != null) {
+                mediaView.mediaContent = content
+                mediaView.setImageScaleType(ImageView.ScaleType.FIT_CENTER)
+                nativeAdView.mediaView = mediaView
+                mediaContainer.visibility = View.VISIBLE
+            } else {
+                // Media na ho to media INVISIBLE ho jata hai.
+                mediaContainer.visibility = View.INVISIBLE
+            }
+            nativeAdView.adChoicesView = nativeAdView.findViewById<AdChoicesView>(R.id.ad_choices)
+        }
+
+        val iconView = nativeAdView.findViewById<ImageView?>(R.id.ad_app_icon)
         val headlineView = nativeAdView.findViewById<TextView>(R.id.ad_headline)
         val bodyView = nativeAdView.findViewById<TextView>(R.id.ad_body)
         val ctaView = nativeAdView.findViewById<Button>(R.id.ad_call_to_action)
 
-        nativeAd.icon?.let {
-            iconView.setImageDrawable(it.drawable)
-            iconView.visibility = View.VISIBLE
-            nativeAdView.iconView = iconView
-            Log.v(TAG, "[NativeAdFactory] STATE: ICON_BOUND")
-        } ?: run {
-            iconView.visibility = View.GONE
+        // The onboarding layout has no separate icon (the media takes that place).
+        if (iconView != null) {
+            nativeAd.icon?.let {
+                iconView.setImageDrawable(it.drawable)
+                iconView.visibility = View.VISIBLE
+                nativeAdView.iconView = iconView
+                Log.v(TAG, "[NativeAdFactory] STATE: ICON_BOUND")
+            } ?: run {
+                iconView.visibility = View.GONE
+            }
         }
 
         headlineView.text = nativeAd.headline
@@ -135,6 +201,8 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Back button / gesture does nothing while an interstitial or App Open ad is showing.
+        AdBackBlocker.install(application)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isStatusBarContrastEnforced = false
             window.isNavigationBarContrastEnforced = false
@@ -171,6 +239,17 @@ class MainActivity : FlutterActivity() {
                             "nativeId" to getString(R.string.admob_native_id)
                         )
                     )
+                }
+                else -> result.notImplemented()
+            }
+        }
+
+        // Flutter tells us when a full-screen ad (interstitial / App Open) is on screen.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "castflow/ad_back_lock").setMethodCallHandler { call, result ->
+            when (call.method) {
+                "setLocked" -> {
+                    AdBackBlocker.locked = call.argument<Boolean>("locked") ?: false
+                    result.success(true)
                 }
                 else -> result.notImplemented()
             }

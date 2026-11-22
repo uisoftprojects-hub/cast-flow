@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -55,15 +57,31 @@ class NativeAdSlotState extends ConsumerState<NativeAdSlot> {
   /// mounted twice ("AdWidget is already in the widget tree").
   final _adHostKey = GlobalKey();
 
+  /// Onboarding and Language ads are cached by [NativeAdManager] and reused, so the
+  /// slot must not dispose them when it leaves the tree.
+  bool get _managerOwned =>
+      widget.placement == AdPlacement.onboarding ||
+      widget.placement == AdPlacement.languageFirstRun ||
+      widget.placement == AdPlacement.languageSettings;
+
   bool get hasAd => _ad != null;
 
   /// The landing request is over (ad, no fill or timeout).
   bool get settled => _finished;
 
   /// Grows with the user's font size so the title / CTA are never cut off.
-  double _height(BuildContext context) =>
-      _measured ??
-      AdMobConfig.nativeHeightFor(MediaQuery.textScalerOf(context).scale(1));
+  double _height(BuildContext context) {
+    final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
+    // Onboarding: fixed layout, headline/body are capped at 2 lines, CTA never hides.
+    if (widget.placement.usesOnboardingLayout) {
+      return AdMobConfig.nativeOnboardingHeight;
+    }
+    if (widget.placement.usesMediaLayout) {
+      // Fixed 120dp media + 48dp icon row; only the text and CTA grow with font scale.
+      return _measured ?? (AdMobConfig.nativeMediaHeight + 24 * (scale - 1));
+    }
+    return _measured ?? AdMobConfig.nativeHeightFor(scale);
+  }
 
   /// Asks the native view for its real height once it is on screen (it is created
   /// when the platform view builds, so poll briefly), then resizes the container.
@@ -83,6 +101,7 @@ class NativeAdSlotState extends ConsumerState<NativeAdSlot> {
   }
 
   void _scheduleMeasure(double width) {
+    if (widget.placement.usesOnboardingLayout) return; // fixed height
     if (_ad == null || width <= 0 || !width.isFinite) return;
     final key = '${width.round()}|${MediaQuery.textScalerOf(context).scale(1)}';
     if (key == _measureKey) return;
@@ -136,10 +155,14 @@ class NativeAdSlotState extends ConsumerState<NativeAdSlot> {
     for (var attempt = 0; attempt < maxAttempts; attempt++) {
       final left = limit - watch.elapsed;
       if (left <= Duration.zero) break;
+      final request = _request();
       try {
-        final ad = await _request().timeout(left);
+        final ad = await request.timeout(left);
         if (ad != null) return ad;
       } catch (e) {
+        // The request keeps running after the wait ran out (the ad SDK cannot be
+        // cancelled). Don't throw a late ad away: show it if the slot is still here.
+        if (e is TimeoutException) _acceptLate(request, watch);
         AdLogger.w(
           AdState.loadFailed,
           placement: widget.placement,
@@ -154,6 +177,37 @@ class NativeAdSlotState extends ConsumerState<NativeAdSlot> {
       }
     }
     return null;
+  }
+
+  /// Longest an ad may arrive after the request started and still be shown.
+  static const _lateLimit = Duration(seconds: 20);
+
+  /// An ad that finished loading after [_loadWithRetry] gave up: render it in the
+  /// slot (it was collapsed as "no fill") instead of leaking it. Disposed if the
+  /// slot is gone, already has an ad, or it came too late.
+  void _acceptLate(Future<LoadedNativeAd?> request, Stopwatch watch) {
+    request.then((ad) {
+      if (ad == null) return;
+      final keep =
+          mounted &&
+          _ad == null &&
+          !ref.read(isPremiumProvider) &&
+          watch.elapsed <= _lateLimit;
+      if (!keep) {
+        // Onboarding's single instance is owned by the manager.
+        if (!_managerOwned) ad.dispose();
+        return;
+      }
+      AdLogger.i(
+        AdState.showing,
+        placement: widget.placement,
+        adType: 'Native',
+        message:
+            'NativeAdSlot: ad arrived late (${watch.elapsed.inMilliseconds}ms); showing it.',
+      );
+      _settle(ad);
+      widget.onSettled?.call(true);
+    }).catchError((Object _) {});
   }
 
   Future<void> _fetchAd() async {
@@ -214,7 +268,7 @@ class NativeAdSlotState extends ConsumerState<NativeAdSlot> {
 
   void _settle(LoadedNativeAd? ad) {
     if (!mounted) {
-      if (widget.placement != AdPlacement.onboarding) ad?.dispose();
+      if (!_managerOwned) ad?.dispose();
       return;
     }
     if (ad != null) {
@@ -241,7 +295,7 @@ class NativeAdSlotState extends ConsumerState<NativeAdSlot> {
   @override
   void dispose() {
     // For onboarding, the single instance is retained until onboarding is finished
-    if (widget.placement != AdPlacement.onboarding) {
+    if (!_managerOwned) {
       AdLogger.d(
         AdState.disposed,
         placement: widget.placement,

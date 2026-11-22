@@ -14,6 +14,7 @@ import '../../../core/widgets/tap_scale.dart';
 import '../../app_flow/domain/flow_config.dart';
 import '../../app_flow/presentation/app_flow_controller.dart';
 import '../../monetization/domain/ad_models.dart';
+import '../../monetization/presentation/native_ad_manager.dart';
 import '../../monetization/presentation/native_ad_slot.dart';
 import '../../monetization/presentation/splash_interstitial_manager.dart';
 import '../../premium/domain/premium_status_service.dart';
@@ -33,7 +34,9 @@ class LanguageScreen extends ConsumerStatefulWidget {
 
 class _LanguageScreenState extends ConsumerState<LanguageScreen> {
   late String _selected = ref.read(settingsProvider).languageCode;
+  late final _nativeMgr = ref.read(nativeAdManagerProvider);
   bool _closing = false;
+  bool _firstRunBusy = false;
 
   /// Done icon shows a spinner (primary colour) while the native ad loads.
   bool _adLoading = false;
@@ -41,6 +44,7 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
   @override
   void initState() {
     super.initState();
+    _nativeMgr; // resolve now: ref can't be read during dispose
     _startLandingLoader();
   }
 
@@ -60,6 +64,8 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
   @override
   void dispose() {
     _loaderTimer?.cancel();
+    // Shown ad is spent (disposed); an unshown / still-loading one is kept for next time.
+    _nativeMgr.releaseLanguageAdIfShown();
     super.dispose();
   }
 
@@ -67,13 +73,14 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
 
   /// Settings: back leaves without applying the language.
   void _back() {
-    if (_closing) return;
+    // Loader showing (ad loading): back is disabled until it finishes.
+    if (_closing || _adLoading) return;
     _closing = true;
     context.pop();
   }
 
   Future<void> _done() async {
-    if (_adLoading) return;
+    if (_adLoading || _firstRunBusy) return;
     if (widget.fromSettings) {
       // Leave the screen first, then switch the locale, so the whole app does not
       // rebuild around this screen (and its native ad view) while it is closing.
@@ -94,6 +101,7 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
         WidgetsBinding.instance.scheduleFrame();
       });
     } else {
+      _firstRunBusy = true; // back / repeat taps ignored while finishing
       await ref.read(settingsProvider.notifier).confirmLanguage(_selected);
       if (!mounted) return;
       // First run: Splash Interstitial Opportunity 1

@@ -1,8 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../premium/domain/premium_status_service.dart';
 import '../domain/ad_adapter.dart';
 import '../domain/ad_logger.dart';
 import '../domain/ad_models.dart';
@@ -10,21 +11,21 @@ import 'ad_display_coordinator.dart';
 import 'ad_manager.dart';
 import 'splash_interstitial_manager.dart';
 
-/// Manages bottom navigation click-count interstitial advertisements.
-/// Main rule: In one application session, user can see a maximum of ONE click-count interstitial advertisement.
+/// Manages click interstitial advertisements throughout the app.
 ///
-/// Flow:
-/// 1st click: Record click, request load if no ready ad exists, continue navigation normally, do not show ad.
-/// 2nd click: If ad loaded, show it. Otherwise continue navigation and retry loading.
-/// On successful display: Mark session interstitial completed. Never show another for rest of session.
-/// On failure to load or show: Keep opportunity open and retry.
+/// Features:
+/// - Triggers on clicks across the app (bottom navigation bar, feature cards, in-screen actions).
+/// - Excludes Settings screen (and all settings sub-screens like Language, FAQ, Guide).
+/// - Proactively preloads interstitials so ads are ready when the user clicks.
+/// - Reloads after display so clicks throughout the session can show ads when ready.
 class ClickCountInterstitialManager {
-  // ignore: prefer_initializing_formals
   ClickCountInterstitialManager({
-    required this._adapter,
-    required this._coordinator,
-    this._splash,
-  });
+    required AdAdapter adapter,
+    required AdDisplayCoordinator coordinator,
+    SplashInterstitialManager? splash,
+  })  : _adapter = adapter,
+        _coordinator = coordinator,
+        _splash = splash;
 
   final AdAdapter _adapter;
   final AdDisplayCoordinator _coordinator;
@@ -40,48 +41,108 @@ class ClickCountInterstitialManager {
   bool get isLoaded => _loadedAd != null;
   bool get isLoading => _isLoading;
 
-  /// Handles an eligible bottom navigation item tap.
+  /// Checks whether a route or screen is excluded from click interstitials (Settings screen).
+  static bool isExcludedRoute(String? route) {
+    if (route == null) return false;
+    final r = route.toLowerCase();
+    return r.startsWith('/settings') ||
+        r == '/settings' ||
+        r.contains('settings') ||
+        r == '/faq' ||
+        r == '/guide';
+  }
+
+  /// Proactively preloads the click interstitial so it is already ready in memory.
+  void preload({required bool isPremium}) {
+    if (isPremium || _isLoading || _loadedAd != null) return;
+    _loadInterstitial(isPremium: isPremium);
+  }
+
+  /// Static helper for any widget with [BuildContext] to record a user click.
+  static void recordClick(
+    BuildContext context, {
+    String? targetRoute,
+    String? contextTag,
+  }) {
+    try {
+      final container = ProviderScope.containerOf(context, listen: false);
+      container.read(clickCountInterstitialManagerProvider).onUserClick(
+            isPremium: container.read(isPremiumProvider),
+            targetRoute: targetRoute,
+            contextTag: contextTag,
+          );
+    } catch (_) {}
+  }
+
+  /// Backward-compatible alias for bottom navigation clicks.
   Future<void> onBottomNavClick({
     required bool isPremium,
     VoidCallback? onImpression,
     VoidCallback? onClicked,
+  }) =>
+      onUserClick(
+        isPremium: isPremium,
+        contextTag: 'bottom_nav',
+        onImpression: onImpression,
+        onClicked: onClicked,
+      );
+
+  /// Handles an eligible user click anywhere in the app (excluding Settings screen).
+  Future<void> onUserClick({
+    required bool isPremium,
+    String? currentRoute,
+    String? targetRoute,
+    String? contextTag,
+    VoidCallback? onImpression,
+    VoidCallback? onClicked,
   }) async {
-    // Exclude premium users and completed session
+    // 1. Exclude premium users
     if (isPremium) {
       AdLogger.d(
         AdState.requestSkipped,
         placement: AdPlacement.clickInterstitial,
         adType: 'ClickInterstitial',
-        message: 'Bottom nav click ignored: user is premium.',
+        message: 'Click ignored: user is premium.',
       );
       return;
     }
 
+    // 2. Exclude if single session click interstitial has already been displayed
     if (_sessionInterstitialDisplayed) {
       AdLogger.d(
         AdState.requestSkipped,
         placement: AdPlacement.clickInterstitial,
         adType: 'ClickInterstitial',
         message:
-            'Bottom nav click ignored: session-scoped interstitial has already completed.',
+            'Click ignored: 1 click interstitial per session limit already reached.',
       );
       return;
     }
 
-    // Exclude clicks while another full-screen ad is already showing
+    // 3. Exclude settings screens
+    if (isExcludedRoute(currentRoute) || isExcludedRoute(targetRoute)) {
+      AdLogger.d(
+        AdState.requestSkipped,
+        placement: AdPlacement.clickInterstitial,
+        adType: 'ClickInterstitial',
+        message:
+            'Click ignored: settings screen is excluded (from: $currentRoute, to: $targetRoute).',
+      );
+      return;
+    }
+
+    // 4. Exclude clicks while another full-screen ad is actively presenting
     if (_coordinator.isFullScreenShowing) {
       AdLogger.d(
         AdState.coordinatorLockRejected,
         placement: AdPlacement.clickInterstitial,
         adType: 'ClickInterstitial',
-        message:
-            'Bottom nav click ignored: another full-screen ad is actively presenting.',
+        message: 'Click ignored: another full-screen ad is actively presenting.',
       );
       return;
     }
 
-    // A splash interstitial that hasn't been shown yet takes the first Home click.
-    // The click-count ad is only requested after it is dismissed.
+    // 5. Pending splash interstitial takes priority on the first click
     final splash = _splash;
     if (splash != null && splash.isPending) {
       final shown = await splash.tryShowOnHomeClick(
@@ -94,98 +155,104 @@ class ClickCountInterstitialManager {
     }
 
     _clickCount++;
+    final src = contextTag ?? targetRoute ?? currentRoute ?? 'general';
     AdLogger.i(
       AdState.clickCounterIncremented,
       placement: AdPlacement.clickInterstitial,
       adType: 'ClickInterstitial',
-      message:
-          'Bottom nav click registered | count: $_clickCount (load threshold: 1, show threshold: 2)',
+      message: 'click_inter_tap (tap#$_clickCount src=$src ready=$isLoaded)',
     );
 
+    // 6. On 1st click: start loading interstitial in background; do not show yet
     if (_clickCount == 1) {
-      // 1st eligible click: record click, request load, do not show
-      if (_loadedAd == null && !_isLoading) {
+      if (!_isLoading && _loadedAd == null) {
+        _loadInterstitial(isPremium: isPremium);
+      } else if (_isLoading) {
         AdLogger.i(
-          AdState.requestStart,
+          AdState.requestSkipped,
           placement: AdPlacement.clickInterstitial,
           adType: 'ClickInterstitial',
           message:
-              '1st eligible click: initiating background load; navigation proceeds without showing ad.',
+              'click_load_skipped (shown=$_sessionInterstitialDisplayed loading=$_isLoading ready=$isLoaded)',
         );
-        _loadInterstitial(isPremium: isPremium);
       }
       return;
     }
 
-    if (_clickCount >= 2) {
-      // 2nd eligible click (or retry subsequent clicks): show if ready, else retry loading
-      if (_loadedAd != null) {
-        final ad = _loadedAd!;
-        _loadedAd = null;
+    // 7. On 2nd click (or subsequent clicks if 2nd click arrived while still loading):
+    // Show ad if loaded. Once shown, mark session complete (1 ad per session limit).
+    if (_loadedAd != null) {
+      final ad = _loadedAd!;
+      _loadedAd = null;
 
+      AdLogger.i(
+        AdState.showRequested,
+        placement: AdPlacement.clickInterstitial,
+        adType: 'ClickInterstitial',
+        message:
+            'Click interstitial is ready; presenting on click $_clickCount.',
+      );
+
+      final shown = await _coordinator.present(
+        adType: 'click_interstitial',
+        placement: AdPlacement.clickInterstitial,
+        isPremium: isPremium,
+        displayAction: () async {
+          await ad.show(
+            onImpression: () => onImpression?.call(),
+            onClicked: onClicked,
+          );
+        },
+      );
+
+      ad.dispose();
+
+      if (shown) {
+        _sessionInterstitialDisplayed = true;
         AdLogger.i(
-          AdState.showRequested,
+          AdState.showing,
           placement: AdPlacement.clickInterstitial,
           adType: 'ClickInterstitial',
           message:
-              '2nd eligible click: interstitial is ready; requesting presentation lock and display.',
+              'Click interstitial presented successfully. Session limit (1 ad) reached.',
         );
-
-        final shown = await _coordinator.present(
-          adType: 'bottom_nav_click_interstitial',
-          placement: AdPlacement.clickInterstitial,
-          isPremium: isPremium,
-          displayAction: () async {
-            await ad.show(
-              onImpression: () => onImpression?.call(),
-              onClicked: onClicked,
-            );
-          },
-        );
-
-        ad.dispose();
-
-        if (shown) {
-          _sessionInterstitialDisplayed = true;
-          AdLogger.i(
-            AdState.sessionCompleted,
-            placement: AdPlacement.clickInterstitial,
-            adType: 'ClickInterstitial',
-            message:
-                'Session-scoped interstitial displayed; maximum 1 per session rule enforced.',
-          );
-        } else {
-          AdLogger.w(
-            AdState.showFailed,
-            placement: AdPlacement.clickInterstitial,
-            adType: 'ClickInterstitial',
-            message:
-                'Interstitial presentation failed or was rejected; retrying background load.',
-          );
-          // If ad failed to show, restore ability to try again and request another ad
-          _loadInterstitial(isPremium: isPremium);
-        }
+      }
+    } else {
+      // Ad is not ready yet: report not ready and retry loading if not already in flight
+      AdLogger.i(
+        AdState.loadFailed,
+        placement: AdPlacement.clickInterstitial,
+        adType: 'ClickInterstitial',
+        message:
+            'click_inter_not_ready (tap#$_clickCount: ad not loaded yet, retrying load)',
+      );
+      if (!_isLoading) {
+        _loadInterstitial(isPremium: isPremium);
       } else {
-        AdLogger.d(
-          AdState.requestLoading,
+        AdLogger.i(
+          AdState.requestSkipped,
           placement: AdPlacement.clickInterstitial,
           adType: 'ClickInterstitial',
           message:
-              '2nd eligible click: ad not ready yet; navigation proceeds and background load requested.',
+              'click_load_skipped (shown=$_sessionInterstitialDisplayed loading=$_isLoading ready=$isLoaded)',
         );
-        // Not ready yet: continue navigation and ensure loading is requested
-        if (!_isLoading) {
-          _loadInterstitial(isPremium: isPremium);
-        }
       }
     }
   }
 
   Future<void> _loadInterstitial({required bool isPremium}) async {
-    if (isPremium ||
-        _sessionInterstitialDisplayed ||
-        _isLoading ||
-        _loadedAd != null) {
+    if (isPremium || _sessionInterstitialDisplayed || _loadedAd != null) {
+      return;
+    }
+
+    if (_isLoading) {
+      AdLogger.i(
+        AdState.requestSkipped,
+        placement: AdPlacement.clickInterstitial,
+        adType: 'ClickInterstitial',
+        message:
+            'click_load_skipped (shown=$_sessionInterstitialDisplayed loading=$_isLoading ready=$isLoaded)',
+      );
       return;
     }
 
@@ -194,7 +261,7 @@ class ClickCountInterstitialManager {
       AdState.requestLoading,
       placement: AdPlacement.clickInterstitial,
       adType: 'ClickInterstitial',
-      message: 'Loading click-count interstitial.',
+      message: 'Loading click interstitial in background.',
     );
     try {
       final ad = await _adapter.loadInterstitial(AdPlacement.clickInterstitial);
@@ -210,7 +277,7 @@ class ClickCountInterstitialManager {
         placement: AdPlacement.clickInterstitial,
         adType: 'ClickInterstitial',
         message:
-            'Click-count interstitial loaded successfully and ready for next click.',
+            'Click interstitial loaded successfully and ready for next click.',
       );
     } catch (e) {
       _isLoading = false;
@@ -218,8 +285,7 @@ class ClickCountInterstitialManager {
         AdState.loadFailed,
         placement: AdPlacement.clickInterstitial,
         adType: 'ClickInterstitial',
-        message:
-            'Click-count interstitial failed to load; keeping opportunity open for retry.',
+        message: 'ad_no_fill / load failed ($e). Opportunity remains open for next click.',
         error: e,
       );
     }
@@ -231,7 +297,7 @@ class ClickCountInterstitialManager {
       AdState.premiumPurge,
       placement: AdPlacement.clickInterstitial,
       adType: 'ClickInterstitial',
-      message: 'Disposing click-count interstitial due to premium purchase.',
+      message: 'Disposing click interstitial due to premium purchase.',
     );
     _loadedAd?.dispose();
     _loadedAd = null;
@@ -246,13 +312,13 @@ class ClickCountInterstitialManager {
 
 final clickCountInterstitialManagerProvider =
     Provider<ClickCountInterstitialManager>((ref) {
-      final adapter = ref.watch(adAdapterProvider);
-      final coordinator = ref.watch(adDisplayCoordinatorProvider);
-      final manager = ClickCountInterstitialManager(
-        adapter: adapter,
-        coordinator: coordinator,
-        splash: ref.read(splashInterstitialManagerProvider),
-      );
-      ref.onDispose(manager.dispose);
-      return manager;
-    });
+  final adapter = ref.watch(adAdapterProvider);
+  final coordinator = ref.watch(adDisplayCoordinatorProvider);
+  final manager = ClickCountInterstitialManager(
+    adapter: adapter,
+    coordinator: coordinator,
+    splash: ref.read(splashInterstitialManagerProvider),
+  );
+  ref.onDispose(manager.dispose);
+  return manager;
+});

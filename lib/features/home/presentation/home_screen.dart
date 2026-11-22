@@ -368,15 +368,5 @@ Future<void> _openFeature(BuildContext context, String route) async {
     if (!await requireNetwork(context, source: screenNameFor(route)!)) return;
   }
   if (!context.mounted) return;
-  // Main features count towards the shared click-count interstitial (1st click
-  // loads, 2nd shows, once per session) together with the bottom nav.
-  if (_adClickRoutes.contains(route)) {
-    final container = ProviderScope.containerOf(context);
-    container
-        .read(clickCountInterstitialManagerProvider)
-        .onBottomNavClick(isPremium: container.read(isPremiumProvider));
-  }
   context.push(route);
 }
-
-const _adClickRoutes = {'/mirror', '/photos', '/videos', '/music', '/apps'};

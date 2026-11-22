@@ -48,7 +48,7 @@ class AdRouteObserver extends NavigatorObserver {
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     _stack.add(route);
     final name = route.settings.name;
-    if (name != null && eligibleClickRoutes.contains(name)) {
+    if (name != null && !blockedRoutes.contains(name)) {
       onEligiblePush?.call(name);
     }
   }

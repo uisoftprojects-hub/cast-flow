@@ -13,6 +13,7 @@ import '../../../core/widgets/selectors.dart';
 import '../../../core/widgets/tap_scale.dart';
 import '../../devices/domain/network_status.dart';
 import '../../home/presentation/media_shortcuts.dart';
+import '../../monetization/presentation/click_count_interstitial_manager.dart';
 import '../../devices/presentation/network_controller.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
 import '../../devices/presentation/widgets/network_widgets.dart';
@@ -56,6 +57,7 @@ class MirroringScreen extends ConsumerWidget {
                   onTap: m.isLive
                       ? ctrl.stop
                       : () async {
+                          ClickCountInterstitialManager.recordClick(context, contextTag: 'start_mirroring');
                           // Mirroring needs Wi-Fi or the phone's hotspot.
                           if (await requireNetwork(context, source: 'mirroring')) ctrl.start();
                         },

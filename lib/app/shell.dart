@@ -74,9 +74,15 @@ class AppShell extends ConsumerWidget {
               index: navigationShell.currentIndex,
               onTap: (i) {
                 if (i != navigationShell.currentIndex) {
-                  ref
-                      .read(clickCountInterstitialManagerProvider)
-                      .onBottomNavClick(isPremium: ref.read(isPremiumProvider));
+                  // Tab 3 is Settings -> exclude settings screen from click interstitial
+                  if (i != 3) {
+                    ref
+                        .read(clickCountInterstitialManagerProvider)
+                        .onUserClick(
+                          isPremium: ref.read(isPremiumProvider),
+                          contextTag: 'bottom_nav_tab_$i',
+                        );
+                  }
                 }
                 navigationShell.goBranch(i, initialLocation: i == navigationShell.currentIndex);
               },

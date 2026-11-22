@@ -13,8 +13,7 @@ import '../../../core/widgets/app_logo.dart';
 import '../../app_flow/presentation/app_flow_controller.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../monetization/domain/ad_config.dart';
-import '../../monetization/presentation/ad_manager.dart';
-import '../../monetization/presentation/splash_interstitial_manager.dart';
+import '../../monetization/presentation/ad_manager.dart';import '../../monetization/presentation/splash_interstitial_manager.dart';
 import '../../premium/domain/premium_status_service.dart';
 import '../../premium/presentation/billing_controller.dart';
 import '../../settings/presentation/settings_controller.dart';
@@ -147,7 +146,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           .startSplashLoad(isPremium: false, isReturning: isReturning)
           .whenComplete(_onSplashAdLoaded),
     );
-    // Language native ad is requested when the user lands on the Language screen.
+    // No native preload: the Language / Onboarding ads are requested only when the
+    // user lands on those screens.
   }
 
   Future<void> _preloadPaywallPrices() async {
@@ -233,13 +233,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           .animate(delay: 300.ms)
                           .fadeIn(duration: 600.ms)
                           .slideY(begin: 0.3, end: 0),
-                      const SizedBox(height: 6),
-                      Text(
-                        context.l10n.mirrorCastBeautifullySimple,
-                        style: context.text.bodyMedium?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.85),
-                        ),
-                      ).animate(delay: 500.ms).fadeIn(duration: 600.ms),
                     ],
                   ),
                 ),

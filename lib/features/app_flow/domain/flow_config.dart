@@ -22,7 +22,7 @@ class FlowConfig {
 
 /// Builds the ordered steps for this launch:
 ///
-/// Flow A (First-time non-premium): Splash → Language → Paywall → Onboarding → Home
+/// Flow A (First-time non-premium): Splash → Language → Onboarding → Paywall → Home
 /// Flow B (Returning non-premium):   Splash → Paywall → Home
 /// Flow C (Premium user):            Splash → Home (a first run still sets the
 ///                                   language and onboarding once; no paywalls)
@@ -41,8 +41,8 @@ List<FlowStep> buildFlow({
   if (!firstLaunchCompleted) {
     return [
       if (!languageChosen) FlowStep.language,
-      if (config.firstRunPaywall && !isPremium) FlowStep.paywall,
       if (!onboardingDone) FlowStep.onboarding,
+      if (config.firstRunPaywall && !isPremium) FlowStep.paywall,
       FlowStep.home,
     ];
   } else {

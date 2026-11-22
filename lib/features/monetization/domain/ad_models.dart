@@ -35,6 +35,13 @@ enum AdPlacement {
 
   /// native | interstitial | app_open
   final String format;
+
+  /// Placements that use the video layout (MediaView + icon/headline/body + pill CTA).
+  bool get usesMediaLayout =>
+      this == languageFirstRun || this == languageSettings;
+
+  /// Onboarding: fixed 138dp layout (media left, headline/body/CTA right).
+  bool get usesOnboardingLayout => this == onboarding;
 }
 
 enum AdRequestState { idle, loading, ready, showing }

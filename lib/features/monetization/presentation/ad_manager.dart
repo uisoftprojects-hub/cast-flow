@@ -28,9 +28,11 @@ final adAdapterProvider = Provider<AdAdapter>(
       createAdAdapter(rootNavigatorKey, () => ref.read(previewModeProvider)),
 );
 
-final adRouteObserverProvider = Provider<AdRouteObserver>(
-  (ref) => AdRouteObserver(),
-);
+final adRouteObserverProvider = Provider<AdRouteObserver>((ref) {
+  // Watches route stack for topIsSafe checks (App Open ad safety).
+  // Does not double-count clicks; user taps are recorded directly by UI widgets.
+  return AdRouteObserver();
+});
 
 /// Injectable clock so timing and cooldown rules can be tested cleanly.
 final adClockProvider = Provider<DateTime Function()>((ref) => DateTime.now);

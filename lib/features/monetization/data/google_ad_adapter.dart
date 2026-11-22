@@ -72,7 +72,27 @@ class GoogleAdAdapter implements AdAdapter {
     NativeAd(
       adUnitId: unitId,
       factoryId: isAndroid ? AdMobConfig.nativeFactoryId : null,
-      customOptions: isAndroid ? {'isDark': isDark} : null,
+      customOptions: isAndroid
+          ? {
+              'isDark': isDark,
+              'layout': placement.usesOnboardingLayout
+                  ? 'onboarding'
+                  : placement.usesMediaLayout
+                  ? 'media'
+                  : 'compact',
+            }
+          : null,
+      // Video-capable ads for the media layout; starts muted, landscape media.
+      nativeAdOptions:
+          (placement.usesMediaLayout || placement.usesOnboardingLayout)
+          ? NativeAdOptions(
+              mediaAspectRatio: MediaAspectRatio.landscape,
+              videoOptions: VideoOptions(
+                startMuted: true,
+                clickToExpandRequested: false,
+              ),
+            )
+          : null,
       nativeTemplateStyle: isAndroid
           ? null
           : NativeTemplateStyle(

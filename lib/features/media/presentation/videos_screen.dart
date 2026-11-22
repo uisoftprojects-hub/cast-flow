@@ -12,9 +12,11 @@ import '../../../core/widgets/state_views.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
 import '../../player/domain/cast_media.dart';
 import '../../player/presentation/player_controller.dart';
+import '../../monetization/presentation/click_count_interstitial_manager.dart';
 import '../domain/media_models.dart';
 import 'asset_thumbnail.dart';
 import 'media_permission_view.dart';
+import 'media_preview.dart';
 import 'media_providers.dart';
 
 import '../../../core/l10n.dart';
@@ -69,8 +71,10 @@ class VideosScreen extends ConsumerWidget {
               ];
               return _VideoTile(
                     video: v,
-                    onTap: () =>
-                        castAndOpenRemote(context, ref, queue, index: i),
+                    onTap: () {
+                      ClickCountInterstitialManager.recordClick(context, contextTag: 'video_cast');
+                      castAndOpenRemote(context, ref, queue, index: i);
+                    },
                   )
                   .animate(delay: (50 * i).ms)
                   .fadeIn(duration: 350.ms)
@@ -85,6 +89,7 @@ class VideosScreen extends ConsumerWidget {
 
 class _VideoTile extends StatelessWidget {
   const _VideoTile({required this.video, required this.onTap});
+
   final VideoItem video;
   final VoidCallback onTap;
 
@@ -105,7 +110,15 @@ class _VideoTile extends StatelessWidget {
             child: AssetThumbnail(
               assetId: video.id,
               radius: AppRadius.sm,
-              child: PositionedDirectional(
+              child: Stack(children: [
+               PositionedDirectional(
+                top: 4,
+                start: 4,
+                child: PreviewButton(
+                  onTap: () => showVideoPreview(context, video.id),
+                ),
+               ),
+               PositionedDirectional(
                 end: 6,
                 bottom: 6,
                 child: Container(
@@ -125,6 +138,7 @@ class _VideoTile extends StatelessWidget {
                   ),
                 ),
               ),
+              ]),
             ),
           ),
           const SizedBox(width: AppSpace.md),

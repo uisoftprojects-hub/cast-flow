@@ -66,8 +66,11 @@ android {
             manifestPlaceholders["admobAppId"] = testAppId
             resValue("string", "admob_app_id", testAppId)
             resValue("string", "admob_app_open_id", testAppOpenId)
-            resValue("string", "admob_language_native_id", testNativeId)
-            resValue("string", "admob_onboarding_native_id", testNativeId)
+            // Google's VIDEO native test unit: Language (first run + Settings) and Onboarding
+            // use the media layout, so debug builds must show a real video, not an image.
+            val testNativeVideoId = "ca-app-pub-3940256099942544/1044960115"
+            resValue("string", "admob_language_native_id", testNativeVideoId)
+            resValue("string", "admob_onboarding_native_id", testNativeVideoId)
             resValue("string", "admob_splash_interstitial_first_id", testInterstitialId)
             resValue("string", "admob_splash_interstitial_second_id", testInterstitialId)
             resValue("string", "admob_click_interstitial_id", testInterstitialId)
