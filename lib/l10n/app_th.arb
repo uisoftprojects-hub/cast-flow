@@ -584,5 +584,13 @@
   "permissionBlockedInSettings": "การอนุญาตถูกบล็อกในการตั้งค่า",
   "grantPermission": "ให้สิทธิ์",
   "checkAgain": "ตรวจสอบอีกครั้ง",
-  "appName": "แคสต์ไปทีวี"
+  "appName": "แคสต์ไปทีวี",
+  "allowPermission": "อนุญาตสิทธิ์",
+  "openSettings": "เปิดการตั้งค่า",
+  "noNetworkMessage": "เปิด Wi-Fi (เครือข่ายเดียวกับทีวี) หรือเปิดฮอตสปอตของโทรศัพท์แล้วเชื่อมต่อทีวีเข้ากับมัน",
+  "turnOnWifi": "เปิด Wi-Fi",
+  "waitingForNetwork": "เราจะเริ่มค้นหาทีวีทันทีที่คุณเชื่อมต่อ",
+  "howHotspotWorks": "การแคสต์ผ่านฮอตสปอตทำงานอย่างไร",
+  "preparingForTv": "กำลังเตรียมสำหรับทีวีของคุณ…",
+  "convertingForTv": "กำลังแปลงสำหรับทีวีของคุณ… {percent}%"
 }

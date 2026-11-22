@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ٹی وی پر کاسٹ</string>
+    <string name="cast_session_channel">کاسٹنگ</string>
+    <string name="cast_session_title">آپ کے ٹی وی پر کاسٹ ہو رہا ہے</string>
+    <string name="cast_session_text">اسٹریم چلتی رہے گی</string>
 </resources>

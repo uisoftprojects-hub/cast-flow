@@ -1642,4 +1642,30 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get appName => '投屏到电视';
+
+  @override
+  String get allowPermission => '允许权限';
+
+  @override
+  String get openSettings => '打开设置';
+
+  @override
+  String get noNetworkMessage => '请打开 Wi-Fi（与电视相同的网络），或开启手机热点并让电视连接。';
+
+  @override
+  String get turnOnWifi => '打开 Wi-Fi';
+
+  @override
+  String get waitingForNetwork => '连接后我们会立即开始查找您的电视。';
+
+  @override
+  String get howHotspotWorks => '如何通过热点投屏？';
+
+  @override
+  String get preparingForTv => '正在为电视做准备…';
+
+  @override
+  String convertingForTv(int percent) {
+    return '正在为电视转换… $percent%';
+  }
 }

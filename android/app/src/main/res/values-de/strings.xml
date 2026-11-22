@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Auf TV übertragen</string>
+    <string name="cast_session_channel">Streaming</string>
+    <string name="cast_session_title">Wird auf deinen TV gestreamt</string>
+    <string name="cast_session_text">Der Stream läuft weiter</string>
 </resources>

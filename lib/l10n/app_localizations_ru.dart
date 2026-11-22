@@ -1743,4 +1743,32 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get appName => 'Трансляция на ТВ';
+
+  @override
+  String get allowPermission => 'Разрешить';
+
+  @override
+  String get openSettings => 'Открыть настройки';
+
+  @override
+  String get noNetworkMessage =>
+      'Включите Wi-Fi (ту же сеть, что и у телевизора) или раздайте точку доступа с телефона и подключите к ней телевизор.';
+
+  @override
+  String get turnOnWifi => 'Включить Wi-Fi';
+
+  @override
+  String get waitingForNetwork =>
+      'Мы начнём искать телевизор, как только вы подключитесь.';
+
+  @override
+  String get howHotspotWorks => 'Как работает трансляция через точку доступа?';
+
+  @override
+  String get preparingForTv => 'Подготовка для телевизора…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Конвертация для телевизора… $percent%';
+  }
 }

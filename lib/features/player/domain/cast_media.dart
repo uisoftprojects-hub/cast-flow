@@ -68,9 +68,16 @@ class PlaybackState {
     this.volume = 0.6,
     this.slideshowInterval,
     this.error,
+    this.preparing = false,
+    this.prepareProgress,
   });
 
   final List<CastMedia> queue;
+
+  /// The current item is being made ready for the TV (e.g. converted to a
+  /// format it plays). [prepareProgress] is 0..1 when known.
+  final bool preparing;
+  final double? prepareProgress;
 
   /// Why the TV could not play the current item (shown to the user), or null.
   final String? error;
@@ -96,7 +103,11 @@ class PlaybackState {
     Duration? slideshowInterval,
     String? error,
     bool clearError = false,
+    bool? preparing,
+    double? prepareProgress,
+    bool clearProgress = false,
   }) {
+    final isPreparing = preparing ?? this.preparing;
     return PlaybackState(
       queue: queue ?? this.queue,
       index: index ?? this.index,
@@ -105,6 +116,8 @@ class PlaybackState {
       volume: volume ?? this.volume,
       slideshowInterval: slideshowInterval ?? this.slideshowInterval,
       error: clearError ? null : (error ?? this.error),
+      preparing: isPreparing,
+      prepareProgress: !isPreparing || clearProgress ? null : (prepareProgress ?? this.prepareProgress),
     );
   }
 }

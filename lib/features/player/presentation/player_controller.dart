@@ -1,5 +1,6 @@
 import '../../../core/debug_log.dart';
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/analytics.dart';
 import '../../../core/analytics/analytics_events.dart';
+import '../../../core/platform/cast_session_channel.dart';
 import '../../devices/domain/cast_device.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../devices/presentation/widgets/network_widgets.dart';
@@ -27,6 +29,14 @@ class PlayerController extends Notifier<PlaybackState> {
   int _loadGen = 0;
   int _tick = 0;
   bool _sawPlaying = false;
+
+  /// The current item was already re-sent converted (only tried once).
+  bool _converted = false;
+  DateTime? _loadedAt;
+
+  /// How long a TV may sit "stopped" after a load before it counts as "can't
+  /// play this format" and the item is converted and sent again.
+  static const notPlayingGrace = Duration(seconds: 7);
 
   /// True while a real TV is playing; the remote then must not also drive the
   /// player (the TV already got the command).
@@ -64,6 +74,8 @@ class PlayerController extends Notifier<PlaybackState> {
     if (tv != null && _caster.canCast(tv)) {
       _device = tv;
       _loadCurrent();
+      // Screen off mid-cast must not freeze the server the TV streams from.
+      unawaited(CastSessionChannel.start(queue[index].title));
     }
     _startTicker();
     _record(queue[index]);
@@ -132,8 +144,15 @@ class PlayerController extends Notifier<PlaybackState> {
 
   void stop() {
     _ticker?.cancel();
+    final hadReal = _device != null;
     _endReal();
     state = PlaybackState(volume: state.volume);
+    if (hadReal) {
+      // Session over: drop published URLs, delete converted temp files, and
+      // let Android stop keeping the app alive.
+      unawaited(_caster.endSession().catchError((_) {}));
+      unawaited(CastSessionChannel.stop());
+    }
   }
 
   // ------------------------------------------------------------ real TV
@@ -142,23 +161,55 @@ class PlayerController extends Notifier<PlaybackState> {
   bool _isStream(CastMedia? m) => m != null && m.kind != CastKind.photo;
 
   /// Sends the current item to the TV (no-op when simulating).
-  void _loadCurrent() {
+  ///
+  /// When the TV refuses the item (or never starts it), it is converted to a
+  /// format every TV plays (MP4 H.264/AAC, JPEG) and sent once more, with a
+  /// "Converting for your TV" state on screen meanwhile.
+  void _loadCurrent({bool forceConvert = false}) {
     final tv = _device;
     final media = state.media;
     if (tv == null || media == null) return;
     final gen = ++_loadGen;
     _sawPlaying = false;
+    _loadedAt = null;
+    _converted = forceConvert;
+    if (forceConvert) state = state.copyWith(preparing: true, clearProgress: true, clearError: true);
     _caster
-        .load(tv, media)
+        .load(
+          tv,
+          media,
+          forceConvert: forceConvert,
+          onPrepare: (p) {
+            if (gen != _loadGen || state.media != media) return;
+            state = state.copyWith(preparing: true, prepareProgress: p, clearProgress: p == null, clearError: true);
+          },
+        )
         .then((_) {
-          if (gen == _loadGen && state.media == media) state = state.copyWith(playing: true, clearError: true);
+          if (gen != _loadGen || state.media != media) return;
+          _loadedAt = DateTime.now();
+          state = state.copyWith(playing: true, clearError: true, preparing: false);
         })
         .catchError((Object e) {
           if (gen != _loadGen) return;
           dlog('[Player] cast failed: $e');
-          state = state.copyWith(playing: false, error: _message(e, tv));
+          if (!forceConvert && _canConvert(media) && e is HttpException) {
+            // The TV rejected the item itself (e.g. UPnP 714 "illegal MIME
+            // type"): convert it and try again.
+            _loadCurrent(forceConvert: true);
+            return;
+          }
+          state = state.copyWith(playing: false, error: _message(e, tv), preparing: false);
           _ticker?.cancel();
         });
+  }
+
+  /// Local photos and videos can be converted; web streams can't.
+  static bool _canConvert(CastMedia m) {
+    final url = m.url ?? '';
+    return (m.kind == CastKind.photo || m.kind == CastKind.video) &&
+        url.isNotEmpty &&
+        !url.startsWith('http://') &&
+        !url.startsWith('https://');
   }
 
   /// Fire-and-forget TV command; a failure is shown, not thrown.
@@ -171,6 +222,7 @@ class PlayerController extends Notifier<PlaybackState> {
 
   static String _message(Object e, CastDevice tv) {
     if (e is UnsupportedError) return e.message ?? '${tv.name} can’t play this.';
+    if (e is StateError) return e.message;
     if (e is TimeoutException) return '${tv.name} didn’t respond. Check it is on and on the same Wi-Fi.';
     return '${tv.name} couldn’t play this. Try another file or format.';
   }
@@ -194,6 +246,20 @@ class PlayerController extends Notifier<PlaybackState> {
 
     final playing = s.state == 'PLAYING' || s.state == 'TRANSITIONING';
     if (playing) _sawPlaying = true;
+
+    // Loaded fine but the TV never started it: most often a codec it can't
+    // decode. Convert and send it again (once).
+    final loadedAt = _loadedAt;
+    if (!_sawPlaying &&
+        !_converted &&
+        loadedAt != null &&
+        _canConvert(media) &&
+        (s.state == 'STOPPED' || s.state == 'NO_MEDIA_PRESENT') &&
+        DateTime.now().difference(loadedAt) > notPlayingGrace) {
+      dlog('[Player] ${tv.name} did not start ${media.title}; converting');
+      _loadCurrent(forceConvert: true);
+      return;
+    }
     final ended = _sawPlaying && (s.state == 'STOPPED' || s.state == 'NO_MEDIA_PRESENT');
 
     if (ended) {
@@ -226,11 +292,13 @@ class PlayerController extends Notifier<PlaybackState> {
       if (media == null) return;
       if (_device != null && _isStream(media)) {
         // The TV is in charge: advance the clock between polls, then correct it.
+        if (state.preparing) return;
         if (state.playing) state = state.copyWith(position: state.position + const Duration(seconds: 1));
         if (++_tick % 2 == 0) unawaited(_poll());
         return;
       }
-      if (!state.playing) return;
+      // A photo still being converted doesn't count down its slideshow time.
+      if (!state.playing || state.preparing) return;
       final next = state.position + const Duration(seconds: 1);
       if (next >= _length(media)) {
         if (state.hasNext) {

@@ -16,7 +16,6 @@ import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../devices/presentation/widgets/connection_bar.dart';
 import '../../devices/presentation/widgets/network_widgets.dart';
-import '../../monetization/presentation/click_count_interstitial_manager.dart';
 import '../../premium/domain/premium_status_service.dart';
 
 import '../../../core/l10n.dart';

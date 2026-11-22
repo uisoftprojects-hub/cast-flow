@@ -584,5 +584,13 @@
   "permissionBlockedInSettings": "설정에서 권한이 차단되었습니다",
   "grantPermission": "권한 허용",
   "checkAgain": "다시 확인",
-  "appName": "TV로 캐스트"
+  "appName": "TV로 캐스트",
+  "allowPermission": "권한 허용",
+  "openSettings": "설정 열기",
+  "noNetworkMessage": "Wi-Fi를 켜거나(TV와 같은 네트워크) 휴대폰 핫스팟을 켜고 TV를 연결하세요.",
+  "turnOnWifi": "Wi-Fi 켜기",
+  "waitingForNetwork": "연결되면 바로 TV를 찾기 시작합니다.",
+  "howHotspotWorks": "핫스팟으로 전송은 어떻게 하나요?",
+  "preparingForTv": "TV용으로 준비 중…",
+  "convertingForTv": "TV용으로 변환 중… {percent}%"
 }

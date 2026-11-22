@@ -584,5 +584,13 @@
   "permissionBlockedInSettings": "সেটিংসে অনুমতি অবরুদ্ধ",
   "grantPermission": "অনুমতি দিন",
   "checkAgain": "আবার পরীক্ষা করুন",
-  "appName": "টিভিতে কাস্ট"
+  "appName": "টিভিতে কাস্ট",
+  "allowPermission": "অনুমতি দিন",
+  "openSettings": "সেটিংস খুলুন",
+  "noNetworkMessage": "Wi-Fi চালু করুন (আপনার টিভির একই নেটওয়ার্ক), অথবা ফোনের হটস্পট চালু করে টিভি সেটিতে যুক্ত করুন।",
+  "turnOnWifi": "Wi-Fi চালু করুন",
+  "waitingForNetwork": "আপনি সংযুক্ত হলেই আমরা আপনার টিভি খুঁজতে শুরু করব।",
+  "howHotspotWorks": "হটস্পটে কাস্টিং কীভাবে কাজ করে?",
+  "preparingForTv": "আপনার টিভির জন্য প্রস্তুত করা হচ্ছে…",
+  "convertingForTv": "আপনার টিভির জন্য রূপান্তর হচ্ছে… {percent}%"
 }

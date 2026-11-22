@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">I-cast sa TV</string>
+    <string name="cast_session_channel">Pag-cast</string>
+    <string name="cast_session_title">Nagka-cast sa TV mo</string>
+    <string name="cast_session_text">Pinananatiling tuloy ang stream</string>
 </resources>

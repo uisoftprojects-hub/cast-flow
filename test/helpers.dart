@@ -36,6 +36,8 @@ Future<ProviderContainer> makeContainer({
     localStoreProvider.overrideWithValue(store),
     deviceRepositoryProvider.overrideWith((ref) => FakeDeviceRepository(() => ref.read(previewModeProvider))),
     networkStatusReaderProvider.overrideWithValue(() async => network()),
+    // No native side in tests: changes come from the reader above.
+    networkEventsProvider.overrideWithValue(const Stream<NetworkStatus>.empty()),
     nearbyPermissionProvider.overrideWithValue(() async {}),
     discoveryPermissionServiceProvider.overrideWithValue(
       discoveryPermissionService ?? FakeDiscoveryPermissionService(),

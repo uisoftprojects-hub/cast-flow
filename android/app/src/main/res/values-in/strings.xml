@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Cast ke TV</string>
+    <string name="cast_session_channel">Transmisi</string>
+    <string name="cast_session_title">Mentransmisikan ke TV Anda</string>
+    <string name="cast_session_text">Menjaga streaming tetap berjalan</string>
 </resources>

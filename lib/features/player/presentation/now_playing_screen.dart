@@ -21,6 +21,7 @@ import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
+import '../../monetization/domain/ad_suppression.dart';
 import '../domain/cast_media.dart';
 import 'player_controller.dart';
 
@@ -101,6 +102,10 @@ class NowPlayingScreen extends ConsumerWidget {
                           Text('  ·  ${s.index + 1}/${s.queue.length}', style: context.text.bodySmall),
                       ],
                     ),
+                    if (s.preparing) ...[
+                      const SizedBox(height: AppSpace.sm),
+                      PreparingForTv(progress: s.prepareProgress),
+                    ],
                     if (s.error != null) ...[
                       const SizedBox(height: AppSpace.sm),
                       Text(
@@ -338,14 +343,14 @@ class _QueueSheet extends ConsumerWidget {
     final picked = <(String path, String name)>[];
     switch (kind) {
       case CastKind.photo:
-        for (final f in await ImagePicker().pickMultiImage()) {
+        for (final f in await AdSuppression.around(() => ImagePicker().pickMultiImage())) {
           picked.add((f.path, f.name));
         }
       case CastKind.video:
-        final v = await ImagePicker().pickVideo(source: ImageSource.gallery);
+        final v = await AdSuppression.around(() => ImagePicker().pickVideo(source: ImageSource.gallery));
         if (v != null) picked.add((v.path, v.name));
       case CastKind.music:
-        for (final f in await FilePicker.pickFiles(type: FileType.audio)) {
+        for (final f in await AdSuppression.around(() => FilePicker.pickFiles(type: FileType.audio))) {
           if (f.path != null) picked.add((f.path!, f.name));
         }
       default:
@@ -449,5 +454,51 @@ class _QueueSheet extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// "Converting for your TV…" while an item the TV can't play is turned into
+/// one it can (MP4 / JPEG). Shows the percentage when the converter reports it.
+class PreparingForTv extends StatelessWidget {
+  const PreparingForTv({super.key, this.progress, this.compact = false});
+
+  final double? progress;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final l = context.l10n;
+    final pct = progress == null ? null : (progress! * 100).round().clamp(0, 100);
+    final label = pct == null ? l.preparingForTv : l.convertingForTv(pct);
+    if (compact) {
+      return Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.bodySmall?.copyWith(color: p.primary));
+    }
+    return Semantics(
+      liveRegion: true,
+      label: label,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox.square(dimension: 14, child: CircularProgressIndicator(strokeWidth: 2, color: p.primary)),
+              const SizedBox(width: 8),
+              Flexible(child: Text(label, style: context.text.labelMedium?.copyWith(color: p.primary))),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: LinearProgressIndicator(
+              minHeight: 3,
+              value: progress,
+              backgroundColor: p.primaryTint,
+              color: p.primary,
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: AppDurations.medium);
   }
 }

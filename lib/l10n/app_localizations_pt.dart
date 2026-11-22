@@ -1727,4 +1727,33 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get appName => 'Transmitir para TV';
+
+  @override
+  String get allowPermission => 'Permitir';
+
+  @override
+  String get openSettings => 'Abrir Configurações';
+
+  @override
+  String get noNetworkMessage =>
+      'Ative o Wi-Fi (a mesma rede da TV) ou compartilhe o ponto de acesso do celular e conecte a TV a ele.';
+
+  @override
+  String get turnOnWifi => 'Ativar Wi-Fi';
+
+  @override
+  String get waitingForNetwork =>
+      'Vamos procurar sua TV assim que você se conectar.';
+
+  @override
+  String get howHotspotWorks =>
+      'Como funciona transmitir pelo ponto de acesso?';
+
+  @override
+  String get preparingForTv => 'Preparando para sua TV…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Convertendo para sua TV… $percent%';
+  }
 }

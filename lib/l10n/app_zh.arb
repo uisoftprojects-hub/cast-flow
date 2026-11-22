@@ -584,5 +584,13 @@
   "permissionBlockedInSettings": "权限在设置中被阻止",
   "grantPermission": "授予权限",
   "checkAgain": "再次检查",
-  "appName": "投屏到电视"
+  "appName": "投屏到电视",
+  "allowPermission": "允许权限",
+  "openSettings": "打开设置",
+  "noNetworkMessage": "请打开 Wi-Fi（与电视相同的网络），或开启手机热点并让电视连接。",
+  "turnOnWifi": "打开 Wi-Fi",
+  "waitingForNetwork": "连接后我们会立即开始查找您的电视。",
+  "howHotspotWorks": "如何通过热点投屏？",
+  "preparingForTv": "正在为电视做准备…",
+  "convertingForTv": "正在为电视转换… {percent}%"
 }

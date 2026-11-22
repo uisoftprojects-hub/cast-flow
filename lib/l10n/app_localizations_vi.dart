@@ -1722,4 +1722,32 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get appName => 'Truyền lên TV';
+
+  @override
+  String get allowPermission => 'Cho phép';
+
+  @override
+  String get openSettings => 'Mở Cài đặt';
+
+  @override
+  String get noNetworkMessage =>
+      'Bật Wi-Fi (cùng mạng với TV) hoặc bật điểm phát sóng của điện thoại rồi kết nối TV vào đó.';
+
+  @override
+  String get turnOnWifi => 'Bật Wi-Fi';
+
+  @override
+  String get waitingForNetwork =>
+      'Chúng tôi sẽ bắt đầu tìm TV ngay khi bạn kết nối.';
+
+  @override
+  String get howHotspotWorks => 'Truyền qua điểm phát sóng hoạt động thế nào?';
+
+  @override
+  String get preparingForTv => 'Đang chuẩn bị cho TV…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Đang chuyển đổi cho TV… $percent%';
+  }
 }

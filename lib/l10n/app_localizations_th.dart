@@ -1695,4 +1695,31 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get appName => 'แคสต์ไปทีวี';
+
+  @override
+  String get allowPermission => 'อนุญาตสิทธิ์';
+
+  @override
+  String get openSettings => 'เปิดการตั้งค่า';
+
+  @override
+  String get noNetworkMessage =>
+      'เปิด Wi-Fi (เครือข่ายเดียวกับทีวี) หรือเปิดฮอตสปอตของโทรศัพท์แล้วเชื่อมต่อทีวีเข้ากับมัน';
+
+  @override
+  String get turnOnWifi => 'เปิด Wi-Fi';
+
+  @override
+  String get waitingForNetwork => 'เราจะเริ่มค้นหาทีวีทันทีที่คุณเชื่อมต่อ';
+
+  @override
+  String get howHotspotWorks => 'การแคสต์ผ่านฮอตสปอตทำงานอย่างไร';
+
+  @override
+  String get preparingForTv => 'กำลังเตรียมสำหรับทีวีของคุณ…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'กำลังแปลงสำหรับทีวีของคุณ… $percent%';
+  }
 }

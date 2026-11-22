@@ -1721,4 +1721,32 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get appName => 'টিভিতে কাস্ট';
+
+  @override
+  String get allowPermission => 'অনুমতি দিন';
+
+  @override
+  String get openSettings => 'সেটিংস খুলুন';
+
+  @override
+  String get noNetworkMessage =>
+      'Wi-Fi চালু করুন (আপনার টিভির একই নেটওয়ার্ক), অথবা ফোনের হটস্পট চালু করে টিভি সেটিতে যুক্ত করুন।';
+
+  @override
+  String get turnOnWifi => 'Wi-Fi চালু করুন';
+
+  @override
+  String get waitingForNetwork =>
+      'আপনি সংযুক্ত হলেই আমরা আপনার টিভি খুঁজতে শুরু করব।';
+
+  @override
+  String get howHotspotWorks => 'হটস্পটে কাস্টিং কীভাবে কাজ করে?';
+
+  @override
+  String get preparingForTv => 'আপনার টিভির জন্য প্রস্তুত করা হচ্ছে…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'আপনার টিভির জন্য রূপান্তর হচ্ছে… $percent%';
+  }
 }

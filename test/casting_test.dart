@@ -86,10 +86,13 @@ class _FakeCaster implements MediaCaster {
   @override
   bool canCast(CastDevice d) => d.location != null;
   @override
-  Future<void> load(CastDevice d, CastMedia m) async {
-    calls.add('load:${m.id}');
+  Future<void> load(CastDevice d, CastMedia m, {bool forceConvert = false, PrepareProgress? onPrepare}) async {
+    calls.add(forceConvert ? 'convert:${m.id}' : 'load:${m.id}');
     if (failLoad != null) throw failLoad!;
   }
+
+  @override
+  Future<void> endSession() async => calls.add('end');
 
   @override
   Future<void> play(CastDevice d) async => calls.add('play');

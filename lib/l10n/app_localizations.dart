@@ -3199,6 +3199,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cast to TV'**
   String get appName;
+
+  /// No description provided for @allowPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Permission'**
+  String get allowPermission;
+
+  /// No description provided for @openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get openSettings;
+
+  /// No description provided for @noNetworkMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on Wi-Fi (the same network as your TV), or share your phone\'s hotspot and connect the TV to it.'**
+  String get noNetworkMessage;
+
+  /// No description provided for @turnOnWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on Wi-Fi'**
+  String get turnOnWifi;
+
+  /// No description provided for @waitingForNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll start looking for your TV as soon as you\'re connected.'**
+  String get waitingForNetwork;
+
+  /// No description provided for @howHotspotWorks.
+  ///
+  /// In en, this message translates to:
+  /// **'How does casting over hotspot work?'**
+  String get howHotspotWorks;
+
+  /// No description provided for @preparingForTv.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing for your TV…'**
+  String get preparingForTv;
+
+  /// No description provided for @convertingForTv.
+  ///
+  /// In en, this message translates to:
+  /// **'Converting for your TV… {percent}%'**
+  String convertingForTv(int percent);
 }
 
 class _AppLocalizationsDelegate

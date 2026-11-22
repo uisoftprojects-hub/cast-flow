@@ -123,3 +123,11 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Runtime conversion of videos the TV can't play into MP4 (H.264 + AAC).
+    val media3 = "1.8.0"
+    implementation("androidx.media3:media3-transformer:$media3")
+    implementation("androidx.media3:media3-effect:$media3")
+    implementation("androidx.media3:media3-common:$media3")
+}

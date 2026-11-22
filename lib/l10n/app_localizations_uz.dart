@@ -1749,4 +1749,32 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get appName => 'Televizorga translyatsiya';
+
+  @override
+  String get allowPermission => 'Ruxsat berish';
+
+  @override
+  String get openSettings => 'Sozlamalarni ochish';
+
+  @override
+  String get noNetworkMessage =>
+      'Wi-Fi’ni yoqing (televizor bilan bir xil tarmoq) yoki telefon hotspotini yoqib, televizorni unga ulang.';
+
+  @override
+  String get turnOnWifi => 'Wi-Fi’ni yoqish';
+
+  @override
+  String get waitingForNetwork =>
+      'Ulanishingiz bilan televizoringizni qidirishni boshlaymiz.';
+
+  @override
+  String get howHotspotWorks => 'Hotspot orqali translatsiya qanday ishlaydi?';
+
+  @override
+  String get preparingForTv => 'Televizoringiz uchun tayyorlanmoqda…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Televizoringiz uchun o‘zgartirilmoqda… $percent%';
+  }
 }

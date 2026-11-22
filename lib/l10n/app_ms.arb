@@ -508,5 +508,13 @@
   "permissionBlockedInSettings": "Kebenaran Disekat dalam Tetapan",
   "grantPermission": "Berikan Kebenaran",
   "checkAgain": "Semak Semula",
-  "appName": "Cast ke TV"
+  "appName": "Cast ke TV",
+  "allowPermission": "Benarkan Kebenaran",
+  "openSettings": "Buka Tetapan",
+  "noNetworkMessage": "Hidupkan Wi-Fi (rangkaian yang sama dengan TV), atau kongsi hotspot telefon dan sambungkan TV kepadanya.",
+  "turnOnWifi": "Hidupkan Wi-Fi",
+  "waitingForNetwork": "Kami akan mula mencari TV anda sebaik sahaja anda bersambung.",
+  "howHotspotWorks": "Bagaimana penghantaran melalui hotspot berfungsi?",
+  "preparingForTv": "Menyediakan untuk TV anda…",
+  "convertingForTv": "Menukar untuk TV anda… {percent}%"
 }

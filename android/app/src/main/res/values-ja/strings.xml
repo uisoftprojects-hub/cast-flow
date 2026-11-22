@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">テレビにキャスト</string>
+    <string name="cast_session_channel">キャスト</string>
+    <string name="cast_session_title">テレビにキャスト中</string>
+    <string name="cast_session_text">ストリームを継続しています</string>
 </resources>

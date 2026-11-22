@@ -59,14 +59,19 @@ class ClickCountInterstitialManager {
   }
 
   /// Static helper for any widget with [BuildContext] to record a user click.
-  static void recordClick(
+  ///
+  /// The returned future completes once the click has been handled: right
+  /// away when no ad is shown, or only after an interstitial that this click
+  /// triggered has been dismissed (or failed to show). Await it before
+  /// navigating so the next screen never opens behind the ad.
+  static Future<void> recordClick(
     BuildContext context, {
     String? targetRoute,
     String? contextTag,
-  }) {
+  }) async {
     try {
       final container = ProviderScope.containerOf(context, listen: false);
-      container.read(clickCountInterstitialManagerProvider).onUserClick(
+      await container.read(clickCountInterstitialManagerProvider).onUserClick(
             isPremium: container.read(isPremiumProvider),
             targetRoute: targetRoute,
             contextTag: contextTag,

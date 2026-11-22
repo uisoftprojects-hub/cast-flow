@@ -1730,4 +1730,32 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get appName => 'TV\'ye Yansıt';
+
+  @override
+  String get allowPermission => 'İzin ver';
+
+  @override
+  String get openSettings => 'Ayarları aç';
+
+  @override
+  String get noNetworkMessage =>
+      'Wi-Fi\'ı açın (TV ile aynı ağ) ya da telefonun hotspot\'unu paylaşıp TV\'yi ona bağlayın.';
+
+  @override
+  String get turnOnWifi => 'Wi-Fi\'ı aç';
+
+  @override
+  String get waitingForNetwork =>
+      'Bağlandığınız anda TV\'nizi aramaya başlayacağız.';
+
+  @override
+  String get howHotspotWorks => 'Hotspot üzerinden yayın nasıl çalışır?';
+
+  @override
+  String get preparingForTv => 'TV\'niz için hazırlanıyor…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'TV\'niz için dönüştürülüyor… %$percent';
+  }
 }

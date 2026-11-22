@@ -44,7 +44,7 @@ class DiscoveryPermissionCard extends StatelessWidget {
         title: l.permissionNeeded,
         message: l.permissionNeededToDiscover,
         primaryAction: GradientButton(
-          label: l.grantPermission,
+          label: l.allowPermission,
           icon: Iconsax.shield_tick_copy,
           expand: true,
           onPressed: onGrant,
@@ -55,15 +55,22 @@ class DiscoveryPermissionCard extends StatelessWidget {
         iconColor: p.warning,
         title: l.permissionNeeded,
         message: l.permissionNeededToDiscover,
-        primaryAction: GradientButton(label: l.tryAgain, icon: Iconsax.refresh_copy, expand: true, onPressed: onGrant),
+        // Android can still show the prompt: ask again.
+        primaryAction: GradientButton(
+          label: l.allowPermission,
+          icon: Iconsax.shield_tick_copy,
+          expand: true,
+          onPressed: onGrant,
+        ),
       ),
       DiscoveryPhase.permissionPermanentlyDenied => _CardLayout(
         icon: Iconsax.security_safe_copy,
         iconColor: p.error,
         title: l.permissionBlockedInSettings,
         message: l.permissionNeededToDiscover,
+        // "Don't ask again": only the app's Settings page can turn it on.
         primaryAction: GradientButton(
-          label: l.openAppSettings,
+          label: l.openSettings,
           icon: Iconsax.setting_2_copy,
           expand: true,
           onPressed: onOpenSettings,
@@ -175,7 +182,7 @@ class DiscoveryPermissionBanner extends StatelessWidget {
         Iconsax.security_safe_copy,
         p.error,
         l.permissionBlockedInSettings,
-        l.openAppSettings,
+        l.openSettings,
         Iconsax.setting_2_copy,
         onOpenSettings,
       ),
@@ -187,7 +194,7 @@ class DiscoveryPermissionBanner extends StatelessWidget {
         Iconsax.location_copy,
         onOpenLocationSettings,
       ),
-      _ => (Iconsax.danger_copy, p.warning, l.permissionNeeded, l.grantPermission, Iconsax.shield_tick_copy, onGrant),
+      _ => (Iconsax.danger_copy, p.warning, l.permissionNeeded, l.allowPermission, Iconsax.shield_tick_copy, onGrant),
     };
 
     return Container(

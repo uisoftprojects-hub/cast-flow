@@ -1742,4 +1742,33 @@ class AppLocalizationsFil extends AppLocalizations {
 
   @override
   String get appName => 'I-cast sa TV';
+
+  @override
+  String get allowPermission => 'Payagan ang Pahintulot';
+
+  @override
+  String get openSettings => 'Buksan ang Settings';
+
+  @override
+  String get noNetworkMessage =>
+      'I-on ang Wi-Fi (kaparehong network ng TV mo), o i-share ang hotspot ng phone at ikonekta rito ang TV.';
+
+  @override
+  String get turnOnWifi => 'I-on ang Wi-Fi';
+
+  @override
+  String get waitingForNetwork =>
+      'Hahanapin namin ang TV mo kapag nakakonekta ka na.';
+
+  @override
+  String get howHotspotWorks =>
+      'Paano gumagana ang pag-cast gamit ang hotspot?';
+
+  @override
+  String get preparingForTv => 'Inihahanda para sa TV mo…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Kino-convert para sa TV mo… $percent%';
+  }
 }

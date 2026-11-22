@@ -584,5 +584,13 @@
   "permissionBlockedInSettings": "Permiso bloqueado en ajustes",
   "grantPermission": "Conceder permiso",
   "checkAgain": "Comprobar de nuevo",
-  "appName": "Transmitir a TV"
+  "appName": "Transmitir a TV",
+  "allowPermission": "Permitir acceso",
+  "openSettings": "Abrir Ajustes",
+  "noNetworkMessage": "Activa el Wi-Fi (la misma red que tu TV) o comparte el punto de acceso del teléfono y conecta la TV a él.",
+  "turnOnWifi": "Activar Wi-Fi",
+  "waitingForNetwork": "Empezaremos a buscar tu TV en cuanto te conectes.",
+  "howHotspotWorks": "¿Cómo funciona transmitir por punto de acceso?",
+  "preparingForTv": "Preparando para tu TV…",
+  "convertingForTv": "Convirtiendo para tu TV… {percent} %"
 }

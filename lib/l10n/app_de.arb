@@ -584,5 +584,13 @@
   "permissionBlockedInSettings": "Berechtigung in den Einstellungen blockiert",
   "grantPermission": "Berechtigung erteilen",
   "checkAgain": "Erneut prüfen",
-  "appName": "Auf TV übertragen"
+  "appName": "Auf TV übertragen",
+  "allowPermission": "Berechtigung erlauben",
+  "openSettings": "Einstellungen öffnen",
+  "noNetworkMessage": "Schalte WLAN ein (dasselbe Netzwerk wie dein TV) oder teile den Hotspot deines Handys und verbinde den TV damit.",
+  "turnOnWifi": "WLAN einschalten",
+  "waitingForNetwork": "Wir suchen deinen TV, sobald du verbunden bist.",
+  "howHotspotWorks": "Wie funktioniert Streamen über Hotspot?",
+  "preparingForTv": "Wird für deinen TV vorbereitet…",
+  "convertingForTv": "Wird für deinen TV umgewandelt… {percent} %"
 }

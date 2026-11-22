@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">টিভিতে কাস্ট</string>
+    <string name="cast_session_channel">কাস্টিং</string>
+    <string name="cast_session_title">আপনার টিভিতে কাস্ট হচ্ছে</string>
+    <string name="cast_session_text">স্ট্রিম চালু রাখা হচ্ছে</string>
 </resources>

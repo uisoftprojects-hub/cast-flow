@@ -1,12 +1,20 @@
 import 'dart:math' as math;
 
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:photo_manager/photo_manager.dart';
 
+import '../../monetization/domain/ad_suppression.dart';
 import '../domain/media_models.dart';
 
 /// Thrown when the user hasn't allowed access to photos / videos / music.
 class MediaPermissionDenied implements Exception {
-  const MediaPermissionDenied();
+  const MediaPermissionDenied({this.permanent = false});
+
+  /// "Don't ask again" (or blocked by policy): Android won't show the prompt
+  /// any more, so the only way forward is the app's page in system Settings.
+  final bool permanent;
 
   @override
   String toString() =>
@@ -17,12 +25,51 @@ class MediaPermissionDenied implements Exception {
 class DeviceMediaRepository implements MediaRepository {
   static const _maxItems = 600;
 
-  Future<void> _ensureAccess() async {
-    final state = await PhotoManager.requestPermissionExtend(
-      requestOption: const PermissionRequestOption(
-        androidPermission: AndroidPermission(
-          type: RequestType.all,
-          mediaLocation: false,
+  int? _sdk;
+
+  Future<int> _sdkInt() async {
+    if (_sdk != null) return _sdk!;
+    try {
+      return _sdk = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
+    } catch (_) {
+      return _sdk = 33;
+    }
+  }
+
+  /// The runtime permissions behind each kind of media on this Android
+  /// version: READ_MEDIA_* on 13+ (14+ may grant only selected items, which
+  /// counts as access), READ_EXTERNAL_STORAGE up to 12.
+  Future<List<ph.Permission>> _permissionsFor(RequestType type) async {
+    if (await _sdkInt() <= 32) return [ph.Permission.storage];
+    return [
+      if (type.containsImage()) ph.Permission.photos,
+      if (type.containsVideo()) ph.Permission.videos,
+      if (type.containsAudio()) ph.Permission.audio,
+    ];
+  }
+
+  /// Asks for access when it can still be asked for, and tells a plain
+  /// "denied" (ask again) apart from "permanently denied" (open Settings).
+  Future<void> _ensureAccess([RequestType type = RequestType.common]) async {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      final perms = await _permissionsFor(type);
+      bool ok(ph.PermissionStatus s) => s.isGranted || s.isLimited;
+      var statuses = [for (final p in perms) await p.status];
+      if (!statuses.any(ok)) {
+        final result = await AdSuppression.around(() => perms.request());
+        statuses = [for (final p in perms) result[p] ?? ph.PermissionStatus.denied];
+      }
+      if (!statuses.any(ok)) {
+        final permanent = statuses.every((s) => s.isPermanentlyDenied || s.isRestricted);
+        throw MediaPermissionDenied(permanent: permanent);
+      }
+    }
+    // Already allowed above on Android, so this shows no prompt there; on iOS
+    // it is the real request.
+    final state = await AdSuppression.around(
+      () => PhotoManager.requestPermissionExtend(
+        requestOption: PermissionRequestOption(
+          androidPermission: AndroidPermission(type: type, mediaLocation: false),
         ),
       ),
     );
@@ -30,7 +77,7 @@ class DeviceMediaRepository implements MediaRepository {
   }
 
   Future<List<AssetEntity>> _all(RequestType type) async {
-    await _ensureAccess();
+    await _ensureAccess(type);
     final paths = await PhotoManager.getAssetPathList(
       type: type,
       onlyAll: true,
@@ -45,7 +92,7 @@ class DeviceMediaRepository implements MediaRepository {
 
   @override
   Future<List<PhotoAlbum>> albums() async {
-    await _ensureAccess();
+    await _ensureAccess(RequestType.image);
     final paths = await PhotoManager.getAssetPathList(type: RequestType.image);
     final albums = <PhotoAlbum>[];
     for (final p in paths) {
@@ -64,7 +111,7 @@ class DeviceMediaRepository implements MediaRepository {
 
   @override
   Future<List<PhotoItem>> photos(String albumId) async {
-    await _ensureAccess();
+    await _ensureAccess(RequestType.image);
     final paths = await PhotoManager.getAssetPathList(type: RequestType.image);
     final path =
         paths.where((p) => p.id == albumId).firstOrNull ??

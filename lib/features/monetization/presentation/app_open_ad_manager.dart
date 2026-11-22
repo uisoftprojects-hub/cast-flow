@@ -20,7 +20,8 @@ import 'ad_manager.dart';
 /// - Ad Loading screen has a hard maximum limit of 6 seconds; it also closes at once on a load error.
 /// - Delayed show: an ad that finishes loading after the overlay closed is kept and used FIRST on the next
 ///   eligible foreground event (no second request is made while one is still in flight).
-/// - Returning from permission prompts, system settings and external links never shows an App Open ad.
+/// - Returning from permission prompts, system settings, the system Cast picker and external links never
+///   shows an App Open ad (see [AdSuppression]: one-shot marks and multi-step flow holds).
 /// - Freshness: expired ads (> 4 hours) are discarded and reloaded.
 /// - Never shows to premium users.
 class AppOpenAdManager {
@@ -53,7 +54,10 @@ class AppOpenAdManager {
   void onBackgrounded() {
     // pause + hide both fire for one background trip: keep the first.
     if (_backgroundedAt != null) return;
-    _suppressThisBackground = AdSuppression.take();
+    // An interstitial's own activity also stops ours; closing it is not a
+    // "came back to the app" either.
+    _suppressThisBackground =
+        AdSuppression.take() || _coordinator.isFullScreenShowing;
     _backgroundedAt = DateTime.now();
     AdLogger.i(
       AdState.backgrounded,
@@ -76,7 +80,9 @@ class AppOpenAdManager {
     if (backgroundedTime == null) return;
 
     // Came back from a permission prompt / system settings / external link.
-    final suppressed = _suppressThisBackground;
+    // A flow still in progress (permission prompt -> Settings -> back) also
+    // counts, even if it was armed only after the app went to the background.
+    final suppressed = _suppressThisBackground || AdSuppression.isHeld;
     _suppressThisBackground = false;
     if (suppressed) {
       AdLogger.d(

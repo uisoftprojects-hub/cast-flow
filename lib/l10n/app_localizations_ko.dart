@@ -1660,4 +1660,31 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get appName => 'TV로 캐스트';
+
+  @override
+  String get allowPermission => '권한 허용';
+
+  @override
+  String get openSettings => '설정 열기';
+
+  @override
+  String get noNetworkMessage =>
+      'Wi-Fi를 켜거나(TV와 같은 네트워크) 휴대폰 핫스팟을 켜고 TV를 연결하세요.';
+
+  @override
+  String get turnOnWifi => 'Wi-Fi 켜기';
+
+  @override
+  String get waitingForNetwork => '연결되면 바로 TV를 찾기 시작합니다.';
+
+  @override
+  String get howHotspotWorks => '핫스팟으로 전송은 어떻게 하나요?';
+
+  @override
+  String get preparingForTv => 'TV용으로 준비 중…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'TV용으로 변환 중… $percent%';
+  }
 }

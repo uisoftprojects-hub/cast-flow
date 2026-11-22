@@ -7,6 +7,7 @@ import '../../../core/analytics/analytics.dart';
 import '../../../core/analytics/analytics_events.dart';
 import '../../../core/platform/network_channel.dart';
 import '../../history/domain/history_entry.dart';
+import '../../monetization/domain/ad_suppression.dart';
 import '../../history/presentation/history_controller.dart';
 import '../../player/domain/cast_media.dart';
 import '../../settings/domain/app_settings.dart';
@@ -59,20 +60,30 @@ class MirroringController extends Notifier<MirrorState> {
     // Let the start animation play before leaving the app.
     await Future<void>.delayed(const Duration(milliseconds: 900));
     if (!ref.mounted) return;
+    // The trip to the system Cast picker and back is not an App Open moment.
+    AdSuppression.hold(_pickerHold);
     final opened = await ref.read(castSettingsOpenerProvider)();
     if (!ref.mounted) return;
-    if (!opened) state = state.copyWith(phase: MirrorPhase.error, error: 'no-picker');
+    if (!opened) {
+      AdSuppression.release(_pickerHold);
+      state = state.copyWith(phase: MirrorPhase.error, error: 'no-picker');
+    }
   }
 
   /// Mirroring can only be ended from the system: open the picker.
   Future<void> stop() async {
     if (!state.isLive) return;
-    await ref.read(castSettingsOpenerProvider)();
+    AdSuppression.hold(_pickerHold);
+    if (!await ref.read(castSettingsOpenerProvider)()) AdSuppression.release(_pickerHold);
   }
+
+  static const _pickerHold = 'cast-picker';
 
   Future<void> refresh() async {
     final s = await ref.read(mirroringStatusReaderProvider)();
     if (!ref.mounted) return;
+    // Back from the picker (refresh runs on resume): the trip is over.
+    AdSuppression.release(_pickerHold);
     if (s.active && !state.isLive) {
       _goLive(s.name);
     } else if (!s.active && state.isLive) {

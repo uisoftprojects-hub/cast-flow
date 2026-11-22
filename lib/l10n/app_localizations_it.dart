@@ -1731,4 +1731,32 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get appName => 'Trasmetti sulla TV';
+
+  @override
+  String get allowPermission => 'Consenti autorizzazione';
+
+  @override
+  String get openSettings => 'Apri Impostazioni';
+
+  @override
+  String get noNetworkMessage =>
+      'Attiva il Wi-Fi (la stessa rete della TV) oppure condividi l\'hotspot del telefono e collega la TV.';
+
+  @override
+  String get turnOnWifi => 'Attiva Wi-Fi';
+
+  @override
+  String get waitingForNetwork => 'Cercheremo la tua TV appena sarai connesso.';
+
+  @override
+  String get howHotspotWorks =>
+      'Come funziona la trasmissione tramite hotspot?';
+
+  @override
+  String get preparingForTv => 'Preparazione per la tua TV…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Conversione per la tua TV… $percent%';
+  }
 }

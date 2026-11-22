@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">投屏到电视</string>
+    <string name="cast_session_channel">投屏</string>
+    <string name="cast_session_title">正在投屏到电视</string>
+    <string name="cast_session_text">保持串流运行</string>
 </resources>

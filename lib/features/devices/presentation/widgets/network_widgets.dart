@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,18 +13,22 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_tokens.dart';
 import '../../../../core/widgets/buttons.dart';
+import '../../../../core/widgets/effects.dart';
 import '../../../../core/widgets/soft_card.dart';
 import '../../../../core/widgets/tap_scale.dart';
 import '../device_providers.dart';
 import '../network_controller.dart';
 
-/// "Not on Wi-Fi" state: explains the requirement and offers Wi-Fi settings
-/// or the phone's own hotspot. Used inline on cast screens and in a dialog.
+/// "No Wi-Fi and no hotspot" state, used inline (Devices tab, Find TV sheet)
+/// and as the full [NoNetworkScreen]. A calm animated picture, then two ways
+/// forward: turn on Wi-Fi, or share the phone's hotspot. Nothing here shows a
+/// "Finding TV" loader: there is nothing to find until a network is up, and
+/// the caller switches to discovery by itself when one appears.
 class NetworkRequiredCard extends StatelessWidget {
-  const NetworkRequiredCard({super.key, this.onHotspot});
+  const NetworkRequiredCard({super.key, this.compact = false});
 
-  /// Override for the hotspot button (defaults to opening the guide).
-  final VoidCallback? onHotspot;
+  /// Smaller picture for bottom sheets.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -31,42 +37,197 @@ class NetworkRequiredCard extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-              width: 84,
-              height: 84,
-              decoration: BoxDecoration(color: p.warning.withValues(alpha: 0.14), shape: BoxShape.circle),
-              child: Icon(Iconsax.wifi_square_copy, size: 38, color: p.warning),
-            )
-            .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
-            .scale(begin: const Offset(1, 1), end: const Offset(1.06, 1.06), duration: 900.ms),
+        NoNetworkHero(size: compact ? 150 : 190),
         const SizedBox(height: AppSpace.lg),
         Text(l.networkRequiredTitle, style: context.text.headlineSmall, textAlign: TextAlign.center),
         const SizedBox(height: 6),
-        Text(l.networkRequiredMessage, style: context.text.bodyMedium, textAlign: TextAlign.center),
+        Text(l.noNetworkMessage, style: context.text.bodyMedium, textAlign: TextAlign.center),
         const SizedBox(height: AppSpace.xl),
         GradientButton(
-          label: l.connectWithWifi,
+          label: l.turnOnWifi,
           icon: Iconsax.wifi_copy,
           expand: true,
-          onPressed: () {
-            NetworkChannel.openWifiSettings();
-          },
+          onPressed: NetworkChannel.openWifiPanel,
         ),
-        const SizedBox(height: AppSpace.xl),
-        // The hotspot alternative, spelled out step by step.
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: Text(l.castOverHotspot, style: context.text.titleSmall),
-        ),
-        const SizedBox(height: AppSpace.md),
-        const HotspotSteps(),
+        const SizedBox(height: AppSpace.sm),
         TintedButton(
-          label: l.continueWithHotspot,
+          label: l.useMobileHotspot,
           icon: Iconsax.mobile_copy,
           expand: true,
-          onPressed: onHotspot ?? () => showHotspotGuide(context),
+          onPressed: NetworkChannel.openHotspotSettings,
+        ),
+        const SizedBox(height: AppSpace.md),
+        // Live hint: discovery starts on its own once a network is up.
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+                  width: 7,
+                  height: 7,
+                  decoration: BoxDecoration(color: p.primary, shape: BoxShape.circle),
+                )
+                .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
+                .fade(begin: 1, end: 0.25, duration: 800.ms),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                l.waitingForNetwork,
+                style: context.text.bodySmall?.copyWith(color: p.textSecondary),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+        TextButton(
+          onPressed: () => showHotspotGuide(context),
+          child: Text(l.howHotspotWorks, style: context.text.labelMedium?.copyWith(color: p.primary)),
         ),
       ],
+    ).animate().fadeIn(duration: AppDurations.slow).slideY(begin: 0.04, end: 0);
+  }
+}
+
+/// Animated picture for the no-network state: slow warning-coloured ripples
+/// around a disc whose icon alternates between Wi-Fi and hotspot, the two
+/// ways out of this state. Still (but complete) when the OS asks for reduced
+/// motion.
+class NoNetworkHero extends StatefulWidget {
+  const NoNetworkHero({super.key, this.size = 190});
+
+  final double size;
+
+  @override
+  State<NoNetworkHero> createState() => _NoNetworkHeroState();
+}
+
+class _NoNetworkHeroState extends State<NoNetworkHero> {
+  Timer? _swap;
+  bool _hotspot = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _swap?.cancel();
+    if (!context.reduceMotion) {
+      _swap = Timer.periodic(const Duration(milliseconds: 1800), (_) {
+        if (mounted) setState(() => _hotspot = !_hotspot);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _swap?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final size = widget.size;
+    final disc = size * 0.46;
+    return ExcludeSemantics(
+      child: PulseRipple(
+        size: size,
+        rings: 3,
+        color: p.warning,
+        duration: const Duration(milliseconds: 2800),
+        child: Container(
+          width: disc,
+          height: disc,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: p.warning.withValues(alpha: 0.16),
+            border: Border.all(color: p.warning.withValues(alpha: 0.35), width: 1.5),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              AnimatedSwitcher(
+                duration: AppDurations.slow,
+                transitionBuilder: (child, a) => FadeTransition(
+                  opacity: a,
+                  child: ScaleTransition(scale: Tween(begin: 0.8, end: 1.0).animate(a), child: child),
+                ),
+                child: Icon(
+                  _hotspot ? Iconsax.mobile_copy : Iconsax.wifi_square_copy,
+                  key: ValueKey(_hotspot),
+                  size: disc * 0.42,
+                  color: p.warning,
+                ),
+              ),
+              PositionedDirectional(
+                end: disc * 0.04,
+                bottom: disc * 0.06,
+                child: Container(
+                  width: disc * 0.3,
+                  height: disc * 0.3,
+                  decoration: BoxDecoration(
+                    color: p.surface,
+                    shape: BoxShape.circle,
+                    boxShadow: AppShadows.soft(p),
+                  ),
+                  child: Icon(Icons.close_rounded, size: disc * 0.18, color: p.error),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Full screen shown instead of "Finding TV" when a cast feature is opened
+/// with neither Wi-Fi nor the phone's hotspot. Pops with `true` by itself as
+/// soon as either comes up (network changes are pushed by Android), so the
+/// feature carries on straight into discovery.
+class NoNetworkScreen extends ConsumerStatefulWidget {
+  const NoNetworkScreen({super.key});
+
+  static const routeName = '/no-network';
+
+  @override
+  ConsumerState<NoNetworkScreen> createState() => _NoNetworkScreenState();
+}
+
+class _NoNetworkScreenState extends ConsumerState<NoNetworkScreen> {
+  bool _done = false;
+
+  void _finish() {
+    if (_done || !mounted) return;
+    _done = true;
+    Navigator.of(context).pop(true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(networkProvider, (prev, next) {
+      if (next != null && next.ready) _finish();
+    });
+    return Scaffold(
+      appBar: AppBar(
+        systemOverlayStyle: context.systemOverlayStyle(),
+        toolbarHeight: 68,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, size: 26),
+          tooltip: context.l10n.browserBack,
+          onPressed: () => Navigator.of(context).pop(false),
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: LayoutBuilder(
+          builder: (context, c) => SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.md, AppSpace.page, AppSpace.xl),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: (c.maxHeight - AppSpace.md - AppSpace.xl).clamp(0.0, double.infinity)),
+              child: const Center(child: NetworkRequiredCard()),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -178,74 +339,44 @@ class _MiniAction extends StatelessWidget {
 
 /// Gate for every wireless feature: returns true when the phone is on Wi-Fi
 /// or sharing its hotspot. Otherwise (e.g. mobile data only) shows the
-/// "Not connected to Wi-Fi" alert and returns false.
+/// [NoNetworkScreen] and returns true once the user has connected from there
+/// (the screen closes by itself), false if they backed out.
 Future<bool> requireNetwork(BuildContext context, {required String source}) async {
   final container = ProviderScope.containerOf(context, listen: false);
   final network = await container.read(networkProvider.notifier).refresh();
   if (network.ready) return true;
   container.read(analyticsProvider).log(AnalyticsEvent.networkNoWifi, {AnalyticsParam.source: source});
-  if (context.mounted) await showNetworkRequiredDialog(context);
-  return false;
+  if (!context.mounted) return false;
+  final connected = await showNetworkRequiredDialog(context);
+  return connected && (container.read(networkProvider)?.ready ?? false);
 }
 
-/// "Not connected to Wi-Fi" alert with two ways forward: join Wi-Fi, or use
-/// the phone's own hotspot. Returns once dismissed.
-Future<void> showNetworkRequiredDialog(BuildContext context) {
-  return showDialog<void>(
-    context: context,
-    builder: (dialogContext) {
-      final p = dialogContext.palette;
-      final l = dialogContext.l10n;
-      return Dialog(
-        insetPadding: const EdgeInsets.all(AppSpace.xl),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpace.xxl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(color: p.warning.withValues(alpha: 0.14), shape: BoxShape.circle),
-                    child: Icon(Iconsax.wifi_square_copy, size: 34, color: p.warning),
-                  )
-                  .animate(onPlay: (c) => dialogContext.loopMotion(c, reverse: true))
-                  .scale(begin: const Offset(1, 1), end: const Offset(1.06, 1.06), duration: 900.ms),
-              const SizedBox(height: AppSpace.lg),
-              Text(l.networkRequiredTitle, style: dialogContext.text.headlineSmall, textAlign: TextAlign.center),
-              const SizedBox(height: 6),
-              Text(l.noWifiAlertMessage, style: dialogContext.text.bodyMedium, textAlign: TextAlign.center),
-              const SizedBox(height: AppSpace.xl),
-              GradientButton(
-                label: l.connectWithWifi,
-                icon: Iconsax.wifi_copy,
-                expand: true,
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                  NetworkChannel.openWifiSettings();
-                },
-              ),
-              const SizedBox(height: AppSpace.sm),
-              TintedButton(
-                label: l.continueWithHotspot,
-                icon: Iconsax.mobile_copy,
-                expand: true,
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                  showHotspotGuide(context);
-                },
-              ),
-            ],
-          ),
-        ),
-      );
-    },
+/// Opens the [NoNetworkScreen]. Completes with true when it closed because
+/// Wi-Fi or the hotspot came up.
+Future<bool> showNetworkRequiredDialog(BuildContext context) async {
+  final ok = await Navigator.of(context, rootNavigator: true).push<bool>(
+    MaterialPageRoute(
+      settings: const RouteSettings(name: NoNetworkScreen.routeName),
+      builder: (_) => const NoNetworkScreen(),
+    ),
   );
+  return ok == true;
 }
 
 /// Step-by-step hotspot guide. Opens the system tethering screen; when the
 /// user comes back and the hotspot is on, it closes and starts searching.
-Future<void> showHotspotGuide(BuildContext context) {
+///
+/// Never shown when the hotspot is already on: discovery starts right away
+/// instead, with the usual "Finding TV" radar.
+Future<void> showHotspotGuide(BuildContext context) async {
+  final container = ProviderScope.containerOf(context, listen: false);
+  final network = await container.read(networkProvider.notifier).refresh();
+  if (network.hotspot) {
+    final d = container.read(discoveryProvider);
+    if (!d.scanning) container.read(discoveryProvider.notifier).scan();
+    return;
+  }
+  if (!context.mounted) return;
   analyticsOf(context).log(AnalyticsEvent.hotspotGuideOpen);
   return showModalBottomSheet<void>(
     useRootNavigator: true,

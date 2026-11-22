@@ -33,6 +33,8 @@ class MusicScreen extends ConsumerWidget {
         kind: CastKind.music,
         seed: s.seed,
         duration: s.duration,
+        // The gallery item; the caster resolves it to the audio file.
+        url: 'asset:${s.id}',
       ),
   ];
 

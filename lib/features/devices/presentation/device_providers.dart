@@ -9,6 +9,7 @@ import '../../../core/analytics/analytics_events.dart';
 import '../../../core/storage/local_store.dart';
 import '../../monetization/domain/ad_suppression.dart';
 import '../../pairing/presentation/pairing_controller.dart';
+import '../../permissions/data/device_discovery_permission_service.dart';
 import '../../permissions/domain/app_permission.dart';
 import '../../permissions/presentation/permissions_controller.dart';
 import '../../settings/presentation/settings_controller.dart';
@@ -101,6 +102,7 @@ class DiscoveryController extends Notifier<DiscoveryState> {
   Future<void> checkPermissionsAndStart({bool userInitiatedRequest = false}) async {
     _cancel();
     final run = ++_run;
+    if (_knownDown && !await _networkUp(run)) return;
     state = state.copyWith(
       phase: DiscoveryPhase.checkingConnectivity,
       scanning: true,
@@ -115,6 +117,7 @@ class DiscoveryController extends Notifier<DiscoveryState> {
 
     switch (status) {
       case DiscoveryPermissionStatus.granted:
+        AdSuppression.release(DeviceDiscoveryPermissionService.flowHold);
         await _proceedToConnectivityAndScan(run, requiresLocation);
       case DiscoveryPermissionStatus.locationServiceDisabled:
         state = DiscoveryState(
@@ -146,6 +149,7 @@ class DiscoveryController extends Notifier<DiscoveryState> {
   Future<void> grantPermission() async {
     _cancel();
     final run = ++_run;
+    if (_knownDown && !await _networkUp(run)) return;
     state = state.copyWith(
       phase: DiscoveryPhase.checkingConnectivity,
       scanning: true,
@@ -183,6 +187,30 @@ class DiscoveryController extends Notifier<DiscoveryState> {
     }
   }
 
+  /// The last check found neither Wi-Fi nor the hotspot. Otherwise the scan
+  /// UI starts at once (no await) and the network is re-checked inside it.
+  bool get _knownDown => ref.read(networkProvider)?.ready == false;
+
+  /// With neither Wi-Fi nor the hotspot there is nothing to find: go straight
+  /// to the no-network state instead of flashing the "Finding TV" loader. The
+  /// network listener in [build] starts the scan the moment one comes up.
+  Future<bool> _networkUp(int run) async {
+    final net = await ref.read(networkProvider.notifier).refresh();
+    if (run != _run || !ref.mounted) return false;
+    if (net.ready) return true;
+    ref.read(analyticsProvider).log(AnalyticsEvent.networkNoWifi, {AnalyticsParam.source: 'device_scan'});
+    state = DiscoveryState(
+      phase: DiscoveryPhase.failed,
+      networkRequired: true,
+      requiresLocation: state.requiresLocation,
+      devices: state.devices,
+    );
+    return false;
+  }
+
+  /// The screen that ran the permission flow closed: stop suppressing App Open.
+  void endPermissionFlow() => AdSuppression.release(DeviceDiscoveryPermissionService.flowHold);
+
   /// Called when returning to the app (e.g. from app settings or location settings).
   Future<void> recheckPermissions() async {
     // The system permission dialog pauses/resumes the app, which fires this while
@@ -196,6 +224,8 @@ class DiscoveryController extends Notifier<DiscoveryState> {
     if (!ref.mounted) return;
 
     if (status == DiscoveryPermissionStatus.granted) {
+      // Granted in Settings: the permission flow is over.
+      AdSuppression.release(DeviceDiscoveryPermissionService.flowHold);
       // Already searching or showing devices: nothing to restart.
       if (state.scanning || state.devices.isNotEmpty) return;
       final run = ++_run;

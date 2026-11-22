@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TV로 캐스트</string>
+    <string name="cast_session_channel">전송</string>
+    <string name="cast_session_title">TV로 전송 중</string>
+    <string name="cast_session_text">스트림을 유지하는 중</string>
 </resources>

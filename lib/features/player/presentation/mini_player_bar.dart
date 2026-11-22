@@ -10,6 +10,7 @@ import '../../../core/widgets/buttons.dart';
 import '../../../core/widgets/effects.dart';
 import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/device_providers.dart';
+import 'now_playing_screen.dart';
 import 'player_controller.dart';
 
 import '../../../core/l10n.dart';
@@ -70,12 +71,15 @@ class MiniPlayerBar extends ConsumerWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: context.text.labelLarge,
                                 ),
-                                Text(
-                                  context.l10n.castingTo2(device ?? 'TV'),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: context.text.bodySmall,
-                                ),
+                                if (s.preparing)
+                                  PreparingForTv(progress: s.prepareProgress, compact: true)
+                                else
+                                  Text(
+                                    context.l10n.castingTo2(device ?? 'TV'),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: context.text.bodySmall,
+                                  ),
                               ],
                             ),
                           ),

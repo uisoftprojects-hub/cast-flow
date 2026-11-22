@@ -1744,4 +1744,32 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get appName => 'Auf TV übertragen';
+
+  @override
+  String get allowPermission => 'Berechtigung erlauben';
+
+  @override
+  String get openSettings => 'Einstellungen öffnen';
+
+  @override
+  String get noNetworkMessage =>
+      'Schalte WLAN ein (dasselbe Netzwerk wie dein TV) oder teile den Hotspot deines Handys und verbinde den TV damit.';
+
+  @override
+  String get turnOnWifi => 'WLAN einschalten';
+
+  @override
+  String get waitingForNetwork =>
+      'Wir suchen deinen TV, sobald du verbunden bist.';
+
+  @override
+  String get howHotspotWorks => 'Wie funktioniert Streamen über Hotspot?';
+
+  @override
+  String get preparingForTv => 'Wird für deinen TV vorbereitet…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Wird für deinen TV umgewandelt… $percent %';
+  }
 }

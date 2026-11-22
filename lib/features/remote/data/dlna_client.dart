@@ -7,6 +7,7 @@ import 'package:xml/xml.dart';
 
 import '../../devices/domain/cast_device.dart';
 import '../../devices/domain/receiver_capabilities.dart';
+import '../../player/domain/tv_formats.dart';
 
 /// Controls a UPnP/DLNA MediaRenderer: transport (AVTransport) and volume
 /// (RenderingControl) over SOAP. Works for any brand that publishes a
@@ -76,7 +77,31 @@ class DlnaClient {
     }
   }
 
-  void forget(String deviceId) => _services.remove(deviceId);
+  void forget(String deviceId) {
+    _services.remove(deviceId);
+    _formats.remove(deviceId);
+  }
+
+  final _formats = <String, TvFormats>{};
+
+  /// What the TV can play: its ConnectionManager's GetProtocolInfo "Sink"
+  /// list. Empty (unknown) when the TV doesn't publish one or doesn't answer;
+  /// cached per device.
+  Future<TvFormats> formats(CastDevice device) async {
+    final cached = _formats[device.id];
+    if (cached != null) return cached;
+    var result = const TvFormats([]);
+    try {
+      final s = await _servicesFor(device);
+      if (s.cm != null) {
+        final info = await _call(s.cm, 'GetProtocolInfo', const {});
+        result = TvFormats.parse(info['Sink'] ?? '');
+      }
+    } catch (_) {}
+    // Don't cache a failure: the next item asks again.
+    if (result.isKnown) _formats[device.id] = result;
+    return result;
+  }
 
   // -------------------------------------------------------------- casting
 
@@ -160,8 +185,9 @@ class DlnaClient {
 
     final av = find('AVTransport');
     final rc = find('RenderingControl');
+    final cm = find('ConnectionManager');
     if (av == null && rc == null) throw UnsupportedError('${d.name} exposes no DLNA controls.');
-    return _services[d.id] = _Services(av, rc);
+    return _services[d.id] = _Services(av, rc, cm);
   }
 
   // ----------------------------------------------------------------- SOAP
@@ -251,9 +277,12 @@ class DlnaClient {
 }
 
 class _Services {
-  const _Services(this.av, this.rc);
+  const _Services(this.av, this.rc, [this.cm]);
   final ({String type, Uri url})? av;
   final ({String type, Uri url})? rc;
+
+  /// ConnectionManager: tells which formats the TV can play.
+  final ({String type, Uri url})? cm;
 }
 
 /// One DLNA client shared by the remote and the caster (they share the cached

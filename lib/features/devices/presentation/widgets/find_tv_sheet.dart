@@ -41,6 +41,7 @@ class _FindTvSheetState extends ConsumerState<FindTvSheet> {
   @override
   void initState() {
     super.initState();
+    _discovery = ref.read(discoveryProvider.notifier);
     _lifecycle = AppLifecycleListener(onResume: () => ref.read(discoveryProvider.notifier).recheckPermissions());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -55,8 +56,11 @@ class _FindTvSheetState extends ConsumerState<FindTvSheet> {
   @override
   void dispose() {
     _lifecycle?.dispose();
+    _discovery.endPermissionFlow();
     super.dispose();
   }
+
+  late final DiscoveryController _discovery;
 
   Future<void> _connect(CastDevice device) async {
     final ok = await ref.read(connectionProvider.notifier).connect(device);
@@ -87,7 +91,7 @@ class _FindTvSheetState extends ConsumerState<FindTvSheet> {
     } else if (conn.status == ConnectionStatus.failed && conn.device != null) {
       body = ConnectFailedCard(onRetry: () => _connect(conn.device!), onScanAgain: scan);
     } else if (discovery.networkRequired) {
-      body = const NetworkRequiredCard();
+      body = const NetworkRequiredCard(compact: true);
     } else if (isPermissionBlocked) {
       body = DiscoveryPermissionCard(
         phase: discovery.phase,

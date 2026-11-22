@@ -41,6 +41,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   @override
   void initState() {
     super.initState();
+    _discovery = ref.read(discoveryProvider.notifier);
     _lifecycle = AppLifecycleListener(
       onResume: () {
         ref.read(discoveryProvider.notifier).recheckPermissions();
@@ -78,8 +79,11 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   @override
   void dispose() {
     _lifecycle?.dispose();
+    _discovery.endPermissionFlow();
     super.dispose();
   }
+
+  late final DiscoveryController _discovery;
 
   Future<void> _connect(CastDevice device) async {
     ClickCountInterstitialManager.recordClick(context, contextTag: 'device_connect');

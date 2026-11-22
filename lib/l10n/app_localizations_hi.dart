@@ -1724,4 +1724,32 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get appName => 'टीवी पर कास्ट';
+
+  @override
+  String get allowPermission => 'अनुमति दें';
+
+  @override
+  String get openSettings => 'सेटिंग खोलें';
+
+  @override
+  String get noNetworkMessage =>
+      'वाई-फ़ाई चालू करें (वही नेटवर्क जिस पर टीवी है), या फ़ोन का हॉटस्पॉट चालू करके टीवी को उससे जोड़ें।';
+
+  @override
+  String get turnOnWifi => 'वाई-फ़ाई चालू करें';
+
+  @override
+  String get waitingForNetwork =>
+      'कनेक्ट होते ही हम आपका टीवी ढूँढना शुरू कर देंगे।';
+
+  @override
+  String get howHotspotWorks => 'हॉटस्पॉट से कास्टिंग कैसे काम करती है?';
+
+  @override
+  String get preparingForTv => 'आपके टीवी के लिए तैयार किया जा रहा है…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'आपके टीवी के लिए बदला जा रहा है… $percent%';
+  }
 }

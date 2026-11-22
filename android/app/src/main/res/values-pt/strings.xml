@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Transmitir para TV</string>
+    <string name="cast_session_channel">Transmissão</string>
+    <string name="cast_session_title">Transmitindo para sua TV</string>
+    <string name="cast_session_text">Mantendo a transmissão ativa</string>
 </resources>

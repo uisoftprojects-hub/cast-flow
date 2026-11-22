@@ -1728,4 +1728,32 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get appName => 'ٹی وی پر کاسٹ';
+
+  @override
+  String get allowPermission => 'اجازت دیں';
+
+  @override
+  String get openSettings => 'سیٹنگز کھولیں';
+
+  @override
+  String get noNetworkMessage =>
+      'وائی فائی آن کریں (وہی نیٹ ورک جس پر ٹی وی ہے)، یا فون کا ہاٹ اسپاٹ آن کر کے ٹی وی کو اس سے جوڑیں۔';
+
+  @override
+  String get turnOnWifi => 'وائی فائی آن کریں';
+
+  @override
+  String get waitingForNetwork =>
+      'کنیکٹ ہوتے ہی ہم آپ کا ٹی وی ڈھونڈنا شروع کر دیں گے۔';
+
+  @override
+  String get howHotspotWorks => 'ہاٹ اسپاٹ سے کاسٹنگ کیسے کام کرتی ہے؟';
+
+  @override
+  String get preparingForTv => 'آپ کے ٹی وی کے لیے تیار کیا جا رہا ہے…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'آپ کے ٹی وی کے لیے تبدیل کیا جا رہا ہے… $percent%';
+  }
 }

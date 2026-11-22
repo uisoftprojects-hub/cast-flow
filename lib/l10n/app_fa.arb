@@ -584,5 +584,13 @@
   "permissionBlockedInSettings": "مجوز در تنظیمات مسدود شده است",
   "grantPermission": "اعطای مجوز",
   "checkAgain": "بررسی مجدد",
-  "appName": "پخش روی تلویزیون"
+  "appName": "پخش روی تلویزیون",
+  "allowPermission": "اجازه دادن",
+  "openSettings": "باز کردن تنظیمات",
+  "noNetworkMessage": "Wi-Fi را روشن کنید (همان شبکهٔ تلویزیون) یا هات‌اسپات گوشی را روشن کنید و تلویزیون را به آن وصل کنید.",
+  "turnOnWifi": "روشن کردن Wi-Fi",
+  "waitingForNetwork": "به‌محض اتصال، جست‌وجوی تلویزیون را شروع می‌کنیم.",
+  "howHotspotWorks": "پخش از طریق هات‌اسپات چطور کار می‌کند؟",
+  "preparingForTv": "در حال آماده‌سازی برای تلویزیون…",
+  "convertingForTv": "در حال تبدیل برای تلویزیون… {percent}%"
 }

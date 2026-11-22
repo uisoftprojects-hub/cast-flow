@@ -50,9 +50,13 @@ class NetworkDeviceRepository implements DeviceRepository {
   @override
   Stream<List<CastDevice>> discover({NetworkStatus? network}) {
     final out = StreamController<List<CastDevice>>();
-    // On the phone's own hotspot, bind to the AP interface so multicast goes
-    // to the TVs that joined it, and probe the hotspot subnet as a fallback.
+    // Multicast must leave through the LAN the TVs are on. Without pinning it,
+    // Android routes it by the default route (often mobile data or a VPN) and
+    // no TV ever hears the search. On the phone's own hotspot that LAN is the
+    // AP interface (ap0 / swlan0 / wlan1...), not wlan0, and the hotspot
+    // subnet is also probed directly because many phones filter multicast there.
     final hotspotIp = network?.mode == NetworkMode.hotspot ? network?.hotspotIp : null;
+    final lanIp = network?.discoveryAddress?.ip ?? hotspotIp;
     unidentifiedClients = 0;
     final found = <String, CastDevice>{};
     // Same TV can answer over several protocols; key by address.
@@ -79,8 +83,8 @@ class NetworkDeviceRepository implements DeviceRepository {
       await NetworkChannel.acquireMulticastLock();
       try {
         await Future.wait([
-          _ssdp(add, bindTo: hotspotIp).catchError((_) {}),
-          _mdns(add, interfaceIp: hotspotIp).catchError((_) {}),
+          _ssdp(add, bindTo: hotspotIp, multicastFrom: lanIp).catchError((_) {}),
+          _mdns(add, interfaceIp: lanIp).catchError((_) {}),
           if (hotspotIp != null) _scanSubnet(hotspotIp, add).catchError((_) {}),
         ]).timeout(scanTime + const Duration(seconds: 4), onTimeout: () => []);
       } finally {
@@ -105,9 +109,10 @@ class NetworkDeviceRepository implements DeviceRepository {
 
   // ------------------------------------------------------------------ SSDP
 
-  Future<void> _ssdp(void Function(CastDevice) add, {String? bindTo}) async {
+  Future<void> _ssdp(void Function(CastDevice) add, {String? bindTo, String? multicastFrom}) async {
     final socket = await RawDatagramSocket.bind(bindTo != null ? InternetAddress(bindTo) : InternetAddress.anyIPv4, 0);
     socket.multicastHops = 4;
+    if (multicastFrom != null) pinMulticastInterface(socket, multicastFrom);
     final seen = <String>{};
     final lookups = <Future<void>>[];
 
@@ -213,6 +218,18 @@ class NetworkDeviceRepository implements DeviceRepository {
     );
   }
 
+  /// Sends this socket's multicast out of the interface that owns [ip]
+  /// (IP_MULTICAST_IF). Best effort: a platform that refuses keeps the default.
+  static void pinMulticastInterface(RawDatagramSocket socket, String ip) {
+    try {
+      final addr = InternetAddress.tryParse(ip);
+      if (addr == null || addr.type != InternetAddressType.IPv4) return;
+      socket.setRawOption(
+        RawSocketOption(RawSocketOption.levelIPv4, RawSocketOption.IPv4MulticastInterface, addr.rawAddress),
+      );
+    } catch (_) {}
+  }
+
   // ------------------------------------------------------------------ mDNS
 
   Future<void> _mdns(void Function(CastDevice) add, {String? interfaceIp}) async {
@@ -223,12 +240,15 @@ class NetworkDeviceRepository implements DeviceRepository {
               RawDatagramSocket.bind(host, port, reuseAddress: true, reusePort: false, ttl: ttl),
     );
     await client.start(
-      // On the hotspot, query only on the AP interface.
+      // Query only on the LAN interface (Wi-Fi or the hotspot's AP), never on
+      // mobile data or a VPN tunnel.
       interfacesFactory: interfaceIp == null
           ? null
-          : (type) async => (await NetworkInterface.list(
-              type: InternetAddressType.IPv4,
-            )).where((i) => i.addresses.any((a) => a.address == interfaceIp)).toList(),
+          : (type) async {
+              final all = await NetworkInterface.list(type: InternetAddressType.IPv4);
+              final lan = all.where((i) => i.addresses.any((a) => a.address == interfaceIp)).toList();
+              return lan.isEmpty ? all : lan;
+            },
     );
     try {
       for (final entry in _mdnsServices.entries) {

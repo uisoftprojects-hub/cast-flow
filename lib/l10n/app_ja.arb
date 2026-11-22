@@ -584,5 +584,13 @@
   "permissionBlockedInSettings": "設定で許可がブロックされています",
   "grantPermission": "許可を与える",
   "checkAgain": "再確認",
-  "appName": "テレビにキャスト"
+  "appName": "テレビにキャスト",
+  "allowPermission": "権限を許可",
+  "openSettings": "設定を開く",
+  "noNetworkMessage": "Wi-Fiをオンにする（テレビと同じネットワーク）か、スマホのテザリングをオンにしてテレビを接続してください。",
+  "turnOnWifi": "Wi-Fiをオンにする",
+  "waitingForNetwork": "接続されるとすぐにテレビを探し始めます。",
+  "howHotspotWorks": "テザリングでのキャストの仕組み",
+  "preparingForTv": "テレビ用に準備中…",
+  "convertingForTv": "テレビ用に変換中… {percent}%"
 }

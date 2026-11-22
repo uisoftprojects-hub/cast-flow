@@ -508,5 +508,13 @@
   "permissionBlockedInSettings": "Toestemming in instellings geblokkeer",
   "grantPermission": "Verleen toestemming",
   "checkAgain": "Kontroleer weer",
-  "appName": "Saai uit na TV"
+  "appName": "Saai uit na TV",
+  "allowPermission": "Gee toestemming",
+  "openSettings": "Maak Instellings oop",
+  "noNetworkMessage": "Skakel Wi-Fi aan (dieselfde netwerk as jou TV), of deel jou foon se hotspot en koppel die TV daaraan.",
+  "turnOnWifi": "Skakel Wi-Fi aan",
+  "waitingForNetwork": "Ons begin na jou TV soek sodra jy gekoppel is.",
+  "howHotspotWorks": "Hoe werk uitsending oor 'n hotspot?",
+  "preparingForTv": "Berei voor vir jou TV…",
+  "convertingForTv": "Skakel om vir jou TV… {percent}%"
 }

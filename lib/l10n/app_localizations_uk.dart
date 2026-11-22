@@ -1744,4 +1744,32 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get appName => 'Трансляція на ТБ';
+
+  @override
+  String get allowPermission => 'Дозволити';
+
+  @override
+  String get openSettings => 'Відкрити налаштування';
+
+  @override
+  String get noNetworkMessage =>
+      'Увімкніть Wi-Fi (ту саму мережу, що й у телевізора) або роздайте точку доступу з телефона й під\'єднайте до неї телевізор.';
+
+  @override
+  String get turnOnWifi => 'Увімкнути Wi-Fi';
+
+  @override
+  String get waitingForNetwork =>
+      'Ми почнемо шукати телевізор, щойно ви під\'єднаєтеся.';
+
+  @override
+  String get howHotspotWorks => 'Як працює трансляція через точку доступу?';
+
+  @override
+  String get preparingForTv => 'Підготовка для телевізора…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Конвертація для телевізора… $percent%';
+  }
 }

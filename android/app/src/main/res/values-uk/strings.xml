@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Трансляція на ТБ</string>
+    <string name="cast_session_channel">Трансляція</string>
+    <string name="cast_session_title">Трансляція на телевізор</string>
+    <string name="cast_session_text">Потік продовжує працювати</string>
 </resources>

@@ -508,5 +508,13 @@
   "permissionBlockedInSettings": "Toestemming geblokkeerd in instellingen",
   "grantPermission": "Toestemming geven",
   "checkAgain": "Opnieuw controleren",
-  "appName": "Casten naar tv"
+  "appName": "Casten naar tv",
+  "allowPermission": "Toestemming geven",
+  "openSettings": "Instellingen openen",
+  "noNetworkMessage": "Zet wifi aan (hetzelfde netwerk als je tv) of deel de hotspot van je telefoon en verbind de tv ermee.",
+  "turnOnWifi": "Wifi aanzetten",
+  "waitingForNetwork": "We zoeken je tv zodra je verbonden bent.",
+  "howHotspotWorks": "Hoe werkt casten via hotspot?",
+  "preparingForTv": "Voorbereiden voor je tv…",
+  "convertingForTv": "Omzetten voor je tv… {percent}%"
 }
