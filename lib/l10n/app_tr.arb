@@ -592,5 +592,6 @@
   "waitingForNetwork": "Bağlandığınız anda TV'nizi aramaya başlayacağız.",
   "howHotspotWorks": "Hotspot üzerinden yayın nasıl çalışır?",
   "preparingForTv": "TV'niz için hazırlanıyor…",
-  "convertingForTv": "TV'niz için dönüştürülüyor… %{percent}"
+  "convertingForTv": "TV'niz için dönüştürülüyor… %{percent}",
+  "lookingForTvsOnHotspot": "Hotspot'unuzda TV'ler aranıyor"
 }

@@ -592,5 +592,6 @@
   "waitingForNetwork": "연결되면 바로 TV를 찾기 시작합니다.",
   "howHotspotWorks": "핫스팟으로 전송은 어떻게 하나요?",
   "preparingForTv": "TV용으로 준비 중…",
-  "convertingForTv": "TV용으로 변환 중… {percent}%"
+  "convertingForTv": "TV용으로 변환 중… {percent}%",
+  "lookingForTvsOnHotspot": "핫스팟에서 TV를 찾는 중"
 }

@@ -592,5 +592,6 @@
   "waitingForNetwork": "Cercheremo la tua TV appena sarai connesso.",
   "howHotspotWorks": "Come funziona la trasmissione tramite hotspot?",
   "preparingForTv": "Preparazione per la tua TV…",
-  "convertingForTv": "Conversione per la tua TV… {percent}%"
+  "convertingForTv": "Conversione per la tua TV… {percent}%",
+  "lookingForTvsOnHotspot": "Ricerca di TV sul tuo hotspot"
 }

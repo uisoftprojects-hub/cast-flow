@@ -1758,4 +1758,8 @@ class AppLocalizationsFa extends AppLocalizations {
   String convertingForTv(int percent) {
     return 'در حال تبدیل برای تلویزیون… $percent%';
   }
+
+  @override
+  String get lookingForTvsOnHotspot =>
+      'در حال جست‌وجوی تلویزیون در هات‌اسپات شما';
 }

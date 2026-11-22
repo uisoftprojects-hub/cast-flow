@@ -1749,4 +1749,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String convertingForTv(int percent) {
     return 'আপনার টিভির জন্য রূপান্তর হচ্ছে… $percent%';
   }
+
+  @override
+  String get lookingForTvsOnHotspot => 'আপনার হটস্পটে টিভি খোঁজা হচ্ছে';
 }

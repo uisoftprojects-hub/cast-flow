@@ -1688,4 +1688,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String convertingForTv(int percent) {
     return 'テレビ用に変換中… $percent%';
   }
+
+  @override
+  String get lookingForTvsOnHotspot => 'テザリングでテレビを探しています';
 }

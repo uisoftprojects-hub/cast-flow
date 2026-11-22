@@ -592,5 +592,6 @@
   "waitingForNetwork": "เราจะเริ่มค้นหาทีวีทันทีที่คุณเชื่อมต่อ",
   "howHotspotWorks": "การแคสต์ผ่านฮอตสปอตทำงานอย่างไร",
   "preparingForTv": "กำลังเตรียมสำหรับทีวีของคุณ…",
-  "convertingForTv": "กำลังแปลงสำหรับทีวีของคุณ… {percent}%"
+  "convertingForTv": "กำลังแปลงสำหรับทีวีของคุณ… {percent}%",
+  "lookingForTvsOnHotspot": "กำลังค้นหาทีวีในฮอตสปอตของคุณ"
 }

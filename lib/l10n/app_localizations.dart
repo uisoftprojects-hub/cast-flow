@@ -3247,6 +3247,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Converting for your TV… {percent}%'**
   String convertingForTv(int percent);
+
+  /// No description provided for @lookingForTvsOnHotspot.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for TVs on your hotspot'**
+  String get lookingForTvsOnHotspot;
 }
 
 class _AppLocalizationsDelegate

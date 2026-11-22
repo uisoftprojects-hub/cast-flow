@@ -592,5 +592,6 @@
   "waitingForNetwork": "کنیکٹ ہوتے ہی ہم آپ کا ٹی وی ڈھونڈنا شروع کر دیں گے۔",
   "howHotspotWorks": "ہاٹ اسپاٹ سے کاسٹنگ کیسے کام کرتی ہے؟",
   "preparingForTv": "آپ کے ٹی وی کے لیے تیار کیا جا رہا ہے…",
-  "convertingForTv": "آپ کے ٹی وی کے لیے تبدیل کیا جا رہا ہے… {percent}%"
+  "convertingForTv": "آپ کے ٹی وی کے لیے تبدیل کیا جا رہا ہے… {percent}%",
+  "lookingForTvsOnHotspot": "آپ کے ہاٹ اسپاٹ پر ٹی وی تلاش کیے جا رہے ہیں"
 }

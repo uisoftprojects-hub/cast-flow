@@ -212,6 +212,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                   SliverToBoxAdapter(
                     child: _Radar(
                       scanning: discovery.scanning,
+                      hotspot: discovery.hotspot,
                       devices: discovery.devices,
                       connectedId: conn.device?.id,
                       // Permission problems are explained once, in the banner below.
@@ -327,12 +328,21 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 }
 
 class _Radar extends StatelessWidget {
-  const _Radar({required this.scanning, required this.devices, this.connectedId, this.statusOverride});
+  const _Radar({
+    required this.scanning,
+    required this.devices,
+    this.connectedId,
+    this.statusOverride,
+    this.hotspot = false,
+  });
 
   final bool scanning;
   final List<CastDevice> devices;
   final String? connectedId;
   final String? statusOverride;
+
+  /// The phone is sharing its hotspot: say so instead of "Wi-Fi".
+  final bool hotspot;
 
   int get found => devices.length;
 
@@ -342,7 +352,9 @@ class _Radar extends StatelessWidget {
     final label =
         statusOverride ??
         (scanning
-            ? (found == 0 ? context.l10n.lookingForTvsOn : context.l10n.foundSoFar(found))
+            ? (found == 0
+                ? (hotspot ? context.l10n.lookingForTvsOnHotspot : context.l10n.lookingForTvsOn)
+                : context.l10n.foundSoFar(found))
             : context.l10n.deviceFound(found, found == 1 ? '' : 's'));
 
     return Padding(

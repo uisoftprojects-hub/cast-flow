@@ -516,5 +516,6 @@
   "waitingForNetwork": "Ons begin na jou TV soek sodra jy gekoppel is.",
   "howHotspotWorks": "Hoe werk uitsending oor 'n hotspot?",
   "preparingForTv": "Berei voor vir jou TV…",
-  "convertingForTv": "Skakel om vir jou TV… {percent}%"
+  "convertingForTv": "Skakel om vir jou TV… {percent}%",
+  "lookingForTvsOnHotspot": "Soek TV's op jou hotspot"
 }

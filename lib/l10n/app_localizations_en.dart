@@ -1744,4 +1744,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String convertingForTv(int percent) {
     return 'Converting for your TV… $percent%';
   }
+
+  @override
+  String get lookingForTvsOnHotspot => 'Looking for TVs on your hotspot';
 }

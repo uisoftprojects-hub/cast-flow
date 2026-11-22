@@ -516,5 +516,6 @@
   "waitingForNetwork": "We zoeken je tv zodra je verbonden bent.",
   "howHotspotWorks": "Hoe werkt casten via hotspot?",
   "preparingForTv": "Voorbereiden voor je tv…",
-  "convertingForTv": "Omzetten voor je tv… {percent}%"
+  "convertingForTv": "Omzetten voor je tv… {percent}%",
+  "lookingForTvsOnHotspot": "Zoeken naar tv's op je hotspot"
 }

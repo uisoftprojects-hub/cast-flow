@@ -592,5 +592,6 @@
   "waitingForNetwork": "Kami akan mulai mencari TV Anda begitu Anda terhubung.",
   "howHotspotWorks": "Bagaimana cara transmisi lewat hotspot?",
   "preparingForTv": "Menyiapkan untuk TV Anda…",
-  "convertingForTv": "Mengonversi untuk TV Anda… {percent}%"
+  "convertingForTv": "Mengonversi untuk TV Anda… {percent}%",
+  "lookingForTvsOnHotspot": "Mencari TV di hotspot Anda"
 }

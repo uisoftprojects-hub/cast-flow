@@ -25,10 +25,18 @@ import '../network_controller.dart';
 /// "Finding TV" loader: there is nothing to find until a network is up, and
 /// the caller switches to discovery by itself when one appears.
 class NetworkRequiredCard extends StatelessWidget {
-  const NetworkRequiredCard({super.key, this.compact = false});
+  const NetworkRequiredCard({
+    super.key,
+    this.compact = false,
+    this.showHotspot = true,
+  });
 
   /// Smaller picture for bottom sheets.
   final bool compact;
+
+  /// Offer the phone's hotspot as a second way. Screen Mirroring turns this
+  /// off: it goes through Android's own Cast screen and only needs Wi-Fi.
+  final bool showHotspot;
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +45,19 @@ class NetworkRequiredCard extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        NoNetworkHero(size: compact ? 150 : 190),
+        NoNetworkHero(size: compact ? 150 : 190, showHotspot: showHotspot),
         const SizedBox(height: AppSpace.lg),
-        Text(l.networkRequiredTitle, style: context.text.headlineSmall, textAlign: TextAlign.center),
+        Text(
+          l.networkRequiredTitle,
+          style: context.text.headlineSmall,
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 6),
-        Text(l.noNetworkMessage, style: context.text.bodyMedium, textAlign: TextAlign.center),
+        Text(
+          showHotspot ? l.noNetworkMessage : l.networkRequiredMessage,
+          style: context.text.bodyMedium,
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: AppSpace.xl),
         GradientButton(
           label: l.turnOnWifi,
@@ -49,13 +65,15 @@ class NetworkRequiredCard extends StatelessWidget {
           expand: true,
           onPressed: NetworkChannel.openWifiPanel,
         ),
-        const SizedBox(height: AppSpace.sm),
-        TintedButton(
-          label: l.useMobileHotspot,
-          icon: Iconsax.mobile_copy,
-          expand: true,
-          onPressed: NetworkChannel.openHotspotSettings,
-        ),
+        if (showHotspot) ...[
+          const SizedBox(height: AppSpace.sm),
+          TintedButton(
+            label: l.useMobileHotspot,
+            icon: Iconsax.mobile_copy,
+            expand: true,
+            onPressed: NetworkChannel.openHotspotSettings,
+          ),
+        ],
         const SizedBox(height: AppSpace.md),
         // Live hint: discovery starts on its own once a network is up.
         Row(
@@ -64,7 +82,10 @@ class NetworkRequiredCard extends StatelessWidget {
             Container(
                   width: 7,
                   height: 7,
-                  decoration: BoxDecoration(color: p.primary, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: p.primary,
+                    shape: BoxShape.circle,
+                  ),
                 )
                 .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
                 .fade(begin: 1, end: 0.25, duration: 800.ms),
@@ -78,10 +99,14 @@ class NetworkRequiredCard extends StatelessWidget {
             ),
           ],
         ),
-        TextButton(
-          onPressed: () => showHotspotGuide(context),
-          child: Text(l.howHotspotWorks, style: context.text.labelMedium?.copyWith(color: p.primary)),
-        ),
+        if (showHotspot)
+          TextButton(
+            onPressed: () => showHotspotGuide(context),
+            child: Text(
+              l.howHotspotWorks,
+              style: context.text.labelMedium?.copyWith(color: p.primary),
+            ),
+          ),
       ],
     ).animate().fadeIn(duration: AppDurations.slow).slideY(begin: 0.04, end: 0);
   }
@@ -92,9 +117,12 @@ class NetworkRequiredCard extends StatelessWidget {
 /// ways out of this state. Still (but complete) when the OS asks for reduced
 /// motion.
 class NoNetworkHero extends StatefulWidget {
-  const NoNetworkHero({super.key, this.size = 190});
+  const NoNetworkHero({super.key, this.size = 190, this.showHotspot = true});
 
   final double size;
+
+  /// Alternate the icon between Wi-Fi and hotspot; off: Wi-Fi only.
+  final bool showHotspot;
 
   @override
   State<NoNetworkHero> createState() => _NoNetworkHeroState();
@@ -108,7 +136,7 @@ class _NoNetworkHeroState extends State<NoNetworkHero> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _swap?.cancel();
-    if (!context.reduceMotion) {
+    if (widget.showHotspot && !context.reduceMotion) {
       _swap = Timer.periodic(const Duration(milliseconds: 1800), (_) {
         if (mounted) setState(() => _hotspot = !_hotspot);
       });
@@ -138,7 +166,10 @@ class _NoNetworkHeroState extends State<NoNetworkHero> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: p.warning.withValues(alpha: 0.16),
-            border: Border.all(color: p.warning.withValues(alpha: 0.35), width: 1.5),
+            border: Border.all(
+              color: p.warning.withValues(alpha: 0.35),
+              width: 1.5,
+            ),
           ),
           child: Stack(
             alignment: Alignment.center,
@@ -148,7 +179,10 @@ class _NoNetworkHeroState extends State<NoNetworkHero> {
                 duration: AppDurations.slow,
                 transitionBuilder: (child, a) => FadeTransition(
                   opacity: a,
-                  child: ScaleTransition(scale: Tween(begin: 0.8, end: 1.0).animate(a), child: child),
+                  child: ScaleTransition(
+                    scale: Tween(begin: 0.8, end: 1.0).animate(a),
+                    child: child,
+                  ),
                 ),
                 child: Icon(
                   _hotspot ? Iconsax.mobile_copy : Iconsax.wifi_square_copy,
@@ -168,7 +202,11 @@ class _NoNetworkHeroState extends State<NoNetworkHero> {
                     shape: BoxShape.circle,
                     boxShadow: AppShadows.soft(p),
                   ),
-                  child: Icon(Icons.close_rounded, size: disc * 0.18, color: p.error),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: disc * 0.18,
+                    color: p.error,
+                  ),
                 ),
               ),
             ],
@@ -184,7 +222,12 @@ class _NoNetworkHeroState extends State<NoNetworkHero> {
 /// soon as either comes up (network changes are pushed by Android), so the
 /// feature carries on straight into discovery.
 class NoNetworkScreen extends ConsumerStatefulWidget {
-  const NoNetworkScreen({super.key});
+  const NoNetworkScreen({super.key, this.showHotspot = true, this.footer});
+
+  final bool showHotspot;
+
+  /// Pinned to the bottom of the screen (e.g. the media cast shortcuts).
+  final Widget? footer;
 
   static const routeName = '/no-network';
 
@@ -218,14 +261,44 @@ class _NoNetworkScreenState extends ConsumerState<NoNetworkScreen> {
       ),
       body: SafeArea(
         top: false,
-        child: LayoutBuilder(
-          builder: (context, c) => SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.md, AppSpace.page, AppSpace.xl),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: (c.maxHeight - AppSpace.md - AppSpace.xl).clamp(0.0, double.infinity)),
-              child: const Center(child: NetworkRequiredCard()),
+        child: Column(
+          children: [
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, c) => SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpace.page,
+                    AppSpace.md,
+                    AppSpace.page,
+                    AppSpace.md,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: (c.maxHeight - 2 * AppSpace.md).clamp(
+                        0.0,
+                        double.infinity,
+                      ),
+                    ),
+                    child: Center(
+                      child: NetworkRequiredCard(
+                        showHotspot: widget.showHotspot,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
+            if (widget.footer != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpace.page,
+                  0,
+                  AppSpace.page,
+                  AppSpace.lg,
+                ),
+                child: widget.footer,
+              ),
+          ],
         ),
       ),
     );
@@ -251,7 +324,12 @@ class NoWifiBanner extends ConsumerWidget {
           : Padding(
               padding: const EdgeInsets.only(top: AppSpace.md),
               child: Container(
-                padding: const EdgeInsets.fromLTRB(AppSpace.md, 10, AppSpace.md, 10),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpace.md,
+                  10,
+                  AppSpace.md,
+                  10,
+                ),
                 decoration: BoxDecoration(
                   color: p.warning.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppRadius.md),
@@ -262,14 +340,20 @@ class NoWifiBanner extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Iconsax.wifi_square_copy, size: 16, color: p.warning),
+                        Icon(
+                          Iconsax.wifi_square_copy,
+                          size: 16,
+                          color: p.warning,
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             l.networkRequiredTitle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: context.text.labelLarge?.copyWith(fontSize: 13),
+                            style: context.text.labelLarge?.copyWith(
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ],
@@ -305,7 +389,11 @@ class NoWifiBanner extends ConsumerWidget {
 /// Compact one-line action used inside the no-Wi-Fi card. The label shrinks
 /// instead of wrapping, so both buttons stay one line in every language.
 class _MiniAction extends StatelessWidget {
-  const _MiniAction({required this.icon, required this.label, required this.onTap});
+  const _MiniAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
   final IconData icon;
   final String label;
   final VoidCallback onTap;
@@ -319,7 +407,10 @@ class _MiniAction extends StatelessWidget {
       child: Container(
         height: 34,
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(color: p.surface, borderRadius: BorderRadius.circular(AppRadius.pill)),
+        decoration: BoxDecoration(
+          color: p.surface,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+        ),
         alignment: Alignment.center,
         child: FittedBox(
           fit: BoxFit.scaleDown,
@@ -328,7 +419,14 @@ class _MiniAction extends StatelessWidget {
             children: [
               Icon(icon, size: 14, color: p.primary),
               const SizedBox(width: 5),
-              Text(label, maxLines: 1, style: context.text.labelMedium?.copyWith(color: p.primary, fontSize: 12)),
+              Text(
+                label,
+                maxLines: 1,
+                style: context.text.labelMedium?.copyWith(
+                  color: p.primary,
+                  fontSize: 12,
+                ),
+              ),
             ],
           ),
         ),
@@ -341,23 +439,38 @@ class _MiniAction extends StatelessWidget {
 /// or sharing its hotspot. Otherwise (e.g. mobile data only) shows the
 /// [NoNetworkScreen] and returns true once the user has connected from there
 /// (the screen closes by itself), false if they backed out.
-Future<bool> requireNetwork(BuildContext context, {required String source}) async {
+Future<bool> requireNetwork(
+  BuildContext context, {
+  required String source,
+  bool showHotspot = true,
+  Widget? footer,
+}) async {
   final container = ProviderScope.containerOf(context, listen: false);
   final network = await container.read(networkProvider.notifier).refresh();
   if (network.ready) return true;
-  container.read(analyticsProvider).log(AnalyticsEvent.networkNoWifi, {AnalyticsParam.source: source});
+  container.read(analyticsProvider).log(AnalyticsEvent.networkNoWifi, {
+    AnalyticsParam.source: source,
+  });
   if (!context.mounted) return false;
-  final connected = await showNetworkRequiredDialog(context);
+  final connected = await showNetworkRequiredDialog(
+    context,
+    showHotspot: showHotspot,
+    footer: footer,
+  );
   return connected && (container.read(networkProvider)?.ready ?? false);
 }
 
 /// Opens the [NoNetworkScreen]. Completes with true when it closed because
 /// Wi-Fi or the hotspot came up.
-Future<bool> showNetworkRequiredDialog(BuildContext context) async {
+Future<bool> showNetworkRequiredDialog(
+  BuildContext context, {
+  bool showHotspot = true,
+  Widget? footer,
+}) async {
   final ok = await Navigator.of(context, rootNavigator: true).push<bool>(
     MaterialPageRoute(
       settings: const RouteSettings(name: NoNetworkScreen.routeName),
-      builder: (_) => const NoNetworkScreen(),
+      builder: (_) => NoNetworkScreen(showHotspot: showHotspot, footer: footer),
     ),
   );
   return ok == true;
@@ -417,7 +530,12 @@ class _HotspotGuideState extends ConsumerState<_HotspotGuide> {
     });
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(AppSpace.xxl, 0, AppSpace.xxl, AppSpace.xxl),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpace.xxl,
+        0,
+        AppSpace.xxl,
+        AppSpace.xxl,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -436,7 +554,12 @@ class _HotspotGuideState extends ConsumerState<_HotspotGuide> {
                     children: [
                       Icon(Icons.check_circle_rounded, color: p.success),
                       const SizedBox(width: 8),
-                      Flexible(child: Text(l.hotspotDetected, style: context.text.titleSmall)),
+                      Flexible(
+                        child: Text(
+                          l.hotspotDetected,
+                          style: context.text.titleSmall,
+                        ),
+                      ),
                     ],
                   )
                 : GradientButton(
@@ -448,7 +571,11 @@ class _HotspotGuideState extends ConsumerState<_HotspotGuide> {
                   ),
           ),
           const SizedBox(height: AppSpace.sm),
-          Text(l.hotspotAutoCheck, style: context.text.bodySmall, textAlign: TextAlign.center),
+          Text(
+            l.hotspotAutoCheck,
+            style: context.text.bodySmall,
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -474,7 +601,10 @@ class IsolationHint extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(context.l10n.isolationTitle, style: context.text.titleSmall),
+                Text(
+                  context.l10n.isolationTitle,
+                  style: context.text.titleSmall,
+                ),
                 const SizedBox(height: 2),
                 Text(context.l10n.isolationHint, style: context.text.bodySmall),
               ],
@@ -489,7 +619,11 @@ class IsolationHint extends StatelessWidget {
 /// Failed / network-lost state for a TV, with Retry (or Reconnect) and a hint
 /// to check that both devices share a network.
 class ConnectFailedCard extends ConsumerWidget {
-  const ConnectFailedCard({super.key, required this.onRetry, required this.onScanAgain});
+  const ConnectFailedCard({
+    super.key,
+    required this.onRetry,
+    required this.onScanAgain,
+  });
 
   final VoidCallback onRetry;
   final VoidCallback onScanAgain;
@@ -508,8 +642,15 @@ class ConnectFailedCard extends ConsumerWidget {
         Container(
           width: 84,
           height: 84,
-          decoration: BoxDecoration(color: p.error.withValues(alpha: 0.14), shape: BoxShape.circle),
-          child: Icon(lost ? Iconsax.wifi_square_copy : Iconsax.danger_copy, size: 38, color: p.error),
+          decoration: BoxDecoration(
+            color: p.error.withValues(alpha: 0.14),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            lost ? Iconsax.wifi_square_copy : Iconsax.danger_copy,
+            size: 38,
+            color: p.error,
+          ),
         ).animate().shakeX(hz: 3, amount: 4, duration: 400.ms),
         const SizedBox(height: AppSpace.lg),
         Text(
@@ -519,7 +660,9 @@ class ConnectFailedCard extends ConsumerWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          lost ? l.networkLostMessage : (hotspot ? l.hotspotConnectHint : l.connectFailedHint),
+          lost
+              ? l.networkLostMessage
+              : (hotspot ? l.hotspotConnectHint : l.connectFailedHint),
           style: context.text.bodyMedium,
           textAlign: TextAlign.center,
         ),
@@ -541,7 +684,12 @@ class ConnectFailedCard extends ConsumerWidget {
             },
           )
         else
-          TintedButton(label: l.scanAgain, icon: Iconsax.radar_2_copy, expand: true, onPressed: onScanAgain),
+          TintedButton(
+            label: l.scanAgain,
+            icon: Iconsax.radar_2_copy,
+            expand: true,
+            onPressed: onScanAgain,
+          ),
       ],
     );
   }
@@ -554,7 +702,12 @@ class HotspotSteps extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final steps = [l.hotspotStep1, l.hotspotStep2, l.hotspotStep3, l.hotspotStep4];
+    final steps = [
+      l.hotspotStep1,
+      l.hotspotStep2,
+      l.hotspotStep3,
+      l.hotspotStep4,
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -568,14 +721,27 @@ class HotspotSteps extends StatelessWidget {
                   width: 24,
                   height: 24,
                   alignment: Alignment.center,
-                  decoration: const BoxDecoration(gradient: AppColors.mainGradient, shape: BoxShape.circle),
-                  child: Text('${i + 1}', style: context.text.labelSmall?.copyWith(color: Colors.white)),
+                  decoration: const BoxDecoration(
+                    gradient: AppColors.mainGradient,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    '${i + 1}',
+                    style: context.text.labelSmall?.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: AppSpace.md),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 2),
-                    child: Text(step, style: context.text.bodyMedium?.copyWith(color: context.palette.textPrimary)),
+                    child: Text(
+                      step,
+                      style: context.text.bodyMedium?.copyWith(
+                        color: context.palette.textPrimary,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -603,7 +769,10 @@ class StillCantFindCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.sm),
         onTap: () => showHotspotGuide(context),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpace.md, vertical: AppSpace.md),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpace.md,
+            vertical: AppSpace.md,
+          ),
           child: Center(
             child: Text.rich(
               TextSpan(

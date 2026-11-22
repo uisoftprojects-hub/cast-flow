@@ -516,5 +516,6 @@
   "waitingForNetwork": "Ulanishingiz bilan televizoringizni qidirishni boshlaymiz.",
   "howHotspotWorks": "Hotspot orqali translatsiya qanday ishlaydi?",
   "preparingForTv": "Televizoringiz uchun tayyorlanmoqda…",
-  "convertingForTv": "Televizoringiz uchun o‘zgartirilmoqda… {percent}%"
+  "convertingForTv": "Televizoringiz uchun o‘zgartirilmoqda… {percent}%",
+  "lookingForTvsOnHotspot": "Hotspotingizdagi televizorlar qidirilmoqda"
 }

@@ -592,5 +592,6 @@
   "waitingForNetwork": "कनेक्ट होते ही हम आपका टीवी ढूँढना शुरू कर देंगे।",
   "howHotspotWorks": "हॉटस्पॉट से कास्टिंग कैसे काम करती है?",
   "preparingForTv": "आपके टीवी के लिए तैयार किया जा रहा है…",
-  "convertingForTv": "आपके टीवी के लिए बदला जा रहा है… {percent}%"
+  "convertingForTv": "आपके टीवी के लिए बदला जा रहा है… {percent}%",
+  "lookingForTvsOnHotspot": "आपके हॉटस्पॉट पर टीवी खोजे जा रहे हैं"
 }

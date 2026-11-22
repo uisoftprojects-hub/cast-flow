@@ -1687,4 +1687,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String convertingForTv(int percent) {
     return 'TV용으로 변환 중… $percent%';
   }
+
+  @override
+  String get lookingForTvsOnHotspot => '핫스팟에서 TV를 찾는 중';
 }

@@ -1752,4 +1752,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String convertingForTv(int percent) {
     return 'आपके टीवी के लिए बदला जा रहा है… $percent%';
   }
+
+  @override
+  String get lookingForTvsOnHotspot => 'आपके हॉटस्पॉट पर टीवी खोजे जा रहे हैं';
 }

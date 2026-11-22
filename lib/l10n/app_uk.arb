@@ -516,5 +516,6 @@
   "waitingForNetwork": "Ми почнемо шукати телевізор, щойно ви під'єднаєтеся.",
   "howHotspotWorks": "Як працює трансляція через точку доступу?",
   "preparingForTv": "Підготовка для телевізора…",
-  "convertingForTv": "Конвертація для телевізора… {percent}%"
+  "convertingForTv": "Конвертація для телевізора… {percent}%",
+  "lookingForTvsOnHotspot": "Пошук телевізорів у вашій точці доступу"
 }

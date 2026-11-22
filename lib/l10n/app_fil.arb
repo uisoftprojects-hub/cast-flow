@@ -516,5 +516,6 @@
   "waitingForNetwork": "Hahanapin namin ang TV mo kapag nakakonekta ka na.",
   "howHotspotWorks": "Paano gumagana ang pag-cast gamit ang hotspot?",
   "preparingForTv": "Inihahanda para sa TV mo…",
-  "convertingForTv": "Kino-convert para sa TV mo… {percent}%"
+  "convertingForTv": "Kino-convert para sa TV mo… {percent}%",
+  "lookingForTvsOnHotspot": "Hinahanap ang mga TV sa hotspot mo"
 }

@@ -592,5 +592,6 @@
   "waitingForNetwork": "连接后我们会立即开始查找您的电视。",
   "howHotspotWorks": "如何通过热点投屏？",
   "preparingForTv": "正在为电视做准备…",
-  "convertingForTv": "正在为电视转换… {percent}%"
+  "convertingForTv": "正在为电视转换… {percent}%",
+  "lookingForTvsOnHotspot": "正在您的热点上查找电视"
 }

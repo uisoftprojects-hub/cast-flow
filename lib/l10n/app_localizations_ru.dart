@@ -1771,4 +1771,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String convertingForTv(int percent) {
     return 'Конвертация для телевизора… $percent%';
   }
+
+  @override
+  String get lookingForTvsOnHotspot =>
+      'Поиск телевизоров в вашей точке доступа';
 }

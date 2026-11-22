@@ -516,5 +516,6 @@
   "waitingForNetwork": "Kami akan mula mencari TV anda sebaik sahaja anda bersambung.",
   "howHotspotWorks": "Bagaimana penghantaran melalui hotspot berfungsi?",
   "preparingForTv": "Menyediakan untuk TV anda…",
-  "convertingForTv": "Menukar untuk TV anda… {percent}%"
+  "convertingForTv": "Menukar untuk TV anda… {percent}%",
+  "lookingForTvsOnHotspot": "Mencari TV pada hotspot anda"
 }

@@ -592,5 +592,6 @@
   "waitingForNetwork": "سنبدأ البحث عن التلفزيون فور اتصالك.",
   "howHotspotWorks": "كيف يعمل البث عبر نقطة الاتصال؟",
   "preparingForTv": "جارٍ التحضير للتلفزيون…",
-  "convertingForTv": "جارٍ التحويل للتلفزيون… {percent}%"
+  "convertingForTv": "جارٍ التحويل للتلفزيون… {percent}%",
+  "lookingForTvsOnHotspot": "جارٍ البحث عن تلفازات على نقطة الاتصال"
 }

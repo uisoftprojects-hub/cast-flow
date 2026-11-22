@@ -1758,4 +1758,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String convertingForTv(int percent) {
     return 'TV\'niz için dönüştürülüyor… %$percent';
   }
+
+  @override
+  String get lookingForTvsOnHotspot => 'Hotspot\'unuzda TV\'ler aranıyor';
 }

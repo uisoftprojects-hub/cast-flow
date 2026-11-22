@@ -1771,4 +1771,7 @@ class AppLocalizationsFil extends AppLocalizations {
   String convertingForTv(int percent) {
     return 'Kino-convert para sa TV mo… $percent%';
   }
+
+  @override
+  String get lookingForTvsOnHotspot => 'Hinahanap ang mga TV sa hotspot mo';
 }

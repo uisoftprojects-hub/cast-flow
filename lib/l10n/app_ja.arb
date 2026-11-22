@@ -592,5 +592,6 @@
   "waitingForNetwork": "接続されるとすぐにテレビを探し始めます。",
   "howHotspotWorks": "テザリングでのキャストの仕組み",
   "preparingForTv": "テレビ用に準備中…",
-  "convertingForTv": "テレビ用に変換中… {percent}%"
+  "convertingForTv": "テレビ用に変換中… {percent}%",
+  "lookingForTvsOnHotspot": "テザリングでテレビを探しています"
 }

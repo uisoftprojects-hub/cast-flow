@@ -592,5 +592,6 @@
   "waitingForNetwork": "আপনি সংযুক্ত হলেই আমরা আপনার টিভি খুঁজতে শুরু করব।",
   "howHotspotWorks": "হটস্পটে কাস্টিং কীভাবে কাজ করে?",
   "preparingForTv": "আপনার টিভির জন্য প্রস্তুত করা হচ্ছে…",
-  "convertingForTv": "আপনার টিভির জন্য রূপান্তর হচ্ছে… {percent}%"
+  "convertingForTv": "আপনার টিভির জন্য রূপান্তর হচ্ছে… {percent}%",
+  "lookingForTvsOnHotspot": "আপনার হটস্পটে টিভি খোঁজা হচ্ছে"
 }

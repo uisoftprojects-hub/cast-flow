@@ -1668,4 +1668,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String convertingForTv(int percent) {
     return '正在为电视转换… $percent%';
   }
+
+  @override
+  String get lookingForTvsOnHotspot => '正在您的热点上查找电视';
 }

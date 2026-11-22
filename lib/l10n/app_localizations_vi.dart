@@ -1750,4 +1750,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String convertingForTv(int percent) {
     return 'Đang chuyển đổi cho TV… $percent%';
   }
+
+  @override
+  String get lookingForTvsOnHotspot =>
+      'Đang tìm TV trên điểm phát sóng của bạn';
 }

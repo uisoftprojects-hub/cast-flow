@@ -592,5 +592,6 @@
   "waitingForNetwork": "به‌محض اتصال، جست‌وجوی تلویزیون را شروع می‌کنیم.",
   "howHotspotWorks": "پخش از طریق هات‌اسپات چطور کار می‌کند؟",
   "preparingForTv": "در حال آماده‌سازی برای تلویزیون…",
-  "convertingForTv": "در حال تبدیل برای تلویزیون… {percent}%"
+  "convertingForTv": "در حال تبدیل برای تلویزیون… {percent}%",
+  "lookingForTvsOnHotspot": "در حال جست‌وجوی تلویزیون در هات‌اسپات شما"
 }

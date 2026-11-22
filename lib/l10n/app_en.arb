@@ -778,5 +778,6 @@
         "type": "int"
       }
     }
-  }
+  },
+  "lookingForTvsOnHotspot": "Looking for TVs on your hotspot"
 }
