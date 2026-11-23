@@ -1756,4 +1756,22 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'ইন্টারনেট সংযোগ নেই। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।';
+
+  @override
+  String get convertingToTvFormat => 'আপনার টিভির ফরম্যাটে রূপান্তর হচ্ছে';
+
+  @override
+  String get playMode => 'প্লেব্যাক মোড';
+
+  @override
+  String get playModeOnce => 'একবার চালান';
+
+  @override
+  String get playModeAutoplay => 'অটোপ্লে';
+
+  @override
+  String get playModeRepeatAll => 'সব পুনরাবৃত্তি';
+
+  @override
+  String get playModeRepeatOne => 'একটি পুনরাবৃত্তি';
 }

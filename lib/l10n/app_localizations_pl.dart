@@ -1773,4 +1773,22 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'Brak połączenia z internetem. Sprawdź połączenie i spróbuj ponownie.';
+
+  @override
+  String get convertingToTvFormat => 'Konwertowanie do formatu telewizora';
+
+  @override
+  String get playMode => 'Tryb odtwarzania';
+
+  @override
+  String get playModeOnce => 'Odtwórz raz';
+
+  @override
+  String get playModeAutoplay => 'Autoodtwarzanie';
+
+  @override
+  String get playModeRepeatAll => 'Powtarzaj wszystko';
+
+  @override
+  String get playModeRepeatOne => 'Powtarzaj jeden';
 }

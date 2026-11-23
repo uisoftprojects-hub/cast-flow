@@ -4,4 +4,5 @@
     <string name="cast_session_channel">کاسٹنگ</string>
     <string name="cast_session_title">آپ کے ٹی وی پر کاسٹ ہو رہا ہے</string>
     <string name="cast_session_text">اسٹریم چلتی رہے گی</string>
+    <string name="cast_session_converting">آپ کے ٹی وی کے لیے تیار کیا جا رہا ہے…</string>
 </resources>

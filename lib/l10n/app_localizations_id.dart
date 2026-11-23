@@ -1758,4 +1758,22 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'Tidak ada koneksi internet. Periksa koneksi Anda dan coba lagi.';
+
+  @override
+  String get convertingToTvFormat => 'Mengonversi ke format TV Anda';
+
+  @override
+  String get playMode => 'Mode pemutaran';
+
+  @override
+  String get playModeOnce => 'Putar sekali';
+
+  @override
+  String get playModeAutoplay => 'Putar otomatis';
+
+  @override
+  String get playModeRepeatAll => 'Ulangi semua';
+
+  @override
+  String get playModeRepeatOne => 'Ulangi satu';
 }

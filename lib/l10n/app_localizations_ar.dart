@@ -1734,4 +1734,22 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'لا يوجد اتصال بالإنترنت. تحقق من الاتصال وحاول مرة أخرى.';
+
+  @override
+  String get convertingToTvFormat => 'جارٍ التحويل إلى صيغة تلفازك';
+
+  @override
+  String get playMode => 'وضع التشغيل';
+
+  @override
+  String get playModeOnce => 'تشغيل مرة واحدة';
+
+  @override
+  String get playModeAutoplay => 'تشغيل تلقائي';
+
+  @override
+  String get playModeRepeatAll => 'تكرار الكل';
+
+  @override
+  String get playModeRepeatOne => 'تكرار الحالي';
 }

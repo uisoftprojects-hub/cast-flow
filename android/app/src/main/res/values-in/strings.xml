@@ -4,4 +4,5 @@
     <string name="cast_session_channel">Transmisi</string>
     <string name="cast_session_title">Mentransmisikan ke TV Anda</string>
     <string name="cast_session_text">Menjaga streaming tetap berjalan</string>
+    <string name="cast_session_converting">Menyiapkan untuk TV Anda…</string>
 </resources>

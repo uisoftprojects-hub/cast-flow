@@ -594,5 +594,11 @@
   "preparingForTv": "आपके टीवी के लिए तैयार किया जा रहा है…",
   "convertingForTv": "आपके टीवी के लिए बदला जा रहा है… {percent}%",
   "lookingForTvsOnHotspot": "आपके हॉटस्पॉट पर टीवी खोजे जा रहे हैं",
-  "noInternetConnection": "इंटरनेट कनेक्शन नहीं है। अपना कनेक्शन जाँचें और फिर कोशिश करें।"
+  "noInternetConnection": "इंटरनेट कनेक्शन नहीं है। अपना कनेक्शन जाँचें और फिर कोशिश करें।",
+  "convertingToTvFormat": "आपके टीवी के फ़ॉर्मेट में बदला जा रहा है",
+  "playMode": "प्लेबैक मोड",
+  "playModeOnce": "एक बार चलाएँ",
+  "playModeAutoplay": "ऑटोप्ले",
+  "playModeRepeatAll": "सभी दोहराएँ",
+  "playModeRepeatOne": "एक दोहराएँ"
 }

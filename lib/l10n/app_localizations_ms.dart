@@ -1767,4 +1767,22 @@ class AppLocalizationsMs extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'Tiada sambungan internet. Semak sambungan anda dan cuba lagi.';
+
+  @override
+  String get convertingToTvFormat => 'Menukar kepada format TV anda';
+
+  @override
+  String get playMode => 'Mod main';
+
+  @override
+  String get playModeOnce => 'Main sekali';
+
+  @override
+  String get playModeAutoplay => 'Main automatik';
+
+  @override
+  String get playModeRepeatAll => 'Ulang semua';
+
+  @override
+  String get playModeRepeatOne => 'Ulang satu';
 }

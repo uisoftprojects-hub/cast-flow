@@ -518,5 +518,11 @@
   "preparingForTv": "Voorbereiden voor je tv…",
   "convertingForTv": "Omzetten voor je tv… {percent}%",
   "lookingForTvsOnHotspot": "Zoeken naar tv's op je hotspot",
-  "noInternetConnection": "Geen internetverbinding. Controleer je verbinding en probeer het opnieuw."
+  "noInternetConnection": "Geen internetverbinding. Controleer je verbinding en probeer het opnieuw.",
+  "convertingToTvFormat": "Omzetten naar het formaat van je tv",
+  "playMode": "Afspeelmodus",
+  "playModeOnce": "Eén keer afspelen",
+  "playModeAutoplay": "Automatisch afspelen",
+  "playModeRepeatAll": "Alles herhalen",
+  "playModeRepeatOne": "Eén herhalen"
 }

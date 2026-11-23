@@ -1785,4 +1785,23 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'Internet aloqasi yo‘q. Ulanishni tekshirib, qayta urinib ko‘ring.';
+
+  @override
+  String get convertingToTvFormat =>
+      'Televizoringiz formatiga o‘zgartirilmoqda';
+
+  @override
+  String get playMode => 'Ijro rejimi';
+
+  @override
+  String get playModeOnce => 'Bir marta ijro etish';
+
+  @override
+  String get playModeAutoplay => 'Avto ijro';
+
+  @override
+  String get playModeRepeatAll => 'Hammasini takrorlash';
+
+  @override
+  String get playModeRepeatOne => 'Bittasini takrorlash';
 }

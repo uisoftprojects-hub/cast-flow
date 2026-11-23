@@ -1764,4 +1764,23 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'انٹرنیٹ کنکشن نہیں ہے۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔';
+
+  @override
+  String get convertingToTvFormat =>
+      'آپ کے ٹی وی کے فارمیٹ میں تبدیل کیا جا رہا ہے';
+
+  @override
+  String get playMode => 'پلے بیک موڈ';
+
+  @override
+  String get playModeOnce => 'ایک بار چلائیں';
+
+  @override
+  String get playModeAutoplay => 'آٹو پلے';
+
+  @override
+  String get playModeRepeatAll => 'سب دہرائیں';
+
+  @override
+  String get playModeRepeatOne => 'ایک دہرائیں';
 }

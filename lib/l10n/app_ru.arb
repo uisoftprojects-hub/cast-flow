@@ -594,5 +594,11 @@
   "preparingForTv": "Подготовка для телевизора…",
   "convertingForTv": "Конвертация для телевизора… {percent}%",
   "lookingForTvsOnHotspot": "Поиск телевизоров в вашей точке доступа",
-  "noInternetConnection": "Нет подключения к интернету. Проверьте соединение и повторите попытку."
+  "noInternetConnection": "Нет подключения к интернету. Проверьте соединение и повторите попытку.",
+  "convertingToTvFormat": "Конвертация в формат вашего телевизора",
+  "playMode": "Режим воспроизведения",
+  "playModeOnce": "Воспроизвести один раз",
+  "playModeAutoplay": "Автовоспроизведение",
+  "playModeRepeatAll": "Повторять все",
+  "playModeRepeatOne": "Повторять один"
 }

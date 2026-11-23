@@ -4,4 +4,5 @@
     <string name="cast_session_channel">Penghantaran</string>
     <string name="cast_session_title">Menghantar ke TV anda</string>
     <string name="cast_session_text">Mengekalkan strim</string>
+    <string name="cast_session_converting">Menyediakan untuk TV anda…</string>
 </resources>

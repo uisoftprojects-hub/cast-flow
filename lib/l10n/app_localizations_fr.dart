@@ -1783,4 +1783,22 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'Pas de connexion internet. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get convertingToTvFormat => 'Conversion au format de votre TV';
+
+  @override
+  String get playMode => 'Mode de lecture';
+
+  @override
+  String get playModeOnce => 'Lire une fois';
+
+  @override
+  String get playModeAutoplay => 'Lecture automatique';
+
+  @override
+  String get playModeRepeatAll => 'Tout répéter';
+
+  @override
+  String get playModeRepeatOne => 'Répéter un';
 }

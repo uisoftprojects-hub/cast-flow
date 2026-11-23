@@ -594,5 +594,11 @@
   "preparingForTv": "TV용으로 준비 중…",
   "convertingForTv": "TV용으로 변환 중… {percent}%",
   "lookingForTvsOnHotspot": "핫스팟에서 TV를 찾는 중",
-  "noInternetConnection": "인터넷에 연결되어 있지 않습니다. 연결을 확인한 후 다시 시도하세요."
+  "noInternetConnection": "인터넷에 연결되어 있지 않습니다. 연결을 확인한 후 다시 시도하세요.",
+  "convertingToTvFormat": "TV 형식으로 변환 중",
+  "playMode": "재생 모드",
+  "playModeOnce": "한 번만 재생",
+  "playModeAutoplay": "자동 재생",
+  "playModeRepeatAll": "전체 반복",
+  "playModeRepeatOne": "한 곡 반복"
 }

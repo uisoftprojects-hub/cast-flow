@@ -518,5 +518,11 @@
   "preparingForTv": "Televizoringiz uchun tayyorlanmoqda…",
   "convertingForTv": "Televizoringiz uchun o‘zgartirilmoqda… {percent}%",
   "lookingForTvsOnHotspot": "Hotspotingizdagi televizorlar qidirilmoqda",
-  "noInternetConnection": "Internet aloqasi yo‘q. Ulanishni tekshirib, qayta urinib ko‘ring."
+  "noInternetConnection": "Internet aloqasi yo‘q. Ulanishni tekshirib, qayta urinib ko‘ring.",
+  "convertingToTvFormat": "Televizoringiz formatiga o‘zgartirilmoqda",
+  "playMode": "Ijro rejimi",
+  "playModeOnce": "Bir marta ijro etish",
+  "playModeAutoplay": "Avto ijro",
+  "playModeRepeatAll": "Hammasini takrorlash",
+  "playModeRepeatOne": "Bittasini takrorlash"
 }

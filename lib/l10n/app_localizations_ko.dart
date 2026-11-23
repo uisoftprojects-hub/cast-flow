@@ -1693,4 +1693,22 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get noInternetConnection => '인터넷에 연결되어 있지 않습니다. 연결을 확인한 후 다시 시도하세요.';
+
+  @override
+  String get convertingToTvFormat => 'TV 형식으로 변환 중';
+
+  @override
+  String get playMode => '재생 모드';
+
+  @override
+  String get playModeOnce => '한 번만 재생';
+
+  @override
+  String get playModeAutoplay => '자동 재생';
+
+  @override
+  String get playModeRepeatAll => '전체 반복';
+
+  @override
+  String get playModeRepeatOne => '한 곡 반복';
 }

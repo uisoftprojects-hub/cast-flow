@@ -1758,4 +1758,22 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'Không có kết nối internet. Hãy kiểm tra kết nối và thử lại.';
+
+  @override
+  String get convertingToTvFormat => 'Đang chuyển sang định dạng của TV';
+
+  @override
+  String get playMode => 'Chế độ phát';
+
+  @override
+  String get playModeOnce => 'Phát một lần';
+
+  @override
+  String get playModeAutoplay => 'Tự động phát';
+
+  @override
+  String get playModeRepeatAll => 'Lặp lại tất cả';
+
+  @override
+  String get playModeRepeatOne => 'Lặp lại một';
 }

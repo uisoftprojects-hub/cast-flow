@@ -4,4 +4,5 @@
     <string name="cast_session_channel">Streaming</string>
     <string name="cast_session_title">Wird auf deinen TV gestreamt</string>
     <string name="cast_session_text">Der Stream läuft weiter</string>
+    <string name="cast_session_converting">Wird für deinen TV vorbereitet…</string>
 </resources>

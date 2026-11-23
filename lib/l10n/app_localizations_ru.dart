@@ -1779,4 +1779,22 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'Нет подключения к интернету. Проверьте соединение и повторите попытку.';
+
+  @override
+  String get convertingToTvFormat => 'Конвертация в формат вашего телевизора';
+
+  @override
+  String get playMode => 'Режим воспроизведения';
+
+  @override
+  String get playModeOnce => 'Воспроизвести один раз';
+
+  @override
+  String get playModeAutoplay => 'Автовоспроизведение';
+
+  @override
+  String get playModeRepeatAll => 'Повторять все';
+
+  @override
+  String get playModeRepeatOne => 'Повторять один';
 }

@@ -13,6 +13,53 @@ abstract final class CastSessionChannel {
   static bool get _android =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
+  /// A button or the seek bar of the notification / lock screen was used:
+  /// `play`, `pause`, `next`, `previous`, `stop` or `seek` (with the position).
+  static void Function(String name, Duration position)? onCommand;
+
+  static bool _handlerSet = false;
+
+  static void _ensureHandler() {
+    if (_handlerSet || !_android) return;
+    _handlerSet = true;
+    _channel.setMethodCallHandler((call) async {
+      if (call.method == 'command') {
+        final args = call.arguments as Map<Object?, Object?>;
+        onCommand?.call(
+          args['name'] as String,
+          Duration(milliseconds: (args['positionMs'] as num?)?.toInt() ?? 0),
+        );
+      }
+      return null;
+    });
+  }
+
+  /// Shows what is playing in the notification (title, buttons, seek bar).
+  /// Only needed when something changes: Android moves the bar by itself
+  /// from the position and the time it was sent.
+  static Future<void> update({
+    required String title,
+    String? subtitle,
+    required bool playing,
+    required Duration position,
+    required Duration duration,
+    required bool hasPrevious,
+    required bool hasNext,
+    required bool preparing,
+  }) async {
+    if (!_android || !_running) return;
+    await _channel.invokeMethod<bool>('update', {
+      'title': title,
+      'subtitle': subtitle,
+      'playing': playing,
+      'positionMs': position.inMilliseconds,
+      'durationMs': duration.inMilliseconds,
+      'hasPrevious': hasPrevious,
+      'hasNext': hasNext,
+      'preparing': preparing,
+    }).catchError((_) => false);
+  }
+
   static bool _askedForNotifications = false;
   static bool _running = false;
 
@@ -21,6 +68,7 @@ abstract final class CastSessionChannel {
   /// never waits for that answer and works either way.
   static Future<void> start(String? title) async {
     if (!_android) return;
+    _ensureHandler();
     if (!_askedForNotifications) {
       _askedForNotifications = true;
       // Not awaited: the prompt must never delay the cast.

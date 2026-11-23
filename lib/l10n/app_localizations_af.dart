@@ -1761,4 +1761,22 @@ class AppLocalizationsAf extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'Geen internetverbinding nie. Gaan jou verbinding na en probeer weer.';
+
+  @override
+  String get convertingToTvFormat => 'Skakel om na jou TV se formaat';
+
+  @override
+  String get playMode => 'Speelmodus';
+
+  @override
+  String get playModeOnce => 'Speel een keer';
+
+  @override
+  String get playModeAutoplay => 'Outospeel';
+
+  @override
+  String get playModeRepeatAll => 'Herhaal alles';
+
+  @override
+  String get playModeRepeatOne => 'Herhaal een';
 }

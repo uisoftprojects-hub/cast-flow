@@ -594,5 +594,11 @@
   "preparingForTv": "กำลังเตรียมสำหรับทีวีของคุณ…",
   "convertingForTv": "กำลังแปลงสำหรับทีวีของคุณ… {percent}%",
   "lookingForTvsOnHotspot": "กำลังค้นหาทีวีในฮอตสปอตของคุณ",
-  "noInternetConnection": "ไม่มีการเชื่อมต่ออินเทอร์เน็ต ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง"
+  "noInternetConnection": "ไม่มีการเชื่อมต่ออินเทอร์เน็ต ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง",
+  "convertingToTvFormat": "กำลังแปลงเป็นรูปแบบของทีวีคุณ",
+  "playMode": "โหมดการเล่น",
+  "playModeOnce": "เล่นครั้งเดียว",
+  "playModeAutoplay": "เล่นอัตโนมัติ",
+  "playModeRepeatAll": "เล่นซ้ำทั้งหมด",
+  "playModeRepeatOne": "เล่นซ้ำหนึ่งรายการ"
 }

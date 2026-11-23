@@ -594,5 +594,11 @@
   "preparingForTv": "TV'niz için hazırlanıyor…",
   "convertingForTv": "TV'niz için dönüştürülüyor… %{percent}",
   "lookingForTvsOnHotspot": "Hotspot'unuzda TV'ler aranıyor",
-  "noInternetConnection": "İnternet bağlantısı yok. Bağlantınızı kontrol edip tekrar deneyin."
+  "noInternetConnection": "İnternet bağlantısı yok. Bağlantınızı kontrol edip tekrar deneyin.",
+  "convertingToTvFormat": "TV'nizin biçimine dönüştürülüyor",
+  "playMode": "Oynatma modu",
+  "playModeOnce": "Bir kez oynat",
+  "playModeAutoplay": "Otomatik oynat",
+  "playModeRepeatAll": "Tümünü tekrarla",
+  "playModeRepeatOne": "Birini tekrarla"
 }

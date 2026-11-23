@@ -1765,4 +1765,22 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'İnternet bağlantısı yok. Bağlantınızı kontrol edip tekrar deneyin.';
+
+  @override
+  String get convertingToTvFormat => 'TV\'nizin biçimine dönüştürülüyor';
+
+  @override
+  String get playMode => 'Oynatma modu';
+
+  @override
+  String get playModeOnce => 'Bir kez oynat';
+
+  @override
+  String get playModeAutoplay => 'Otomatik oynat';
+
+  @override
+  String get playModeRepeatAll => 'Tümünü tekrarla';
+
+  @override
+  String get playModeRepeatOne => 'Birini tekrarla';
 }

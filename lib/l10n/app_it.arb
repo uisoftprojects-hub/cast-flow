@@ -594,5 +594,11 @@
   "preparingForTv": "Preparazione per la tua TV…",
   "convertingForTv": "Conversione per la tua TV… {percent}%",
   "lookingForTvsOnHotspot": "Ricerca di TV sul tuo hotspot",
-  "noInternetConnection": "Nessuna connessione a internet. Controlla la connessione e riprova."
+  "noInternetConnection": "Nessuna connessione a internet. Controlla la connessione e riprova.",
+  "convertingToTvFormat": "Conversione nel formato della tua TV",
+  "playMode": "Modalità di riproduzione",
+  "playModeOnce": "Riproduci una volta",
+  "playModeAutoplay": "Riproduzione automatica",
+  "playModeRepeatAll": "Ripeti tutto",
+  "playModeRepeatOne": "Ripeti uno"
 }

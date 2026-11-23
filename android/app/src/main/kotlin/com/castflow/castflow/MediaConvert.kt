@@ -91,6 +91,12 @@ class MediaConvert(private val context: Context, private val channel: MethodChan
                 val id = call.argument<String>("id") ?: path
                 transformHandler.post { convertVideo(path, id, result, removeAudio = false) }
             }
+            // Music the TV can't decode (FLAC, OGG, Opus, WMA...) -> AAC in an .m4a.
+            "convertAudio" -> {
+                val path = call.argument<String>("path") ?: return result.error("args", "path", null)
+                val id = call.argument<String>("id") ?: path
+                transformHandler.post { convertVideo(path, id, result, removeAudio = false, audioOnly = true) }
+            }
             "cancel" -> {
                 val id = call.argument<String>("id")
                 transformHandler.post {
@@ -240,8 +246,14 @@ class MediaConvert(private val context: Context, private val channel: MethodChan
     // ----------------------------------------------------------------- video
 
     /** Runs on [transformThread]: Transformer must be used from its looper's thread. */
-    private fun convertVideo(path: String, id: String, result: MethodChannel.Result, removeAudio: Boolean) {
-        val out = cacheFile(path, "mp4")
+    private fun convertVideo(
+        path: String,
+        id: String,
+        result: MethodChannel.Result,
+        removeAudio: Boolean,
+        audioOnly: Boolean = false,
+    ) {
+        val out = cacheFile(path, if (audioOnly) "m4a" else "mp4")
         if (out.length() > 0) {
             main.post { result.success(out.absolutePath) }
             return
@@ -249,7 +261,7 @@ class MediaConvert(private val context: Context, private val channel: MethodChan
         val part = File(out.path + ".part")
         part.delete()
 
-        val height = try {
+        val height = if (audioOnly) 0 else try {
             MediaMetadataRetriever().run {
                 try {
                     setDataSource(path)
@@ -266,6 +278,7 @@ class MediaConvert(private val context: Context, private val channel: MethodChan
 
         val item = EditedMediaItem.Builder(MediaItem.fromUri(Uri.fromFile(File(path))))
             .setRemoveAudio(removeAudio)
+            .setRemoveVideo(audioOnly)
             .apply {
                 if (height > MAX_VIDEO_HEIGHT) {
                     setEffects(Effects(listOf(), listOf(Presentation.createForShortSide(MAX_VIDEO_HEIGHT))))
@@ -312,8 +325,8 @@ class MediaConvert(private val context: Context, private val channel: MethodChan
                     // picture: try once more without sound.
                     val audioFailed = exportException.errorCode == ExportException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED ||
                         exportException.errorCode == ExportException.ERROR_CODE_DECODER_INIT_FAILED
-                    if (!removeAudio && audioFailed) {
-                        transformHandler.post { convertVideo(path, id, result, removeAudio = true) }
+                    if (!removeAudio && !audioOnly && audioFailed) {
+                        transformHandler.post { convertVideo(path, id, result, removeAudio = true, audioOnly = audioOnly) }
                     } else {
                         main.post { result.error("convert", exportException.errorCodeName, null) }
                     }

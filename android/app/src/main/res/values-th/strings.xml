@@ -4,4 +4,5 @@
     <string name="cast_session_channel">การแคสต์</string>
     <string name="cast_session_title">กำลังแคสต์ไปยังทีวี</string>
     <string name="cast_session_text">กำลังรักษาการสตรีม</string>
+    <string name="cast_session_converting">กำลังเตรียมสำหรับทีวีของคุณ…</string>
 </resources>

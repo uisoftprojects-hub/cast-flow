@@ -1766,4 +1766,22 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'اتصال اینترنت وجود ندارد. اتصال خود را بررسی کرده و دوباره تلاش کنید.';
+
+  @override
+  String get convertingToTvFormat => 'در حال تبدیل به فرمت تلویزیون شما';
+
+  @override
+  String get playMode => 'حالت پخش';
+
+  @override
+  String get playModeOnce => 'یک‌بار پخش';
+
+  @override
+  String get playModeAutoplay => 'پخش خودکار';
+
+  @override
+  String get playModeRepeatAll => 'تکرار همه';
+
+  @override
+  String get playModeRepeatOne => 'تکرار یکی';
 }

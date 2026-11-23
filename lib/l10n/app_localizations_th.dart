@@ -1729,4 +1729,22 @@ class AppLocalizationsTh extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'ไม่มีการเชื่อมต่ออินเทอร์เน็ต ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง';
+
+  @override
+  String get convertingToTvFormat => 'กำลังแปลงเป็นรูปแบบของทีวีคุณ';
+
+  @override
+  String get playMode => 'โหมดการเล่น';
+
+  @override
+  String get playModeOnce => 'เล่นครั้งเดียว';
+
+  @override
+  String get playModeAutoplay => 'เล่นอัตโนมัติ';
+
+  @override
+  String get playModeRepeatAll => 'เล่นซ้ำทั้งหมด';
+
+  @override
+  String get playModeRepeatOne => 'เล่นซ้ำหนึ่งรายการ';
 }

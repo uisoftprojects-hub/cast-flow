@@ -1674,4 +1674,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noInternetConnection => '没有网络连接。请检查网络后重试。';
+
+  @override
+  String get convertingToTvFormat => '正在转换为电视支持的格式';
+
+  @override
+  String get playMode => '播放模式';
+
+  @override
+  String get playModeOnce => '播放一次';
+
+  @override
+  String get playModeAutoplay => '自动播放';
+
+  @override
+  String get playModeRepeatAll => '全部循环';
+
+  @override
+  String get playModeRepeatOne => '单个循环';
 }

@@ -51,7 +51,70 @@ class PlayerController extends Notifier<PlaybackState> {
     ref.listen(connectionProvider, (prev, next) {
       if (prev?.isConnected == true && !next.isConnected) stop();
     });
+    // The notification's buttons and seek bar drive the player like the screen does.
+    CastSessionChannel.onCommand = _onSessionCommand;
+    ref.onDispose(() => CastSessionChannel.onCommand = null);
+    listenSelf((_, next) => _syncSession(next));
     return const PlaybackState();
+  }
+
+  // ------------------------------------------------- notification session
+
+  void _onSessionCommand(String name, Duration position) {
+    switch (name) {
+      case 'play':
+        if (state.isActive && !state.playing) toggle();
+      case 'pause':
+        if (state.isActive && state.playing) toggle();
+      case 'next':
+        next();
+      case 'previous':
+        previous();
+      case 'seek':
+        seek(position);
+      case 'stop':
+        stop();
+    }
+  }
+
+  PlaybackState? _lastSynced;
+  DateTime _lastSyncAt = DateTime.now();
+
+  /// Pushes what changed to the notification. Not every second: Android moves
+  /// the seek bar itself; only a real change (item, play/pause, a seek or the
+  /// TV correcting the position) is sent.
+  void _syncSession(PlaybackState s) {
+    final media = s.media;
+    if (media == null || _device == null) return;
+    final prev = _lastSynced;
+    final now = DateTime.now();
+    var changed = prev == null ||
+        prev.media?.id != media.id ||
+        prev.media?.duration != media.duration ||
+        prev.playing != s.playing ||
+        prev.hasNext != s.hasNext ||
+        prev.hasPrevious != s.hasPrevious ||
+        prev.preparing != s.preparing;
+    if (!changed) {
+      final expected = prev.position + (prev.playing ? now.difference(_lastSyncAt) : Duration.zero);
+      changed = (s.position - expected).abs() > const Duration(seconds: 3);
+    }
+    if (!changed) return;
+    _lastSynced = s;
+    _lastSyncAt = now;
+    final length = media.isTimed ? media.duration : Duration.zero;
+    unawaited(
+      CastSessionChannel.update(
+        title: media.title,
+        subtitle: media.subtitle,
+        playing: s.playing,
+        position: s.position,
+        duration: length,
+        hasPrevious: s.hasPrevious,
+        hasNext: s.hasNext || (s.playMode == PlayMode.repeatAll && s.queue.length > 1),
+        preparing: s.preparing,
+      ),
+    );
   }
 
   void play(
@@ -72,6 +135,7 @@ class PlayerController extends Notifier<PlaybackState> {
       index: index,
       playing: true,
       volume: state.volume,
+      playMode: state.playMode,
       slideshowInterval: slideshowInterval,
     );
     final tv = ref.read(connectionProvider).device;
@@ -79,7 +143,13 @@ class PlayerController extends Notifier<PlaybackState> {
       _device = tv;
       _loadCurrent();
       // Screen off mid-cast must not freeze the server the TV streams from.
-      unawaited(CastSessionChannel.start(queue[index].title));
+      unawaited(
+        CastSessionChannel.start(queue[index].title).then((_) {
+          // The service is up now: show the current state in its notification.
+          _lastSynced = null;
+          if (ref.mounted) _syncSession(state);
+        }),
+      );
     }
     _startTicker();
     _record(queue[index]);
@@ -111,7 +181,18 @@ class PlayerController extends Notifier<PlaybackState> {
 
   void skip(int seconds) => seek(state.position + Duration(seconds: seconds));
 
+  /// Sets what happens when an item ends (play once, autoplay, repeat all / one).
+  void setPlayMode(PlayMode mode) => state = state.copyWith(playMode: mode);
+
+  /// The loop button: steps through the modes.
+  void cyclePlayMode() => setPlayMode(state.playMode.next);
+
   void next() {
+    // Repeat all: next on the last item wraps to the first.
+    if (!state.hasNext && state.playMode == PlayMode.repeatAll && state.queue.length > 1) {
+      jumpTo(0);
+      return;
+    }
     if (!state.hasNext) return;
     state = state.copyWith(
       index: state.index + 1,
@@ -165,11 +246,12 @@ class PlayerController extends Notifier<PlaybackState> {
     _ticker?.cancel();
     final hadReal = _device != null;
     _endReal();
-    state = PlaybackState(volume: state.volume);
+    state = PlaybackState(volume: state.volume, playMode: state.playMode);
     if (hadReal) {
       // Session over: drop published URLs, delete converted temp files, and
       // let Android stop keeping the app alive.
       unawaited(_caster.endSession().catchError((_) {}));
+      _lastSynced = null;
       unawaited(CastSessionChannel.stop());
     }
   }
@@ -203,11 +285,12 @@ class PlayerController extends Notifier<PlaybackState> {
           tv,
           media,
           forceConvert: forceConvert,
-          onPrepare: (p) {
+          onPrepare: (p, [detail]) {
             if (gen != _loadGen || state.media != media) return;
             state = state.copyWith(
               preparing: true,
               prepareProgress: p,
+              prepareDetail: detail,
               clearProgress: p == null,
               clearError: true,
             );
@@ -243,7 +326,7 @@ class PlayerController extends Notifier<PlaybackState> {
   /// Local photos and videos can be converted; web streams can't.
   static bool _canConvert(CastMedia m) {
     final url = m.url ?? '';
-    return (m.kind == CastKind.photo || m.kind == CastKind.video) &&
+    return (m.kind == CastKind.photo || m.kind == CastKind.video || m.kind == CastKind.music) &&
         url.isNotEmpty &&
         !url.startsWith('http://') &&
         !url.startsWith('https://');
@@ -303,11 +386,7 @@ class PlayerController extends Notifier<PlaybackState> {
         _sawPlaying && (s.state == 'STOPPED' || s.state == 'NO_MEDIA_PRESENT');
 
     if (ended) {
-      if (state.hasNext) {
-        next();
-      } else {
-        state = state.copyWith(playing: false, position: _length(media));
-      }
+      _onItemEnded(media);
       return;
     }
     var queue = state.queue;
@@ -350,23 +429,49 @@ class PlayerController extends Notifier<PlaybackState> {
       if (!state.playing || state.preparing) return;
       final next = state.position + const Duration(seconds: 1);
       if (next >= _length(media)) {
-        if (state.hasNext) {
-          state = state.copyWith(
-            index: state.index + 1,
-            position: Duration.zero,
-          );
-          _loadCurrent();
-        } else if (state.slideshowInterval != null) {
-          state = state.copyWith(index: 0, position: Duration.zero);
-          _loadCurrent();
-        } else {
-          state = state.copyWith(position: _length(media), playing: false);
-          _ticker?.cancel();
-        }
+        _onItemEnded(media);
       } else {
         state = state.copyWith(position: next);
       }
     });
+  }
+
+  /// An item finished by itself: do what the play mode says.
+  void _onItemEnded(CastMedia media) {
+    void finish() {
+      state = state.copyWith(position: _length(media), playing: false);
+      if (_device == null) _ticker?.cancel();
+    }
+
+    void again() {
+      state = state.copyWith(position: Duration.zero, playing: true, clearError: true);
+      _loadCurrent();
+    }
+
+    switch (state.playMode) {
+      case PlayMode.once:
+        finish();
+      case PlayMode.repeatOne:
+        again();
+      case PlayMode.repeatAll:
+        if (state.hasNext) {
+          next();
+        } else if (state.queue.length > 1) {
+          jumpTo(0);
+        } else {
+          again();
+        }
+      case PlayMode.autoplay:
+        if (state.hasNext) {
+          next();
+        } else if (state.slideshowInterval != null && state.queue.length > 1) {
+          jumpTo(0); // a slideshow keeps going round
+        } else if (state.slideshowInterval != null) {
+          again();
+        } else {
+          finish();
+        }
+    }
   }
 
   void _record(CastMedia m) {

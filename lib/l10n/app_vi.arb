@@ -594,5 +594,11 @@
   "preparingForTv": "Đang chuẩn bị cho TV…",
   "convertingForTv": "Đang chuyển đổi cho TV… {percent}%",
   "lookingForTvsOnHotspot": "Đang tìm TV trên điểm phát sóng của bạn",
-  "noInternetConnection": "Không có kết nối internet. Hãy kiểm tra kết nối và thử lại."
+  "noInternetConnection": "Không có kết nối internet. Hãy kiểm tra kết nối và thử lại.",
+  "convertingToTvFormat": "Đang chuyển sang định dạng của TV",
+  "playMode": "Chế độ phát",
+  "playModeOnce": "Phát một lần",
+  "playModeAutoplay": "Tự động phát",
+  "playModeRepeatAll": "Lặp lại tất cả",
+  "playModeRepeatOne": "Lặp lại một"
 }

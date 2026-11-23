@@ -4,4 +4,5 @@
     <string name="cast_session_channel">پخش</string>
     <string name="cast_session_title">در حال پخش روی تلویزیون</string>
     <string name="cast_session_text">پخش ادامه دارد</string>
+    <string name="cast_session_converting">در حال آماده‌سازی برای تلویزیون…</string>
 </resources>

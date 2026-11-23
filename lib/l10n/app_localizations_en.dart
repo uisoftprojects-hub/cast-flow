@@ -1751,4 +1751,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'No internet connection. Check your connection and try again.';
+
+  @override
+  String get convertingToTvFormat => 'Converting to your TV\'s format';
+
+  @override
+  String get playMode => 'Playback mode';
+
+  @override
+  String get playModeOnce => 'Play once';
+
+  @override
+  String get playModeAutoplay => 'Autoplay';
+
+  @override
+  String get playModeRepeatAll => 'Repeat all';
+
+  @override
+  String get playModeRepeatOne => 'Repeat one';
 }

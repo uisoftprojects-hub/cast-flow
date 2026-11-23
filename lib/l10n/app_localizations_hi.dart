@@ -1759,4 +1759,22 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'इंटरनेट कनेक्शन नहीं है। अपना कनेक्शन जाँचें और फिर कोशिश करें।';
+
+  @override
+  String get convertingToTvFormat => 'आपके टीवी के फ़ॉर्मेट में बदला जा रहा है';
+
+  @override
+  String get playMode => 'प्लेबैक मोड';
+
+  @override
+  String get playModeOnce => 'एक बार चलाएँ';
+
+  @override
+  String get playModeAutoplay => 'ऑटोप्ले';
+
+  @override
+  String get playModeRepeatAll => 'सभी दोहराएँ';
+
+  @override
+  String get playModeRepeatOne => 'एक दोहराएँ';
 }

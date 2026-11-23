@@ -502,7 +502,7 @@ void main() {
       await caster.load(
         _tv,
         const CastMedia(id: 'v1', title: 'Clip', kind: CastKind.video, seed: 1, url: 'asset:v1'),
-        onPrepare: progress.add,
+        onPrepare: (p, [detail]) => progress.add(p),
       );
       expect(dlna.loads.last.mime, 'video/mp4');
       expect(dlna.loads.last.url, endsWith('out.mp4'));

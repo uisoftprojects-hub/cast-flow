@@ -594,5 +594,11 @@
   "preparingForTv": "テレビ用に準備中…",
   "convertingForTv": "テレビ用に変換中… {percent}%",
   "lookingForTvsOnHotspot": "テザリングでテレビを探しています",
-  "noInternetConnection": "インターネットに接続されていません。接続を確認してもう一度お試しください。"
+  "noInternetConnection": "インターネットに接続されていません。接続を確認してもう一度お試しください。",
+  "convertingToTvFormat": "テレビの形式に変換中",
+  "playMode": "再生モード",
+  "playModeOnce": "1回だけ再生",
+  "playModeAutoplay": "自動再生",
+  "playModeRepeatAll": "全曲リピート",
+  "playModeRepeatOne": "1曲リピート"
 }

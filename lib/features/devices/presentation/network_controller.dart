@@ -69,6 +69,8 @@ class NetworkController extends Notifier<NetworkStatus?> {
   }
 
   Future<NetworkStatus> refresh() async {
+    // Disposed before the first check ran (screen closed, test): nothing to do.
+    if (!ref.mounted) return const NetworkStatus();
     final next = await ref.read(networkStatusReaderProvider)();
     if (ref.mounted && next != state) state = next;
     return next;

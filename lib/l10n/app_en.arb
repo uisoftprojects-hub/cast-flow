@@ -780,5 +780,11 @@
     }
   },
   "lookingForTvsOnHotspot": "Looking for TVs on your hotspot",
-  "noInternetConnection": "No internet connection. Check your connection and try again."
+  "noInternetConnection": "No internet connection. Check your connection and try again.",
+  "convertingToTvFormat": "Converting to your TV's format",
+  "playMode": "Playback mode",
+  "playModeOnce": "Play once",
+  "playModeAutoplay": "Autoplay",
+  "playModeRepeatAll": "Repeat all",
+  "playModeRepeatOne": "Repeat one"
 }

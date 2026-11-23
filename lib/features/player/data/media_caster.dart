@@ -13,7 +13,8 @@ typedef CasterStatus = ({String state, Duration position, Duration length});
 
 /// Progress of getting an item ready for the TV: null = preparing (no
 /// percentage), 0..1 = converting.
-typedef PrepareProgress = void Function(double? progress);
+/// [detail] says what is converted into what (e.g. "MKV · H.265 / DTS → MP4 · H.264 / AAC").
+typedef PrepareProgress = void Function(double? progress, [String? detail]);
 
 /// A gallery item resolved to a real file.
 typedef LocalMedia = ({String path, String? mime});
@@ -128,26 +129,34 @@ class DlnaMediaCaster implements MediaCaster {
     if (converter == null || !converter.available) return (path: path, mime: mime);
 
     final Conversion conversion;
+    MediaProbe? probe;
     if (forceConvert) {
+      probe = media.kind == CastKind.video ? await converter.probe(path) : null;
       conversion = fallbackConversionFor(media.kind);
-    } else if (media.kind == CastKind.photo || media.kind == CastKind.video) {
+    } else if (media.kind == CastKind.photo || media.kind == CastKind.video || media.kind == CastKind.music) {
       final formats = await _dlna.formats(device);
-      final probe = media.kind == CastKind.video && formats.isKnown ? await converter.probe(path) : null;
+      // Videos are always looked into: a sound the TV can't decode plays silent.
+      probe = media.kind == CastKind.video ? await converter.probe(path) : null;
       conversion = conversionFor(kind: media.kind, mime: mime, probe: probe, formats: formats);
     } else {
       conversion = Conversion.none;
     }
+    final detail = conversionLabel(conversion: conversion, mime: mime, probe: probe);
 
     switch (conversion) {
       case Conversion.none:
         return (path: path, mime: mime);
       case Conversion.jpeg:
-        onPrepare?.call(null);
+        onPrepare?.call(null, detail);
         return (path: await converter.toJpeg(path), mime: 'image/jpeg');
       case Conversion.mp4:
-        onPrepare?.call(0);
-        final out = await converter.toMp4(path, id: media.id, onProgress: onPrepare);
+        onPrepare?.call(0, detail);
+        final out = await converter.toMp4(path, id: media.id, onProgress: (p) => onPrepare?.call(p, detail));
         return (path: out, mime: 'video/mp4');
+      case Conversion.aac:
+        onPrepare?.call(0, detail);
+        final out = await converter.toAac(path, id: media.id, onProgress: (p) => onPrepare?.call(p, detail));
+        return (path: out, mime: 'audio/mp4');
     }
   }
 

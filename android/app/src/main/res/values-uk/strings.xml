@@ -4,4 +4,5 @@
     <string name="cast_session_channel">Трансляція</string>
     <string name="cast_session_title">Трансляція на телевізор</string>
     <string name="cast_session_text">Потік продовжує працювати</string>
+    <string name="cast_session_converting">Підготовка для телевізора…</string>
 </resources>

@@ -348,9 +348,32 @@ class MainActivity : FlutterActivity() {
         mediaConvert = MediaConvert(applicationContext, convertChannel).also { convertChannel.setMethodCallHandler(it) }
 
         // Keeps the process (and the media server the TV streams from) alive while casting.
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "castflow/cast_session").setMethodCallHandler { call, result ->
+        val sessionChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "castflow/cast_session")
+        // Notification / lock screen buttons and seek bar -> Flutter.
+        CastSessionBridge.onCommand = { name, positionMs ->
+            runOnUiThread {
+                sessionChannel.invokeMethod("command", mapOf("name" to name, "positionMs" to positionMs))
+            }
+        }
+        sessionChannel.setMethodCallHandler { call, result ->
             when (call.method) {
                 "start" -> result.success(CastSessionService.start(applicationContext, call.argument<String>("title")))
+                // Title, play state, position and length for the notification and its seek bar.
+                "update" -> {
+                    CastSessionService.update(
+                        CastSessionInfo(
+                            title = call.argument<String>("title") ?: "",
+                            subtitle = call.argument<String>("subtitle"),
+                            playing = call.argument<Boolean>("playing") ?: false,
+                            positionMs = (call.argument<Number>("positionMs") ?: 0).toLong(),
+                            durationMs = (call.argument<Number>("durationMs") ?: 0).toLong(),
+                            hasPrevious = call.argument<Boolean>("hasPrevious") ?: false,
+                            hasNext = call.argument<Boolean>("hasNext") ?: false,
+                            preparing = call.argument<Boolean>("preparing") ?: false,
+                        )
+                    )
+                    result.success(true)
+                }
                 "stop" -> {
                     CastSessionService.stop(applicationContext)
                     result.success(true)
@@ -362,6 +385,7 @@ class MainActivity : FlutterActivity() {
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, nativeAdFactoryId)
+        CastSessionBridge.onCommand = null
         networkMonitor?.unregister()
         mediaConvert?.dispose()
         mediaConvert = null

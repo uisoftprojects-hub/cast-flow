@@ -73,6 +73,18 @@ class MediaConverter {
     }
   }
 
+  /// Returns the path of an M4A (AAC) copy of the audio file at [path].
+  Future<String> toAac(String path, {required String id, void Function(double)? onProgress}) async {
+    if (onProgress != null) _progress[id] = onProgress;
+    try {
+      final out = await _channel.invokeMethod<String>('convertAudio', {'path': path, 'id': id});
+      if (out == null) throw StateError('The audio couldn’t be converted.');
+      return out;
+    } finally {
+      _progress.remove(id);
+    }
+  }
+
   /// Stops any running conversion (its future fails).
   Future<void> cancelAll() async {
     if (!available) return;

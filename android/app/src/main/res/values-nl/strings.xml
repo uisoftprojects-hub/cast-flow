@@ -4,4 +4,5 @@
     <string name="cast_session_channel">Casten</string>
     <string name="cast_session_title">Casten naar je tv</string>
     <string name="cast_session_text">De stream blijft lopen</string>
+    <string name="cast_session_converting">Voorbereiden voor je tv…</string>
 </resources>

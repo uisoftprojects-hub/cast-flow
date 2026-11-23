@@ -1778,4 +1778,22 @@ class AppLocalizationsFil extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'Walang koneksyon sa internet. Tingnan ang koneksyon mo at subukan ulit.';
+
+  @override
+  String get convertingToTvFormat => 'Kino-convert sa format ng TV mo';
+
+  @override
+  String get playMode => 'Mode ng pag-play';
+
+  @override
+  String get playModeOnce => 'I-play nang isang beses';
+
+  @override
+  String get playModeAutoplay => 'Autoplay';
+
+  @override
+  String get playModeRepeatAll => 'Ulitin lahat';
+
+  @override
+  String get playModeRepeatOne => 'Ulitin ang isa';
 }

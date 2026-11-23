@@ -1780,4 +1780,22 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'Немає підключення до інтернету. Перевірте з\'єднання й спробуйте ще раз.';
+
+  @override
+  String get convertingToTvFormat => 'Конвертація у формат вашого телевізора';
+
+  @override
+  String get playMode => 'Режим відтворення';
+
+  @override
+  String get playModeOnce => 'Відтворити раз';
+
+  @override
+  String get playModeAutoplay => 'Автовідтворення';
+
+  @override
+  String get playModeRepeatAll => 'Повторювати все';
+
+  @override
+  String get playModeRepeatOne => 'Повторювати один';
 }

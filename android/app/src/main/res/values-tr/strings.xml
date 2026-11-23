@@ -4,4 +4,5 @@
     <string name="cast_session_channel">Yayın</string>
     <string name="cast_session_title">TV\'nize yayınlanıyor</string>
     <string name="cast_session_text">Yayın devam ediyor</string>
+    <string name="cast_session_converting">TV\'niz için hazırlanıyor…</string>
 </resources>

@@ -3259,6 +3259,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No internet connection. Check your connection and try again.'**
   String get noInternetConnection;
+
+  /// No description provided for @convertingToTvFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Converting to your TV\'s format'**
+  String get convertingToTvFormat;
+
+  /// No description provided for @playMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback mode'**
+  String get playMode;
+
+  /// No description provided for @playModeOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Play once'**
+  String get playModeOnce;
+
+  /// No description provided for @playModeAutoplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Autoplay'**
+  String get playModeAutoplay;
+
+  /// No description provided for @playModeRepeatAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat all'**
+  String get playModeRepeatAll;
+
+  /// No description provided for @playModeRepeatOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat one'**
+  String get playModeRepeatOne;
 }
 
 class _AppLocalizationsDelegate

@@ -518,5 +518,11 @@
   "preparingForTv": "Inihahanda para sa TV mo…",
   "convertingForTv": "Kino-convert para sa TV mo… {percent}%",
   "lookingForTvsOnHotspot": "Hinahanap ang mga TV sa hotspot mo",
-  "noInternetConnection": "Walang koneksyon sa internet. Tingnan ang koneksyon mo at subukan ulit."
+  "noInternetConnection": "Walang koneksyon sa internet. Tingnan ang koneksyon mo at subukan ulit.",
+  "convertingToTvFormat": "Kino-convert sa format ng TV mo",
+  "playMode": "Mode ng pag-play",
+  "playModeOnce": "I-play nang isang beses",
+  "playModeAutoplay": "Autoplay",
+  "playModeRepeatAll": "Ulitin lahat",
+  "playModeRepeatOne": "Ulitin ang isa"
 }

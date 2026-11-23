@@ -594,5 +594,11 @@
   "preparingForTv": "در حال آماده‌سازی برای تلویزیون…",
   "convertingForTv": "در حال تبدیل برای تلویزیون… {percent}%",
   "lookingForTvsOnHotspot": "در حال جست‌وجوی تلویزیون در هات‌اسپات شما",
-  "noInternetConnection": "اتصال اینترنت وجود ندارد. اتصال خود را بررسی کرده و دوباره تلاش کنید."
+  "noInternetConnection": "اتصال اینترنت وجود ندارد. اتصال خود را بررسی کرده و دوباره تلاش کنید.",
+  "convertingToTvFormat": "در حال تبدیل به فرمت تلویزیون شما",
+  "playMode": "حالت پخش",
+  "playModeOnce": "یک‌بار پخش",
+  "playModeAutoplay": "پخش خودکار",
+  "playModeRepeatAll": "تکرار همه",
+  "playModeRepeatOne": "تکرار یکی"
 }

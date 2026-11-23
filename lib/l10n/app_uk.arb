@@ -518,5 +518,11 @@
   "preparingForTv": "Підготовка для телевізора…",
   "convertingForTv": "Конвертація для телевізора… {percent}%",
   "lookingForTvsOnHotspot": "Пошук телевізорів у вашій точці доступу",
-  "noInternetConnection": "Немає підключення до інтернету. Перевірте з'єднання й спробуйте ще раз."
+  "noInternetConnection": "Немає підключення до інтернету. Перевірте з'єднання й спробуйте ще раз.",
+  "convertingToTvFormat": "Конвертація у формат вашого телевізора",
+  "playMode": "Режим відтворення",
+  "playModeOnce": "Відтворити раз",
+  "playModeAutoplay": "Автовідтворення",
+  "playModeRepeatAll": "Повторювати все",
+  "playModeRepeatOne": "Повторювати один"
 }

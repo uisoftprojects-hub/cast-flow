@@ -594,5 +594,11 @@
   "preparingForTv": "جارٍ التحضير للتلفزيون…",
   "convertingForTv": "جارٍ التحويل للتلفزيون… {percent}%",
   "lookingForTvsOnHotspot": "جارٍ البحث عن تلفازات على نقطة الاتصال",
-  "noInternetConnection": "لا يوجد اتصال بالإنترنت. تحقق من الاتصال وحاول مرة أخرى."
+  "noInternetConnection": "لا يوجد اتصال بالإنترنت. تحقق من الاتصال وحاول مرة أخرى.",
+  "convertingToTvFormat": "جارٍ التحويل إلى صيغة تلفازك",
+  "playMode": "وضع التشغيل",
+  "playModeOnce": "تشغيل مرة واحدة",
+  "playModeAutoplay": "تشغيل تلقائي",
+  "playModeRepeatAll": "تكرار الكل",
+  "playModeRepeatOne": "تكرار الحالي"
 }
