@@ -13,6 +13,16 @@ class HiveHistoryRepository implements HistoryRepository {
 
   static const maxEntries = 200;
 
+  /// Hive string keys are limited to 255 chars; web-cast media ids are URLs and can exceed that.
+  static String keyFor(String id) {
+    if (id.length <= 200) return id;
+    var h = 0x811c9dc5; // FNV-1a: stable across runs, unlike String.hashCode
+    for (final c in id.codeUnits) {
+      h = ((h ^ c) * 0x01000193) & 0xFFFFFFFF;
+    }
+    return '${id.substring(0, 120)}-${h.toRadixString(16)}';
+  }
+
   @override
   Future<List<HistoryEntry>> list() => simulateFetch(
     _mode(),
@@ -22,12 +32,12 @@ class HiveHistoryRepository implements HistoryRepository {
 
   @override
   Future<void> add(HistoryEntry entry) async {
-    await _box.put(entry.id, entry.toMap());
+    await _box.put(keyFor(entry.id), entry.toMap());
     await trimBox(_box, maxEntries, 'castAt');
   }
 
   @override
-  Future<void> remove(String id) => _box.delete(id);
+  Future<void> remove(String id) => _box.delete(keyFor(id));
 
   @override
   Future<void> clear() => _box.clear();
