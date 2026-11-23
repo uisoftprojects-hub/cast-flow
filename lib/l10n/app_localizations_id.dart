@@ -1776,4 +1776,21 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Ulangi satu';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'TV Anda tidak bisa memutar $from secara langsung, jadi diubah ke $to.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Biarkan aplikasi terbuka. Akan mulai sendiri di TV Anda saat siap.';
+
+  @override
+  String get checkingTvFormats => 'Memeriksa apa yang bisa diputar TV Anda…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Sekitar $time lagi';
+  }
 }

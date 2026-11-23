@@ -600,5 +600,9 @@
   "playModeOnce": "Putar sekali",
   "playModeAutoplay": "Putar otomatis",
   "playModeRepeatAll": "Ulangi semua",
-  "playModeRepeatOne": "Ulangi satu"
+  "playModeRepeatOne": "Ulangi satu",
+  "convertingExplain": "TV Anda tidak bisa memutar {from} secara langsung, jadi diubah ke {to}.",
+  "convertingKeepOpen": "Biarkan aplikasi terbuka. Akan mulai sendiri di TV Anda saat siap.",
+  "checkingTvFormats": "Memeriksa apa yang bisa diputar TV Anda…",
+  "convertingTimeLeft": "Sekitar {time} lagi"
 }

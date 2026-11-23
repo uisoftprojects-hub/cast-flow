@@ -524,5 +524,9 @@
   "playModeOnce": "Відтворити раз",
   "playModeAutoplay": "Автовідтворення",
   "playModeRepeatAll": "Повторювати все",
-  "playModeRepeatOne": "Повторювати один"
+  "playModeRepeatOne": "Повторювати один",
+  "convertingExplain": "Телевізор не може напряму відтворити {from}, тому файл конвертується в {to}.",
+  "convertingKeepOpen": "Не закривайте застосунок. Відтворення розпочнеться на телевізорі саме, щойно все буде готово.",
+  "checkingTvFormats": "Перевіряємо, що вміє відтворювати телевізор…",
+  "convertingTimeLeft": "Залишилось близько {time}"
 }

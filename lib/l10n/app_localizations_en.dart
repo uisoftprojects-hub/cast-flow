@@ -1769,4 +1769,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Repeat one';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'Your TV can\'t play $from directly, so it is being converted to $to.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Keep the app open. It starts on your TV by itself when ready.';
+
+  @override
+  String get checkingTvFormats => 'Checking what your TV can play…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'About $time left';
+  }
 }

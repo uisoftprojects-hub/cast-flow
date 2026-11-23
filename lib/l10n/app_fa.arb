@@ -600,5 +600,9 @@
   "playModeOnce": "یک‌بار پخش",
   "playModeAutoplay": "پخش خودکار",
   "playModeRepeatAll": "تکرار همه",
-  "playModeRepeatOne": "تکرار یکی"
+  "playModeRepeatOne": "تکرار یکی",
+  "convertingExplain": "تلویزیون شما نمی‌تواند {from} را مستقیم پخش کند، پس به {to} تبدیل می‌شود.",
+  "convertingKeepOpen": "برنامه را باز نگه دارید. وقتی آماده شد خودش روی تلویزیون پخش می‌شود.",
+  "checkingTvFormats": "در حال بررسی آنچه تلویزیون شما پخش می‌کند…",
+  "convertingTimeLeft": "حدود {time} باقی مانده"
 }

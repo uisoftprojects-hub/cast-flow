@@ -600,5 +600,9 @@
   "playModeOnce": "Воспроизвести один раз",
   "playModeAutoplay": "Автовоспроизведение",
   "playModeRepeatAll": "Повторять все",
-  "playModeRepeatOne": "Повторять один"
+  "playModeRepeatOne": "Повторять один",
+  "convertingExplain": "Телевизор не может напрямую воспроизвести {from}, поэтому файл конвертируется в {to}.",
+  "convertingKeepOpen": "Не закрывайте приложение. Воспроизведение начнётся на телевизоре само, когда всё будет готово.",
+  "checkingTvFormats": "Проверяем, что умеет воспроизводить телевизор…",
+  "convertingTimeLeft": "Осталось около {time}"
 }

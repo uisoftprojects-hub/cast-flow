@@ -600,5 +600,9 @@
   "playModeOnce": "Einmal abspielen",
   "playModeAutoplay": "Automatisch weiter",
   "playModeRepeatAll": "Alle wiederholen",
-  "playModeRepeatOne": "Eins wiederholen"
+  "playModeRepeatOne": "Eins wiederholen",
+  "convertingExplain": "Dein TV kann {from} nicht direkt abspielen, deshalb wird es in {to} umgewandelt.",
+  "convertingKeepOpen": "Lass die App geöffnet. Es startet automatisch auf deinem TV, sobald es fertig ist.",
+  "checkingTvFormats": "Prüfe, was dein TV abspielen kann…",
+  "convertingTimeLeft": "Noch etwa {time}"
 }

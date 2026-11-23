@@ -308,6 +308,16 @@ class PlayerController extends Notifier<PlaybackState> {
         clearProgress: true,
         clearError: true,
       );
+    // A local file is checked against what the TV can play before it is sent. If
+    // that takes a moment, say so instead of leaving a frozen-looking preview.
+    Timer? slow;
+    if (!forceConvert && _canConvert(media)) {
+      slow = Timer(const Duration(milliseconds: 600), () {
+        if (gen == _loadGen && _loadedAt == null && state.media == media && !state.preparing) {
+          state = state.copyWith(preparing: true, clearProgress: true);
+        }
+      });
+    }
     _caster
         .load(
           tv,
@@ -325,6 +335,7 @@ class PlayerController extends Notifier<PlaybackState> {
           },
         )
         .then((_) {
+          slow?.cancel();
           if (gen != _loadGen || state.media != media) return;
           _loadedAt = DateTime.now();
           final seekTo = _resumeSeek;
@@ -337,6 +348,7 @@ class PlayerController extends Notifier<PlaybackState> {
           );
         })
         .catchError((Object e) {
+          slow?.cancel();
           if (gen != _loadGen) return;
           dlog('[Player] cast failed: $e');
           if (!forceConvert && _canConvert(media) && e is HttpException) {

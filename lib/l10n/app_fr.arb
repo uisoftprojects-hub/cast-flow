@@ -600,5 +600,9 @@
   "playModeOnce": "Lire une fois",
   "playModeAutoplay": "Lecture automatique",
   "playModeRepeatAll": "Tout répéter",
-  "playModeRepeatOne": "Répéter un"
+  "playModeRepeatOne": "Répéter un",
+  "convertingExplain": "Votre TV ne peut pas lire {from} directement, il est donc converti en {to}.",
+  "convertingKeepOpen": "Gardez l'appli ouverte. La lecture démarre toute seule sur votre TV quand c'est prêt.",
+  "checkingTvFormats": "Vérification de ce que votre TV peut lire…",
+  "convertingTimeLeft": "Environ {time} restantes"
 }

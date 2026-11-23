@@ -1692,4 +1692,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => '单个循环';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return '您的电视无法直接播放 $from，因此正在转换为 $to。';
+  }
+
+  @override
+  String get convertingKeepOpen => '请保持应用打开。准备好后会自动在电视上开始播放。';
+
+  @override
+  String get checkingTvFormats => '正在检查电视支持的格式…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return '还剩约 $time';
+  }
 }

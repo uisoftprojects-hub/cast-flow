@@ -786,5 +786,20 @@
   "playModeOnce": "Play once",
   "playModeAutoplay": "Autoplay",
   "playModeRepeatAll": "Repeat all",
-  "playModeRepeatOne": "Repeat one"
+  "playModeRepeatOne": "Repeat one",
+  "convertingExplain": "Your TV can't play {from} directly, so it is being converted to {to}.",
+  "@convertingExplain": {
+    "placeholders": {
+      "from": {},
+      "to": {}
+    }
+  },
+  "convertingKeepOpen": "Keep the app open. It starts on your TV by itself when ready.",
+  "checkingTvFormats": "Checking what your TV can play…",
+  "convertingTimeLeft": "About {time} left",
+  "@convertingTimeLeft": {
+    "placeholders": {
+      "time": {}
+    }
+  }
 }

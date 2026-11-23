@@ -1779,4 +1779,21 @@ class AppLocalizationsAf extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Herhaal een';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'Jou TV kan nie $from direk speel nie, daarom word dit na $to omgeskakel.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Hou die toep oop. Dit begin vanself op jou TV wanneer dit gereed is.';
+
+  @override
+  String get checkingTvFormats => 'Kyk wat jou TV kan speel…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Nog ongeveer $time';
+  }
 }

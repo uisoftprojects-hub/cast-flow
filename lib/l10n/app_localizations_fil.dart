@@ -1796,4 +1796,22 @@ class AppLocalizationsFil extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Ulitin ang isa';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'Hindi direktang mapaplay ng TV mo ang $from, kaya kino-convert ito sa $to.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Panatilihing bukas ang app. Kusa itong magsisimula sa TV mo kapag handa na.';
+
+  @override
+  String get checkingTvFormats =>
+      'Sinusuri kung ano ang kayang i-play ng TV mo…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Mga $time na lang';
+  }
 }

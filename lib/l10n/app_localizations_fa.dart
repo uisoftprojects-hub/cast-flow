@@ -1784,4 +1784,21 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'تکرار یکی';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'تلویزیون شما نمی‌تواند $from را مستقیم پخش کند، پس به $to تبدیل می‌شود.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'برنامه را باز نگه دارید. وقتی آماده شد خودش روی تلویزیون پخش می‌شود.';
+
+  @override
+  String get checkingTvFormats => 'در حال بررسی آنچه تلویزیون شما پخش می‌کند…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'حدود $time باقی مانده';
+  }
 }

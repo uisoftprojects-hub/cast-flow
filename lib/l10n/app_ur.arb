@@ -600,5 +600,9 @@
   "playModeOnce": "ایک بار چلائیں",
   "playModeAutoplay": "آٹو پلے",
   "playModeRepeatAll": "سب دہرائیں",
-  "playModeRepeatOne": "ایک دہرائیں"
+  "playModeRepeatOne": "ایک دہرائیں",
+  "convertingExplain": "آپ کا ٹی وی {from} براہِ راست نہیں چلا سکتا، اس لیے اسے {to} میں تبدیل کیا جا رہا ہے۔",
+  "convertingKeepOpen": "ایپ کھلی رکھیں۔ تیار ہوتے ہی یہ خود بخود آپ کے ٹی وی پر شروع ہو جائے گا۔",
+  "checkingTvFormats": "دیکھا جا رہا ہے کہ آپ کا ٹی وی کیا چلا سکتا ہے…",
+  "convertingTimeLeft": "تقریباً {time} باقی"
 }

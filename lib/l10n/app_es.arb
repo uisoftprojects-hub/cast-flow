@@ -600,5 +600,9 @@
   "playModeOnce": "Reproducir una vez",
   "playModeAutoplay": "Reproducción automática",
   "playModeRepeatAll": "Repetir todo",
-  "playModeRepeatOne": "Repetir uno"
+  "playModeRepeatOne": "Repetir uno",
+  "convertingExplain": "Tu TV no puede reproducir {from} directamente, así que se está convirtiendo a {to}.",
+  "convertingKeepOpen": "Mantén la app abierta. Empezará sola en tu TV cuando esté lista.",
+  "checkingTvFormats": "Comprobando qué puede reproducir tu TV…",
+  "convertingTimeLeft": "Quedan unos {time}"
 }

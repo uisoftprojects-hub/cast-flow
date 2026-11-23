@@ -1804,4 +1804,22 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Bittasini takrorlash';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'Televizoringiz $from ni to‘g‘ridan-to‘g‘ri ijro eta olmaydi, shuning uchun u $to ga o‘zgartirilmoqda.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Ilovani ochiq qoldiring. Tayyor bo‘lgach televizorda o‘zi boshlanadi.';
+
+  @override
+  String get checkingTvFormats =>
+      'Televizoringiz nimani ijro eta olishi tekshirilmoqda…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Taxminan $time qoldi';
+  }
 }

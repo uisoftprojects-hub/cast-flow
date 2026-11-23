@@ -524,5 +524,9 @@
   "playModeOnce": "Speel een keer",
   "playModeAutoplay": "Outospeel",
   "playModeRepeatAll": "Herhaal alles",
-  "playModeRepeatOne": "Herhaal een"
+  "playModeRepeatOne": "Herhaal een",
+  "convertingExplain": "Jou TV kan nie {from} direk speel nie, daarom word dit na {to} omgeskakel.",
+  "convertingKeepOpen": "Hou die toep oop. Dit begin vanself op jou TV wanneer dit gereed is.",
+  "checkingTvFormats": "Kyk wat jou TV kan speel…",
+  "convertingTimeLeft": "Nog ongeveer {time}"
 }

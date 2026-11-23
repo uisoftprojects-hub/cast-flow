@@ -524,5 +524,9 @@
   "playModeOnce": "Bir marta ijro etish",
   "playModeAutoplay": "Avto ijro",
   "playModeRepeatAll": "Hammasini takrorlash",
-  "playModeRepeatOne": "Bittasini takrorlash"
+  "playModeRepeatOne": "Bittasini takrorlash",
+  "convertingExplain": "Televizoringiz {from} ni to‘g‘ridan-to‘g‘ri ijro eta olmaydi, shuning uchun u {to} ga o‘zgartirilmoqda.",
+  "convertingKeepOpen": "Ilovani ochiq qoldiring. Tayyor bo‘lgach televizorda o‘zi boshlanadi.",
+  "checkingTvFormats": "Televizoringiz nimani ijro eta olishi tekshirilmoqda…",
+  "convertingTimeLeft": "Taxminan {time} qoldi"
 }

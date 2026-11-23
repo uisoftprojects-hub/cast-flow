@@ -1752,4 +1752,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'تكرار الحالي';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'لا يستطيع التلفاز تشغيل $from مباشرة، لذلك يتم تحويله إلى $to.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'أبقِ التطبيق مفتوحًا. سيبدأ على التلفاز تلقائيًا عند الانتهاء.';
+
+  @override
+  String get checkingTvFormats => 'جارٍ التحقق مما يستطيع تلفازك تشغيله…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'متبقٍ نحو $time';
+  }
 }

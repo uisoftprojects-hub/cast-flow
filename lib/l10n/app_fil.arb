@@ -524,5 +524,9 @@
   "playModeOnce": "I-play nang isang beses",
   "playModeAutoplay": "Autoplay",
   "playModeRepeatAll": "Ulitin lahat",
-  "playModeRepeatOne": "Ulitin ang isa"
+  "playModeRepeatOne": "Ulitin ang isa",
+  "convertingExplain": "Hindi direktang mapaplay ng TV mo ang {from}, kaya kino-convert ito sa {to}.",
+  "convertingKeepOpen": "Panatilihing bukas ang app. Kusa itong magsisimula sa TV mo kapag handa na.",
+  "checkingTvFormats": "Sinusuri kung ano ang kayang i-play ng TV mo…",
+  "convertingTimeLeft": "Mga {time} na lang"
 }

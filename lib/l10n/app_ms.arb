@@ -524,5 +524,9 @@
   "playModeOnce": "Main sekali",
   "playModeAutoplay": "Main automatik",
   "playModeRepeatAll": "Ulang semua",
-  "playModeRepeatOne": "Ulang satu"
+  "playModeRepeatOne": "Ulang satu",
+  "convertingExplain": "TV anda tidak dapat memainkan {from} secara terus, jadi ia ditukar kepada {to}.",
+  "convertingKeepOpen": "Biarkan aplikasi terbuka. Ia akan bermula sendiri pada TV anda apabila siap.",
+  "checkingTvFormats": "Menyemak apa yang boleh dimainkan oleh TV anda…",
+  "convertingTimeLeft": "Kira-kira {time} lagi"
 }

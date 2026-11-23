@@ -1798,4 +1798,22 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Повторювати один';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'Телевізор не може напряму відтворити $from, тому файл конвертується в $to.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Не закривайте застосунок. Відтворення розпочнеться на телевізорі саме, щойно все буде готово.';
+
+  @override
+  String get checkingTvFormats =>
+      'Перевіряємо, що вміє відтворювати телевізор…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Залишилось близько $time';
+  }
 }

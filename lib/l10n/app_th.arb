@@ -600,5 +600,9 @@
   "playModeOnce": "เล่นครั้งเดียว",
   "playModeAutoplay": "เล่นอัตโนมัติ",
   "playModeRepeatAll": "เล่นซ้ำทั้งหมด",
-  "playModeRepeatOne": "เล่นซ้ำหนึ่งรายการ"
+  "playModeRepeatOne": "เล่นซ้ำหนึ่งรายการ",
+  "convertingExplain": "ทีวีของคุณเล่น {from} โดยตรงไม่ได้ จึงกำลังแปลงเป็น {to}",
+  "convertingKeepOpen": "เปิดแอปค้างไว้ เมื่อพร้อมจะเริ่มเล่นบนทีวีเอง",
+  "checkingTvFormats": "กำลังตรวจสอบสิ่งที่ทีวีของคุณเล่นได้…",
+  "convertingTimeLeft": "เหลืออีกประมาณ {time}"
 }

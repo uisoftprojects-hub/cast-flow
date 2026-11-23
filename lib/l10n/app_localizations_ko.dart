@@ -1711,4 +1711,20 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => '한 곡 반복';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'TV에서 $from을(를) 바로 재생할 수 없어 $to(으)로 변환하는 중입니다.';
+  }
+
+  @override
+  String get convertingKeepOpen => '앱을 열어 두세요. 준비되면 TV에서 자동으로 시작됩니다.';
+
+  @override
+  String get checkingTvFormats => 'TV가 재생할 수 있는 형식을 확인하는 중…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return '약 $time 남음';
+  }
 }

@@ -600,5 +600,9 @@
   "playModeOnce": "Bir kez oynat",
   "playModeAutoplay": "Otomatik oynat",
   "playModeRepeatAll": "Tümünü tekrarla",
-  "playModeRepeatOne": "Birini tekrarla"
+  "playModeRepeatOne": "Birini tekrarla",
+  "convertingExplain": "TV'niz {from} biçimini doğrudan oynatamıyor, bu yüzden {to} biçimine dönüştürülüyor.",
+  "convertingKeepOpen": "Uygulamayı açık tutun. Hazır olunca TV'nizde kendiliğinden başlar.",
+  "checkingTvFormats": "TV'nizin neyi oynatabildiği kontrol ediliyor…",
+  "convertingTimeLeft": "Yaklaşık {time} kaldı"
 }

@@ -600,5 +600,9 @@
   "playModeOnce": "한 번만 재생",
   "playModeAutoplay": "자동 재생",
   "playModeRepeatAll": "전체 반복",
-  "playModeRepeatOne": "한 곡 반복"
+  "playModeRepeatOne": "한 곡 반복",
+  "convertingExplain": "TV에서 {from}을(를) 바로 재생할 수 없어 {to}(으)로 변환하는 중입니다.",
+  "convertingKeepOpen": "앱을 열어 두세요. 준비되면 TV에서 자동으로 시작됩니다.",
+  "checkingTvFormats": "TV가 재생할 수 있는 형식을 확인하는 중…",
+  "convertingTimeLeft": "약 {time} 남음"
 }

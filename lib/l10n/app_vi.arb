@@ -600,5 +600,9 @@
   "playModeOnce": "Phát một lần",
   "playModeAutoplay": "Tự động phát",
   "playModeRepeatAll": "Lặp lại tất cả",
-  "playModeRepeatOne": "Lặp lại một"
+  "playModeRepeatOne": "Lặp lại một",
+  "convertingExplain": "TV của bạn không phát trực tiếp {from} được, nên đang chuyển sang {to}.",
+  "convertingKeepOpen": "Hãy để ứng dụng mở. Khi xong, nó sẽ tự phát trên TV.",
+  "checkingTvFormats": "Đang kiểm tra TV của bạn phát được gì…",
+  "convertingTimeLeft": "Còn khoảng {time}"
 }

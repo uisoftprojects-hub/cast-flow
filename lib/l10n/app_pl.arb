@@ -600,5 +600,9 @@
   "playModeOnce": "Odtwórz raz",
   "playModeAutoplay": "Autoodtwarzanie",
   "playModeRepeatAll": "Powtarzaj wszystko",
-  "playModeRepeatOne": "Powtarzaj jeden"
+  "playModeRepeatOne": "Powtarzaj jeden",
+  "convertingExplain": "Telewizor nie odtworzy {from} bezpośrednio, więc jest konwertowany do {to}.",
+  "convertingKeepOpen": "Zostaw aplikację otwartą. Odtwarzanie ruszy na telewizorze samo, gdy będzie gotowe.",
+  "checkingTvFormats": "Sprawdzanie, co potrafi odtworzyć telewizor…",
+  "convertingTimeLeft": "Zostało około {time}"
 }

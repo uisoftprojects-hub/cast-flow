@@ -600,5 +600,9 @@
   "playModeOnce": "تشغيل مرة واحدة",
   "playModeAutoplay": "تشغيل تلقائي",
   "playModeRepeatAll": "تكرار الكل",
-  "playModeRepeatOne": "تكرار الحالي"
+  "playModeRepeatOne": "تكرار الحالي",
+  "convertingExplain": "لا يستطيع التلفاز تشغيل {from} مباشرة، لذلك يتم تحويله إلى {to}.",
+  "convertingKeepOpen": "أبقِ التطبيق مفتوحًا. سيبدأ على التلفاز تلقائيًا عند الانتهاء.",
+  "checkingTvFormats": "جارٍ التحقق مما يستطيع تلفازك تشغيله…",
+  "convertingTimeLeft": "متبقٍ نحو {time}"
 }

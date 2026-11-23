@@ -1712,4 +1712,20 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => '1曲リピート';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'お使いのテレビは$fromを直接再生できないため、$toに変換しています。';
+  }
+
+  @override
+  String get convertingKeepOpen => 'アプリを開いたままにしてください。準備ができるとテレビで自動的に始まります。';
+
+  @override
+  String get checkingTvFormats => 'テレビが再生できる形式を確認中…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return '残り約$time';
+  }
 }

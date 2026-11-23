@@ -1783,4 +1783,22 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Birini tekrarla';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'TV\'niz $from biçimini doğrudan oynatamıyor, bu yüzden $to biçimine dönüştürülüyor.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Uygulamayı açık tutun. Hazır olunca TV\'nizde kendiliğinden başlar.';
+
+  @override
+  String get checkingTvFormats =>
+      'TV\'nizin neyi oynatabildiği kontrol ediliyor…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Yaklaşık $time kaldı';
+  }
 }

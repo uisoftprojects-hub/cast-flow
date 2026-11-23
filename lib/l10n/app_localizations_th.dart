@@ -1747,4 +1747,21 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'เล่นซ้ำหนึ่งรายการ';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'ทีวีของคุณเล่น $from โดยตรงไม่ได้ จึงกำลังแปลงเป็น $to';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'เปิดแอปค้างไว้ เมื่อพร้อมจะเริ่มเล่นบนทีวีเอง';
+
+  @override
+  String get checkingTvFormats => 'กำลังตรวจสอบสิ่งที่ทีวีของคุณเล่นได้…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'เหลืออีกประมาณ $time';
+  }
 }

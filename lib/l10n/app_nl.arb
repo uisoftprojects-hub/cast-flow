@@ -524,5 +524,9 @@
   "playModeOnce": "Eén keer afspelen",
   "playModeAutoplay": "Automatisch afspelen",
   "playModeRepeatAll": "Alles herhalen",
-  "playModeRepeatOne": "Eén herhalen"
+  "playModeRepeatOne": "Eén herhalen",
+  "convertingExplain": "Je tv kan {from} niet rechtstreeks afspelen, daarom wordt het omgezet naar {to}.",
+  "convertingKeepOpen": "Laat de app open. Het start vanzelf op je tv zodra het klaar is.",
+  "checkingTvFormats": "Controleren wat je tv kan afspelen…",
+  "convertingTimeLeft": "Nog ongeveer {time}"
 }

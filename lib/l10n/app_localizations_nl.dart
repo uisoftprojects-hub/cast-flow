@@ -1782,4 +1782,21 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Eén herhalen';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'Je tv kan $from niet rechtstreeks afspelen, daarom wordt het omgezet naar $to.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Laat de app open. Het start vanzelf op je tv zodra het klaar is.';
+
+  @override
+  String get checkingTvFormats => 'Controleren wat je tv kan afspelen…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Nog ongeveer $time';
+  }
 }

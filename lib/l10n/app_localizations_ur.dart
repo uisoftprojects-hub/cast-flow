@@ -1783,4 +1783,22 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'ایک دہرائیں';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'آپ کا ٹی وی $from براہِ راست نہیں چلا سکتا، اس لیے اسے $to میں تبدیل کیا جا رہا ہے۔';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'ایپ کھلی رکھیں۔ تیار ہوتے ہی یہ خود بخود آپ کے ٹی وی پر شروع ہو جائے گا۔';
+
+  @override
+  String get checkingTvFormats =>
+      'دیکھا جا رہا ہے کہ آپ کا ٹی وی کیا چلا سکتا ہے…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'تقریباً $time باقی';
+  }
 }

@@ -1774,4 +1774,21 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'একটি পুনরাবৃত্তি';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'আপনার টিভি সরাসরি $from চালাতে পারে না, তাই এটি $to-এ রূপান্তর করা হচ্ছে।';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'অ্যাপ খোলা রাখুন। প্রস্তুত হলে এটি নিজে থেকেই টিভিতে চালু হবে।';
+
+  @override
+  String get checkingTvFormats => 'আপনার টিভি কী চালাতে পারে তা দেখা হচ্ছে…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'আর প্রায় $time';
+  }
 }

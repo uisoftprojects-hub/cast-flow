@@ -3295,6 +3295,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Repeat one'**
   String get playModeRepeatOne;
+
+  /// No description provided for @convertingExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Your TV can\'t play {from} directly, so it is being converted to {to}.'**
+  String convertingExplain(Object from, Object to);
+
+  /// No description provided for @convertingKeepOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the app open. It starts on your TV by itself when ready.'**
+  String get convertingKeepOpen;
+
+  /// No description provided for @checkingTvFormats.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking what your TV can play…'**
+  String get checkingTvFormats;
+
+  /// No description provided for @convertingTimeLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'About {time} left'**
+  String convertingTimeLeft(Object time);
 }
 
 class _AppLocalizationsDelegate

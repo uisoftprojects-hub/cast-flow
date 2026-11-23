@@ -1776,4 +1776,21 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Lặp lại một';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'TV của bạn không phát trực tiếp $from được, nên đang chuyển sang $to.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Hãy để ứng dụng mở. Khi xong, nó sẽ tự phát trên TV.';
+
+  @override
+  String get checkingTvFormats => 'Đang kiểm tra TV của bạn phát được gì…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Còn khoảng $time';
+  }
 }

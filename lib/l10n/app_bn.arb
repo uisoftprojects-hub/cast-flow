@@ -600,5 +600,9 @@
   "playModeOnce": "একবার চালান",
   "playModeAutoplay": "অটোপ্লে",
   "playModeRepeatAll": "সব পুনরাবৃত্তি",
-  "playModeRepeatOne": "একটি পুনরাবৃত্তি"
+  "playModeRepeatOne": "একটি পুনরাবৃত্তি",
+  "convertingExplain": "আপনার টিভি সরাসরি {from} চালাতে পারে না, তাই এটি {to}-এ রূপান্তর করা হচ্ছে।",
+  "convertingKeepOpen": "অ্যাপ খোলা রাখুন। প্রস্তুত হলে এটি নিজে থেকেই টিভিতে চালু হবে।",
+  "checkingTvFormats": "আপনার টিভি কী চালাতে পারে তা দেখা হচ্ছে…",
+  "convertingTimeLeft": "আর প্রায় {time}"
 }

@@ -600,5 +600,9 @@
   "playModeOnce": "1回だけ再生",
   "playModeAutoplay": "自動再生",
   "playModeRepeatAll": "全曲リピート",
-  "playModeRepeatOne": "1曲リピート"
+  "playModeRepeatOne": "1曲リピート",
+  "convertingExplain": "お使いのテレビは{from}を直接再生できないため、{to}に変換しています。",
+  "convertingKeepOpen": "アプリを開いたままにしてください。準備ができるとテレビで自動的に始まります。",
+  "checkingTvFormats": "テレビが再生できる形式を確認中…",
+  "convertingTimeLeft": "残り約{time}"
 }
