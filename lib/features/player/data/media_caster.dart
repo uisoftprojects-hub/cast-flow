@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+import '../../../core/debug_log.dart';
+
 import '../../devices/domain/cast_device.dart';
 import '../../remote/data/dlna_client.dart';
 import '../domain/cast_media.dart';
@@ -175,7 +177,8 @@ class DlnaMediaCaster implements MediaCaster {
   Future<CasterStatus?> status(CastDevice d) async {
     try {
       return await _dlna.status(d);
-    } catch (_) {
+    } catch (e) {
+      dlog('[MediaCaster] status failed: $e');
       return null;
     }
   }

@@ -335,6 +335,7 @@ class PlayerController extends Notifier<PlaybackState> {
   /// Fire-and-forget TV command; a failure is shown, not thrown.
   void _run(Future<void> command) {
     command.catchError((Object e) {
+      dlog('[Player] command failed: $e');
       final tv = _device;
       if (tv != null) state = state.copyWith(error: _message(e, tv));
     });
