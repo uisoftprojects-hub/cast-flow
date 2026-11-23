@@ -14,8 +14,10 @@ import 'splash_interstitial_manager.dart';
 /// Manages click interstitial advertisements throughout the app.
 ///
 /// Features:
-/// - Triggers on clicks across the app (bottom navigation bar, feature cards, in-screen actions).
-/// - Excludes Settings screen (and all settings sub-screens like Language, FAQ, Guide).
+/// - Counts every tap anywhere in the app (see AnyTapListener): 1st tap loads, 2nd tap shows,
+///   whatever it was on. Nothing is excluded by action or screen; the only limits are the ones
+///   that keep ads from covering the startup flow (splash, language, onboarding, paywall), a
+///   Premium user, an ad already on screen, and one click interstitial per session.
 /// - Proactively preloads interstitials so ads are ready when the user clicks.
 /// - Reloads after display so clicks throughout the session can show ads when ready.
 class ClickCountInterstitialManager {
@@ -41,21 +43,21 @@ class ClickCountInterstitialManager {
   bool get isLoaded => _loadedAd != null;
   bool get isLoading => _isLoading;
 
-  /// Checks whether a route or screen is excluded from click interstitials (Settings screen).
-  static bool isExcludedRoute(String? route) {
-    if (route == null) return false;
-    final r = route.toLowerCase();
-    return r.startsWith('/settings') ||
-        r == '/settings' ||
-        r.contains('settings') ||
-        r == '/faq' ||
-        r == '/guide';
-  }
-
   /// Proactively preloads the click interstitial so it is already ready in memory.
   void preload({required bool isPremium}) {
     if (isPremium || _isLoading || _loadedAd != null) return;
     _loadInterstitial(isPremium: isPremium);
+  }
+
+  /// Completes once no full-screen ad is on screen (right away when none is).
+  /// A screen that starts something right after the tap (the Cast picker, a
+  /// new screen) waits on this so it doesn't open behind the interstitial the
+  /// tap itself triggered.
+  Future<void> waitUntilAdClosed() async {
+    if (!_coordinator.isFullScreenShowing) return;
+    await _coordinator.onDisplayStateChanged
+        .firstWhere((showing) => !showing)
+        .timeout(const Duration(minutes: 2), onTimeout: () => false);
   }
 
   /// Static helper for any widget with [BuildContext] to record a user click.
@@ -93,7 +95,7 @@ class ClickCountInterstitialManager {
     onClicked: onClicked,
   );
 
-  /// Handles an eligible user click anywhere in the app (excluding Settings screen).
+  /// Handles a user click anywhere in the app.
   Future<void> onUserClick({
     required bool isPremium,
     String? currentRoute,
@@ -125,19 +127,7 @@ class ClickCountInterstitialManager {
       return;
     }
 
-    // 3. Exclude settings screens
-    if (isExcludedRoute(currentRoute) || isExcludedRoute(targetRoute)) {
-      AdLogger.d(
-        AdState.requestSkipped,
-        placement: AdPlacement.clickInterstitial,
-        adType: 'ClickInterstitial',
-        message:
-            'Click ignored: settings screen is excluded (from: $currentRoute, to: $targetRoute).',
-      );
-      return;
-    }
-
-    // 4. Exclude clicks while another full-screen ad is actively presenting
+    // 3. Exclude clicks while another full-screen ad is actively presenting
     if (_coordinator.isFullScreenShowing) {
       AdLogger.d(
         AdState.coordinatorLockRejected,

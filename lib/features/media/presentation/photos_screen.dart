@@ -14,7 +14,6 @@ import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
 import '../../player/domain/cast_media.dart';
 import '../../player/presentation/player_controller.dart';
-import '../../monetization/presentation/click_count_interstitial_manager.dart';
 import '../domain/media_models.dart';
 import 'asset_thumbnail.dart';
 import 'media_permission_view.dart';
@@ -185,10 +184,6 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> {
                           if (_selecting) {
                             _toggle(photo.id);
                           } else {
-                            ClickCountInterstitialManager.recordClick(
-                              context,
-                              contextTag: 'photo_cast',
-                            );
                             castAndOpenRemote(
                               context,
                               ref,

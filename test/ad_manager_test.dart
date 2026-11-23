@@ -86,7 +86,7 @@ void main() {
     c.dispose();
   });
 
-  group('Click Interstitial (1 per session, load on 1st click, show on 2nd click, excluding Settings)', () {
+  group('Click Interstitial (1 per session, load on 1st click, show on 2nd click, any action)', () {
     test('loads on 1st click, shows on 2nd click, max 1 display per session', () async {
       // 1st click: requests load in background, does not show
       await clickManager.onUserClick(isPremium: false, contextTag: 'home_feature');
@@ -116,29 +116,14 @@ void main() {
       expect(adapter.interstitialLoads.length, 1);
     });
 
-    test('settings screen clicks are strictly excluded', () async {
-      // Settings target route is excluded
-      await clickManager.onUserClick(
-        isPremium: false,
-        targetRoute: '/settings',
-        contextTag: 'settings_tab',
-      );
-      expect(clickManager.clickCount, 0);
-      expect(adapter.interstitialLoads, isEmpty);
-
-      // Settings sub-screens are excluded
-      await clickManager.onUserClick(
-        isPremium: false,
-        targetRoute: '/settings/language',
-        contextTag: 'settings_lang',
-      );
-      await clickManager.onUserClick(
-        isPremium: false,
-        targetRoute: '/faq',
-        contextTag: 'faq',
-      );
-      expect(clickManager.clickCount, 0);
-      expect(adapter.interstitialLoads, isEmpty);
+    test('any click counts, whatever the screen or action (Settings, FAQ, guide included)', () async {
+      await clickManager.onUserClick(isPremium: false, targetRoute: '/settings', contextTag: 'settings_tab');
+      expect(clickManager.clickCount, 1, reason: '1st click, even on Settings, starts the load');
+      expect(adapter.interstitialLoads.length, 1);
+      await clickManager.onUserClick(isPremium: false, targetRoute: '/settings/language', contextTag: 'lang');
+      expect(clickManager.clickCount, 2);
+      await clickManager.onUserClick(isPremium: false, targetRoute: '/faq', contextTag: 'faq');
+      expect(clickManager.clickCount, 3);
     });
 
     test('if ad not ready, continues navigation and shows on next click once loaded', () async {

@@ -54,9 +54,10 @@ class _MirroringScreenState extends ConsumerState<MirroringScreen> {
         return;
       }
       if (!mounted) return;
-      // When this tap shows an interstitial, wait until it is dismissed (or
-      // failed to load / show) so the Cast screen never opens behind the ad.
-      await ClickCountInterstitialManager.recordClick(context, contextTag: 'start_mirroring');
+      // The tap itself counted toward the click interstitial (see AnyTapListener). If it
+      // is showing the ad, wait until it is dismissed (or failed to show) so the Cast
+      // screen never opens behind it.
+      await ref.read(clickCountInterstitialManagerProvider).waitUntilAdClosed();
       if (!mounted) return;
       await ref.read(mirroringProvider.notifier).start();
     } finally {
