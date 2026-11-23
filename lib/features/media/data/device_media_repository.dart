@@ -2,9 +2,11 @@ import 'dart:math' as math;
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:photo_manager/photo_manager.dart';
 
+import '../../../core/utils/serial_runner.dart';
 import '../../monetization/domain/ad_suppression.dart';
 import '../domain/media_models.dart';
 
@@ -23,7 +25,14 @@ class MediaPermissionDenied implements Exception {
 
 /// Real media from the phone's gallery and music library (MediaStore).
 class DeviceMediaRepository implements MediaRepository {
-  static const _maxItems = 600;
+  /// Upper bound on items loaded per list. High on purpose: lists are built
+  /// lazily, and a cap of a few hundred hid most of a real gallery.
+  static const _maxItems = 20000;
+
+  /// Permission prompts one at a time (the albums and the photo grid both ask
+  /// when Photos opens, and Android refuses a second request while the first
+  /// dialog is open).
+  static final _permissionQueue = SerialRunner();
 
   int? _sdk;
 
@@ -50,16 +59,26 @@ class DeviceMediaRepository implements MediaRepository {
 
   /// Asks for access when it can still be asked for, and tells a plain
   /// "denied" (ask again) apart from "permanently denied" (open Settings).
-  Future<void> _ensureAccess([RequestType type = RequestType.common]) async {
+  Future<void> _ensureAccess([RequestType type = RequestType.common]) =>
+      _permissionQueue.run(() => _ensureAccessNow(type));
+
+  Future<void> _ensureAccessNow(RequestType type) async {
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       final perms = await _permissionsFor(type);
       bool ok(ph.PermissionStatus s) => s.isGranted || s.isLimited;
       var statuses = [for (final p in perms) await p.status];
       if (!statuses.any(ok)) {
-        final result = await AdSuppression.around(() => perms.request());
-        statuses = [
-          for (final p in perms) result[p] ?? ph.PermissionStatus.denied,
-        ];
+        try {
+          final result = await AdSuppression.around(() => perms.request());
+          statuses = [
+            for (final p in perms) result[p] ?? ph.PermissionStatus.denied,
+          ];
+        } on PlatformException {
+          // Another part of the app has a prompt open: wait a moment and read
+          // what the user answered instead of failing with a generic error.
+          await Future<void>.delayed(const Duration(milliseconds: 600));
+          statuses = [for (final p in perms) await p.status];
+        }
       }
       if (!statuses.any(ok)) {
         final permanent = statuses.every(
