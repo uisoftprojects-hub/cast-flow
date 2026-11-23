@@ -332,9 +332,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
 
       expect(find.byType(DiscoveryPermissionCard), findsOneWidget);
-      expect(find.text('Grant Permission'), findsOneWidget);
+      expect(find.text('Allow Permission'), findsOneWidget);
 
-      await tester.tap(find.text('Grant Permission'));
+      await tester.tap(find.text('Allow Permission'));
       expect(grantTapped, isTrue);
 
       await tester.pumpWidget(const SizedBox.shrink());

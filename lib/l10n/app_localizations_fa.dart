@@ -1730,4 +1730,58 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get appName => 'پخش روی تلویزیون';
+
+  @override
+  String get allowPermission => 'اجازه دادن';
+
+  @override
+  String get openSettings => 'باز کردن تنظیمات';
+
+  @override
+  String get noNetworkMessage =>
+      'Wi-Fi را روشن کنید (همان شبکهٔ تلویزیون) یا هات‌اسپات گوشی را روشن کنید و تلویزیون را به آن وصل کنید.';
+
+  @override
+  String get turnOnWifi => 'روشن کردن Wi-Fi';
+
+  @override
+  String get waitingForNetwork =>
+      'به‌محض اتصال، جست‌وجوی تلویزیون را شروع می‌کنیم.';
+
+  @override
+  String get howHotspotWorks => 'پخش از طریق هات‌اسپات چطور کار می‌کند؟';
+
+  @override
+  String get preparingForTv => 'در حال آماده‌سازی برای تلویزیون…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'در حال تبدیل برای تلویزیون… $percent%';
+  }
+
+  @override
+  String get lookingForTvsOnHotspot =>
+      'در حال جست‌وجوی تلویزیون در هات‌اسپات شما';
+
+  @override
+  String get noInternetConnection =>
+      'اتصال اینترنت وجود ندارد. اتصال خود را بررسی کرده و دوباره تلاش کنید.';
+
+  @override
+  String get convertingToTvFormat => 'در حال تبدیل به فرمت تلویزیون شما';
+
+  @override
+  String get playMode => 'حالت پخش';
+
+  @override
+  String get playModeOnce => 'یک‌بار پخش';
+
+  @override
+  String get playModeAutoplay => 'پخش خودکار';
+
+  @override
+  String get playModeRepeatAll => 'تکرار همه';
+
+  @override
+  String get playModeRepeatOne => 'تکرار یکی';
 }

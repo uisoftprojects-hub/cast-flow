@@ -1726,4 +1726,57 @@ class AppLocalizationsAf extends AppLocalizations {
 
   @override
   String get appName => 'Saai uit na TV';
+
+  @override
+  String get allowPermission => 'Gee toestemming';
+
+  @override
+  String get openSettings => 'Maak Instellings oop';
+
+  @override
+  String get noNetworkMessage =>
+      'Skakel Wi-Fi aan (dieselfde netwerk as jou TV), of deel jou foon se hotspot en koppel die TV daaraan.';
+
+  @override
+  String get turnOnWifi => 'Skakel Wi-Fi aan';
+
+  @override
+  String get waitingForNetwork =>
+      'Ons begin na jou TV soek sodra jy gekoppel is.';
+
+  @override
+  String get howHotspotWorks => 'Hoe werk uitsending oor \'n hotspot?';
+
+  @override
+  String get preparingForTv => 'Berei voor vir jou TV…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Skakel om vir jou TV… $percent%';
+  }
+
+  @override
+  String get lookingForTvsOnHotspot => 'Soek TV\'s op jou hotspot';
+
+  @override
+  String get noInternetConnection =>
+      'Geen internetverbinding nie. Gaan jou verbinding na en probeer weer.';
+
+  @override
+  String get convertingToTvFormat => 'Skakel om na jou TV se formaat';
+
+  @override
+  String get playMode => 'Speelmodus';
+
+  @override
+  String get playModeOnce => 'Speel een keer';
+
+  @override
+  String get playModeAutoplay => 'Outospeel';
+
+  @override
+  String get playModeRepeatAll => 'Herhaal alles';
+
+  @override
+  String get playModeRepeatOne => 'Herhaal een';
 }

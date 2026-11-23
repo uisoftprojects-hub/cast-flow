@@ -584,5 +584,21 @@
   "permissionBlockedInSettings": "सेटिंग्स में अनुमति अवरुद्ध है",
   "grantPermission": "अनुमति दें",
   "checkAgain": "पुनः जाँच करें",
-  "appName": "टीवी पर कास्ट"
+  "appName": "टीवी पर कास्ट",
+  "allowPermission": "अनुमति दें",
+  "openSettings": "सेटिंग खोलें",
+  "noNetworkMessage": "वाई-फ़ाई चालू करें (वही नेटवर्क जिस पर टीवी है), या फ़ोन का हॉटस्पॉट चालू करके टीवी को उससे जोड़ें।",
+  "turnOnWifi": "वाई-फ़ाई चालू करें",
+  "waitingForNetwork": "कनेक्ट होते ही हम आपका टीवी ढूँढना शुरू कर देंगे।",
+  "howHotspotWorks": "हॉटस्पॉट से कास्टिंग कैसे काम करती है?",
+  "preparingForTv": "आपके टीवी के लिए तैयार किया जा रहा है…",
+  "convertingForTv": "आपके टीवी के लिए बदला जा रहा है… {percent}%",
+  "lookingForTvsOnHotspot": "आपके हॉटस्पॉट पर टीवी खोजे जा रहे हैं",
+  "noInternetConnection": "इंटरनेट कनेक्शन नहीं है। अपना कनेक्शन जाँचें और फिर कोशिश करें।",
+  "convertingToTvFormat": "आपके टीवी के फ़ॉर्मेट में बदला जा रहा है",
+  "playMode": "प्लेबैक मोड",
+  "playModeOnce": "एक बार चलाएँ",
+  "playModeAutoplay": "ऑटोप्ले",
+  "playModeRepeatAll": "सभी दोहराएँ",
+  "playModeRepeatOne": "एक दोहराएँ"
 }

@@ -11,6 +11,10 @@ import '../domain/app_permission.dart';
 /// - Android <= 12 (API <= 32): requires ACCESS_FINE_LOCATION and Location Services enabled.
 /// - iOS: Local network permission handled by OS on multicast/socket use.
 class DeviceDiscoveryPermissionService implements DiscoveryPermissionService {
+  /// App Open hold for the whole permission flow (prompt, Settings and back),
+  /// released once the permission is granted or the flow's screen closes.
+  static const flowHold = 'discovery-permission';
+
   DeviceDiscoveryPermissionService({DeviceInfoPlugin? deviceInfo, this._overrideSdkInt})
     : _deviceInfo = deviceInfo ?? DeviceInfoPlugin();
 
@@ -84,12 +88,14 @@ class DeviceDiscoveryPermissionService implements DiscoveryPermissionService {
     if (!_isAndroid) return DiscoveryPermissionStatus.granted;
     final sdk = await _sdkInt();
     if (sdk <= 32) {
+      AdSuppression.hold(flowHold);
       final status = await AdSuppression.around(() => ph.Permission.locationWhenInUse.request());
       if (status.isGranted) {
         final serviceEnabled = await isLocationServiceEnabled();
         if (!serviceEnabled) {
           return DiscoveryPermissionStatus.locationServiceDisabled;
         }
+        AdSuppression.release(flowHold);
         return DiscoveryPermissionStatus.granted;
       }
       if (status.isPermanentlyDenied || status.isRestricted) {
@@ -97,8 +103,10 @@ class DeviceDiscoveryPermissionService implements DiscoveryPermissionService {
       }
       return DiscoveryPermissionStatus.denied;
     } else {
+      AdSuppression.hold(flowHold);
       final status = await AdSuppression.around(() => ph.Permission.nearbyWifiDevices.request());
       if (status.isGranted) {
+        AdSuppression.release(flowHold);
         return DiscoveryPermissionStatus.granted;
       }
       if (status.isPermanentlyDenied || status.isRestricted) {
@@ -110,10 +118,14 @@ class DeviceDiscoveryPermissionService implements DiscoveryPermissionService {
 
   @override
   Future<bool> openAppSettings() async {
+    AdSuppression.hold(flowHold);
     try {
       AdSuppression.suppressNextAppOpen();
-      return await ph.openAppSettings();
+      final ok = await ph.openAppSettings();
+      if (!ok) AdSuppression.clear();
+      return ok;
     } catch (_) {
+      AdSuppression.clear();
       return false;
     }
   }
@@ -121,6 +133,7 @@ class DeviceDiscoveryPermissionService implements DiscoveryPermissionService {
   @override
   Future<bool> openLocationSettings() async {
     if (_isAndroid) {
+      AdSuppression.hold(flowHold);
       final ok = await NetworkChannel.openLocationSettings();
       if (ok) return true;
     }

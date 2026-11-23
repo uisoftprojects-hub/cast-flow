@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
@@ -80,7 +79,7 @@ class AppsScreen extends StatelessWidget {
                 ),
               ],
             ),
-          ).animate(delay: (30 * i).ms).fadeIn(duration: 250.ms).scale(begin: const Offset(0.94, 0.94));
+          );
         },
       ),
     );

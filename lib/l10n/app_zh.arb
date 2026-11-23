@@ -584,5 +584,21 @@
   "permissionBlockedInSettings": "权限在设置中被阻止",
   "grantPermission": "授予权限",
   "checkAgain": "再次检查",
-  "appName": "投屏到电视"
+  "appName": "投屏到电视",
+  "allowPermission": "允许权限",
+  "openSettings": "打开设置",
+  "noNetworkMessage": "请打开 Wi-Fi（与电视相同的网络），或开启手机热点并让电视连接。",
+  "turnOnWifi": "打开 Wi-Fi",
+  "waitingForNetwork": "连接后我们会立即开始查找您的电视。",
+  "howHotspotWorks": "如何通过热点投屏？",
+  "preparingForTv": "正在为电视做准备…",
+  "convertingForTv": "正在为电视转换… {percent}%",
+  "lookingForTvsOnHotspot": "正在您的热点上查找电视",
+  "noInternetConnection": "没有网络连接。请检查网络后重试。",
+  "convertingToTvFormat": "正在转换为电视支持的格式",
+  "playMode": "播放模式",
+  "playModeOnce": "播放一次",
+  "playModeAutoplay": "自动播放",
+  "playModeRepeatAll": "全部循环",
+  "playModeRepeatOne": "单个循环"
 }

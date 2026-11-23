@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Prześlij na TV</string>
+    <string name="cast_session_channel">Przesyłanie</string>
+    <string name="cast_session_title">Przesyłanie do telewizora</string>
+    <string name="cast_session_text">Strumień pozostaje aktywny</string>
+    <string name="cast_session_converting">Przygotowywanie dla telewizora…</string>
 </resources>

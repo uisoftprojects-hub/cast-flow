@@ -200,6 +200,10 @@ class AdMobConfig {
   /// Splash screen timer duration: exactly 9 seconds
   static const Duration splashTimeout = Duration(seconds: 9);
 
+  /// Splash length when the phone has no internet: no ad or consent can load,
+  /// so the logo shows briefly and the app moves on.
+  static const Duration offlineSplashTimeout = Duration(milliseconds: 1500);
+
   /// App Open ad loading screen max duration: 6 seconds
   static const Duration appOpenLoadTimeout = Duration(seconds: 6);
 

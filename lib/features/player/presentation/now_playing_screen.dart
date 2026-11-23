@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -15,13 +14,14 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/widgets/buttons.dart';
-import '../../../core/widgets/effects.dart';
 import '../../../core/widgets/soft_card.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
+import '../../monetization/domain/ad_suppression.dart';
 import '../domain/cast_media.dart';
+import 'cast_thumbnail.dart';
 import 'player_controller.dart';
 
 /// Casting preview, shared by photos, videos, music and web: the media on
@@ -72,7 +72,7 @@ class NowPlayingScreen extends ConsumerWidget {
                     // Top: the media itself.
                     Expanded(
                       child: Center(
-                        child: _Preview(media: media, playing: s.playing),
+                        child: _Preview(media: media, playing: s.playing, state: s),
                       ),
                     ),
                     const SizedBox(height: AppSpace.lg),
@@ -125,26 +125,19 @@ class NowPlayingScreen extends ConsumerWidget {
   }
 }
 
-/// Real preview of what's on the TV: gallery thumbnail, picked file, or a
-/// themed placeholder for streams and music.
+/// Real preview of what's on the TV: the item's thumbnail (gallery photo or
+/// video, picked photo, web poster) or a themed placeholder. While an item is
+/// being converted to a format the TV plays, a progress panel covers its foot.
 class _Preview extends StatelessWidget {
-  const _Preview({required this.media, required this.playing});
+  const _Preview({required this.media, required this.playing, required this.state});
   final CastMedia media;
   final bool playing;
+  final PlaybackState state;
 
   @override
   Widget build(BuildContext context) {
     final wide = media.kind != CastKind.music;
-    final url = media.url ?? '';
-    final Widget image;
-    if (!kIsWeb && media.kind == CastKind.photo && url.isNotEmpty && File(url).existsSync()) {
-      image = ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        child: Image.file(File(url), fit: BoxFit.cover),
-      );
-    } else {
-      image = MediaArt(seed: media.seed, icon: media.kind.icon, iconSize: 56, radius: AppRadius.xl);
-    }
+    final image = CastThumbnail(media: media, radius: AppRadius.xl, iconSize: 56);
 
     return AnimatedScale(
       duration: AppDurations.slow,
@@ -157,25 +150,139 @@ class _Preview extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.xl),
             boxShadow: AppShadows.glow(AppColors.primary),
           ),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              KeyedSubtree(key: ValueKey(media.id), child: image).animate().fadeIn(duration: 350.ms),
-              if (media.kind == CastKind.video || media.kind == CastKind.web || media.kind == CastKind.youtube)
-                Center(
-                  child: AnimatedOpacity(
-                    duration: AppDurations.medium,
-                    opacity: playing ? 0 : 1,
-                    child: Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.4), shape: BoxShape.circle),
-                      child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 40),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                KeyedSubtree(key: ValueKey(media.id), child: image).animate().fadeIn(duration: 350.ms),
+                if (media.kind == CastKind.video || media.kind == CastKind.web || media.kind == CastKind.youtube)
+                  Center(
+                    child: AnimatedOpacity(
+                      duration: AppDurations.medium,
+                      opacity: playing && !state.preparing ? 0 : 1,
+                      child: Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.4), shape: BoxShape.circle),
+                        child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 40),
+                      ),
                     ),
                   ),
+                // Fades in and out smoothly with the conversion.
+                PositionedDirectional(
+                  start: 0,
+                  end: 0,
+                  bottom: 0,
+                  child: AnimatedSwitcher(
+                    duration: AppDurations.medium,
+                    switchInCurve: Curves.easeOutCubic,
+                    transitionBuilder: (c, a) => FadeTransition(
+                      opacity: a,
+                      child: SlideTransition(
+                        position: Tween(begin: const Offset(0, 0.25), end: Offset.zero).animate(a),
+                        child: c,
+                      ),
+                    ),
+                    child: state.preparing
+                        ? ConversionBar(
+                            key: const ValueKey('conversion'),
+                            progress: state.prepareProgress,
+                            detail: state.prepareDetail,
+                          )
+                        : const SizedBox.shrink(key: ValueKey('none')),
+                  ),
                 ),
-            ],
+              ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Panel over the preview while the item is converted into the format the TV
+/// plays: what is being converted, a smoothly moving bar and the percentage.
+class ConversionBar extends StatelessWidget {
+  const ConversionBar({super.key, this.progress, this.detail});
+
+  /// 0..1, or null while the converter hasn't reported yet.
+  final double? progress;
+  final String? detail;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final p = progress?.clamp(0.0, 1.0);
+    return Semantics(
+      liveRegion: true,
+      label: p == null ? l.preparingForTv : l.convertingForTv((p * 100).round()),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(AppSpace.lg, AppSpace.xl, AppSpace.lg, AppSpace.md),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.black.withValues(alpha: 0), Colors.black.withValues(alpha: 0.78)],
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Icon(Iconsax.convert_copy, color: Colors.white, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l.convertingToTvFormat,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.text.labelLarge?.copyWith(color: Colors.white),
+                  ),
+                ),
+                if (p != null)
+                  // The number counts up with the bar instead of jumping.
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(end: p),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeOut,
+                    builder: (_, v, _) => Text(
+                      '${(v * 100).round()}%',
+                      style: context.text.labelLarge?.copyWith(color: Colors.white, fontFeatures: const [FontFeature.tabularFigures()]),
+                    ),
+                  ),
+              ],
+            ),
+            if (detail != null && detail!.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Text(
+                detail!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.text.bodySmall?.copyWith(color: Colors.white70),
+              ),
+            ],
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: p == null
+                  ? const LinearProgressIndicator(minHeight: 5, color: Colors.white, backgroundColor: Colors.white24)
+                  : TweenAnimationBuilder<double>(
+                      tween: Tween(end: p),
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.easeOut,
+                      builder: (_, v, _) => LinearProgressIndicator(
+                        minHeight: 5,
+                        value: v,
+                        color: Colors.white,
+                        backgroundColor: Colors.white24,
+                      ),
+                    ),
+            ),
+          ],
         ),
       ),
     );
@@ -249,11 +356,65 @@ class _Controls extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpace.xxl),
-            _RoundControl(icon: Iconsax.next_copy, tooltip: l.next, onTap: state.hasNext ? ctrl.next : null),
+            _RoundControl(
+              icon: Iconsax.next_copy,
+              tooltip: l.next,
+              onTap: state.hasNext || (state.playMode == PlayMode.repeatAll && state.queue.length > 1)
+                  ? ctrl.next
+                  : null,
+            ),
           ],
         ),
+        const SizedBox(height: AppSpace.md),
+        _PlayModeButton(mode: state.playMode, onTap: ctrl.cyclePlayMode),
       ],
     ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.06, end: 0);
+  }
+}
+
+/// The loop button: tap to step through play once, autoplay, repeat all and
+/// repeat one. Shows the current choice in words, not only an icon.
+class _PlayModeButton extends StatelessWidget {
+  const _PlayModeButton({required this.mode, required this.onTap});
+  final PlayMode mode;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final l = context.l10n;
+    final (IconData icon, String label) = switch (mode) {
+      PlayMode.once => (Icons.looks_one_rounded, l.playModeOnce),
+      PlayMode.autoplay => (Icons.playlist_play_rounded, l.playModeAutoplay),
+      PlayMode.repeatAll => (Icons.repeat_rounded, l.playModeRepeatAll),
+      PlayMode.repeatOne => (Icons.repeat_one_rounded, l.playModeRepeatOne),
+    };
+    final active = mode == PlayMode.repeatAll || mode == PlayMode.repeatOne;
+    return TapScale(
+      onTap: onTap,
+      semanticLabel: '${l.playMode}: $label',
+      child: AnimatedContainer(
+        duration: AppDurations.medium,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: 8),
+        decoration: BoxDecoration(
+          color: active ? p.primaryTint : p.surface,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          border: Border.all(color: active ? p.primary : p.divider),
+        ),
+        child: AnimatedSwitcher(
+          duration: AppDurations.fast,
+          child: Row(
+            key: ValueKey(mode),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 20, color: active ? p.primary : p.textSecondary),
+              const SizedBox(width: 8),
+              Text(label, style: context.text.labelLarge?.copyWith(color: active ? p.primary : p.textPrimary)),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -338,14 +499,14 @@ class _QueueSheet extends ConsumerWidget {
     final picked = <(String path, String name)>[];
     switch (kind) {
       case CastKind.photo:
-        for (final f in await ImagePicker().pickMultiImage()) {
+        for (final f in await AdSuppression.around(() => ImagePicker().pickMultiImage())) {
           picked.add((f.path, f.name));
         }
       case CastKind.video:
-        final v = await ImagePicker().pickVideo(source: ImageSource.gallery);
+        final v = await AdSuppression.around(() => ImagePicker().pickVideo(source: ImageSource.gallery));
         if (v != null) picked.add((v.path, v.name));
       case CastKind.music:
-        for (final f in await FilePicker.pickFiles(type: FileType.audio)) {
+        for (final f in await AdSuppression.around(() => FilePicker.pickFiles(type: FileType.audio))) {
           if (f.path != null) picked.add((f.path!, f.name));
         }
       default:
@@ -412,7 +573,11 @@ class _QueueSheet extends ConsumerWidget {
                   final m = s.queue[i];
                   final current = i == s.index;
                   return TapScale(
-                    onTap: current ? null : () => ctrl.jumpTo(i),
+                    onTap: () {
+                      // Picking an item closes the queue; the current one just closes it.
+                      Navigator.of(context).pop();
+                      if (!current) ctrl.jumpTo(i);
+                    },
                     semanticLabel: l.play2(m.title),
                     child: Container(
                       padding: const EdgeInsets.all(AppSpace.sm),
@@ -425,7 +590,7 @@ class _QueueSheet extends ConsumerWidget {
                         children: [
                           SizedBox.square(
                             dimension: 52,
-                            child: MediaArt(seed: m.seed, icon: m.kind.icon, iconSize: 20, radius: AppRadius.sm),
+                            child: CastThumbnail(media: m, radius: AppRadius.sm),
                           ),
                           const SizedBox(width: AppSpace.md),
                           Expanded(
@@ -449,5 +614,58 @@ class _QueueSheet extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// "Converting for your TV…" while an item the TV can't play is turned into
+/// one it can (MP4 / JPEG). Shows the percentage when the converter reports it.
+class PreparingForTv extends StatelessWidget {
+  const PreparingForTv({super.key, this.progress, this.compact = false});
+
+  final double? progress;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final l = context.l10n;
+    final pct = progress == null ? null : (progress! * 100).round().clamp(0, 100);
+    final label = pct == null ? l.preparingForTv : l.convertingForTv(pct);
+    if (compact) {
+      return Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: context.text.bodySmall?.copyWith(color: p.primary),
+      );
+    }
+    return Semantics(
+      liveRegion: true,
+      label: label,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox.square(dimension: 14, child: CircularProgressIndicator(strokeWidth: 2, color: p.primary)),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(label, style: context.text.labelMedium?.copyWith(color: p.primary)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: LinearProgressIndicator(
+              minHeight: 3,
+              value: progress,
+              backgroundColor: p.primaryTint,
+              color: p.primary,
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: AppDurations.medium);
   }
 }

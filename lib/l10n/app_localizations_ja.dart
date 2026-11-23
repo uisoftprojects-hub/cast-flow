@@ -1661,4 +1661,55 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get appName => 'テレビにキャスト';
+
+  @override
+  String get allowPermission => '権限を許可';
+
+  @override
+  String get openSettings => '設定を開く';
+
+  @override
+  String get noNetworkMessage =>
+      'Wi-Fiをオンにする（テレビと同じネットワーク）か、スマホのテザリングをオンにしてテレビを接続してください。';
+
+  @override
+  String get turnOnWifi => 'Wi-Fiをオンにする';
+
+  @override
+  String get waitingForNetwork => '接続されるとすぐにテレビを探し始めます。';
+
+  @override
+  String get howHotspotWorks => 'テザリングでのキャストの仕組み';
+
+  @override
+  String get preparingForTv => 'テレビ用に準備中…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'テレビ用に変換中… $percent%';
+  }
+
+  @override
+  String get lookingForTvsOnHotspot => 'テザリングでテレビを探しています';
+
+  @override
+  String get noInternetConnection => 'インターネットに接続されていません。接続を確認してもう一度お試しください。';
+
+  @override
+  String get convertingToTvFormat => 'テレビの形式に変換中';
+
+  @override
+  String get playMode => '再生モード';
+
+  @override
+  String get playModeOnce => '1回だけ再生';
+
+  @override
+  String get playModeAutoplay => '自動再生';
+
+  @override
+  String get playModeRepeatAll => '全曲リピート';
+
+  @override
+  String get playModeRepeatOne => '1曲リピート';
 }

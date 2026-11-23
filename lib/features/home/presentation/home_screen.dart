@@ -16,7 +16,6 @@ import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../devices/presentation/widgets/connection_bar.dart';
 import '../../devices/presentation/widgets/network_widgets.dart';
-import '../../monetization/presentation/click_count_interstitial_manager.dart';
 import '../../premium/domain/premium_status_service.dart';
 
 import '../../../core/l10n.dart';
@@ -32,7 +31,13 @@ class _Tile {
 
 const _media = [
   _Tile('Photos', 'Albums', Iconsax.gallery_copy, AppColors.primary, '/photos'),
-  _Tile('Videos', 'Gallery', Iconsax.video_play_copy, Color(0xFFFF7A59), '/videos'),
+  _Tile(
+    'Videos',
+    'Gallery',
+    Iconsax.video_play_copy,
+    Color(0xFFFF7A59),
+    '/videos',
+  ),
   _Tile('Music', 'Songs', Iconsax.music_copy, Color(0xFF12B886), '/music'),
 ];
 
@@ -48,12 +53,22 @@ class HomeScreen extends ConsumerWidget {
           children: [
             // Fixed header: never scrolls with the content.
             const Padding(
-              padding: EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, AppSpace.sm),
+              padding: EdgeInsets.fromLTRB(
+                AppSpace.page,
+                AppSpace.sm,
+                AppSpace.page,
+                AppSpace.sm,
+              ),
               child: _Header(),
             ),
             Expanded(
               child: ListView(
-                padding: EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, navBottomPadding(context)),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpace.page,
+                  AppSpace.sm,
+                  AppSpace.page,
+                  navBottomPadding(context),
+                ),
                 children: [
                   const _MirrorCard(),
                   const SizedBox(height: AppSpace.md),
@@ -93,7 +108,12 @@ class _Header extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(context.l10n.appName, style: context.text.headlineMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(
+                    context.l10n.appName,
+                    style: context.text.headlineMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
@@ -109,7 +129,11 @@ class _Header extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(AppRadius.pill),
                     border: Border.all(color: const Color(0xFFFFD3BD)),
                   ),
-                  child: const Icon(Iconsax.crown_1_copy, size: 20, color: Color(0xFFE8590C)),
+                  child: const Icon(
+                    Iconsax.crown_1_copy,
+                    size: 20,
+                    color: Color(0xFFE8590C),
+                  ),
                 ),
               ),
           ],
@@ -141,13 +165,18 @@ class _MediaRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    IconBubble(icon: m.icon, color: m.color, size: 44, filled: true),
+                    IconBubble(
+                      icon: m.icon,
+                      color: m.color,
+                      size: 44,
+                      filled: true,
+                    ),
                     const SizedBox(height: AppSpace.md),
                     Text(context.tr(m.title), style: context.text.titleSmall),
                     Text(context.tr(m.subtitle), style: context.text.bodySmall),
                   ],
                 ),
-              ).animate(delay: (40 * i).ms).fadeIn(duration: 300.ms).slideY(begin: 0.08, end: 0),
+              ),
             ),
           ],
         ],
@@ -162,7 +191,9 @@ class _MirrorCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final device = ref.watch(connectionProvider.select((c) => c.isConnected ? c.device?.name : null));
+    final device = ref.watch(
+      connectionProvider.select((c) => c.isConnected ? c.device?.name : null),
+    );
     return TapScale(
       onTap: () => _openFeature(context, '/mirror'),
       semanticLabel: context.l10n.screenMirroringStartMirroring,
@@ -187,18 +218,26 @@ class _MirrorCard extends ConsumerWidget {
                   children: [
                     Text(
                       context.l10n.screenMirroring,
-                      style: context.text.headlineMedium?.copyWith(color: Colors.white),
+                      style: context.text.headlineMedium?.copyWith(
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      device != null ? context.l10n.readyToMirrorTo(device) : context.l10n.showYourPhoneOn,
-                      style: context.text.bodySmall?.copyWith(color: Colors.white70),
+                      device != null
+                          ? context.l10n.readyToMirrorTo(device)
+                          : context.l10n.showYourPhoneOn,
+                      style: context.text.bodySmall?.copyWith(
+                        color: Colors.white70,
+                      ),
                     ),
                     const SizedBox(height: AppSpace.lg),
                     GradientButton(
                       label: context.l10n.startMirroring,
                       icon: Iconsax.screenmirroring_copy,
-                      gradient: const LinearGradient(colors: [Colors.white, Colors.white]),
+                      gradient: const LinearGradient(
+                        colors: [Colors.white, Colors.white],
+                      ),
                       foreground: const Color(0xFF312E81),
                       compact: true,
                       onPressed: () => _openFeature(context, '/mirror'),
@@ -207,7 +246,11 @@ class _MirrorCard extends ConsumerWidget {
                 ),
               ),
               const ExcludeSemantics(
-                child: CastIllustration(kind: IllustrationKind.mirror, size: 96, onGradient: true),
+                child: CastIllustration(
+                  kind: IllustrationKind.mirror,
+                  size: 96,
+                  onGradient: true,
+                ),
               ),
             ],
           ),
@@ -224,7 +267,9 @@ class _RemoteAndApps extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final device = ref.watch(connectionProvider.select((c) => c.isConnected ? c.device?.name : null));
+    final device = ref.watch(
+      connectionProvider.select((c) => c.isConnected ? c.device?.name : null),
+    );
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -285,7 +330,12 @@ class _ActionCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(title, style: context.text.titleSmall),
-                Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.bodySmall),
+                Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.text.bodySmall,
+                ),
               ],
             ),
           ),
@@ -318,12 +368,24 @@ class _BrowserBar extends StatelessWidget {
           children: [
             Icon(Iconsax.global_copy, size: 20, color: p.textSecondary),
             const SizedBox(width: AppSpace.md),
-            Expanded(child: Text(context.l10n.searchOrTypeA, style: context.text.bodyMedium)),
+            Expanded(
+              child: Text(
+                context.l10n.searchOrTypeA,
+                style: context.text.bodyMedium,
+              ),
+            ),
             Container(
               width: 44,
               height: 44,
-              decoration: const BoxDecoration(gradient: AppColors.mainGradient, shape: BoxShape.circle),
-              child: const Icon(Iconsax.search_normal_1_copy, color: Colors.white, size: 19),
+              decoration: const BoxDecoration(
+                gradient: AppColors.mainGradient,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Iconsax.search_normal_1_copy,
+                color: Colors.white,
+                size: 19,
+              ),
             ),
           ],
         ),
@@ -342,14 +404,21 @@ class _HelpBanner extends StatelessWidget {
       semanticLabel: context.l10n.howToConnectOpen,
       child: Row(
         children: [
-          const IconBubble(icon: Iconsax.message_question_copy, color: Color(0xFF12B886), size: 44),
+          const IconBubble(
+            icon: Iconsax.message_question_copy,
+            color: Color(0xFF12B886),
+            size: 44,
+          ),
           const SizedBox(width: AppSpace.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(context.l10n.howToConnect, style: context.text.titleSmall),
-                Text(context.l10n.visualGuideForEvery, style: context.text.bodySmall),
+                Text(
+                  context.l10n.visualGuideForEvery,
+                  style: context.text.bodySmall,
+                ),
               ],
             ),
           ),
@@ -363,7 +432,9 @@ class _HelpBanner extends StatelessWidget {
 /// Opens a Home feature and reports which one was tapped.
 /// Mirroring and the remote need Wi-Fi or the hotspot, so they're checked first.
 Future<void> _openFeature(BuildContext context, String route) async {
-  analyticsOf(context).log(AnalyticsEvent.homeFeatureTap, {AnalyticsParam.feature: screenNameFor(route)});
+  analyticsOf(context).log(AnalyticsEvent.homeFeatureTap, {
+    AnalyticsParam.feature: screenNameFor(route),
+  });
   if (route == '/mirror' || route == '/remote') {
     if (!await requireNetwork(context, source: screenNameFor(route)!)) return;
   }

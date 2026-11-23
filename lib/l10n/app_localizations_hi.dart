@@ -1724,4 +1724,57 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get appName => 'टीवी पर कास्ट';
+
+  @override
+  String get allowPermission => 'अनुमति दें';
+
+  @override
+  String get openSettings => 'सेटिंग खोलें';
+
+  @override
+  String get noNetworkMessage =>
+      'वाई-फ़ाई चालू करें (वही नेटवर्क जिस पर टीवी है), या फ़ोन का हॉटस्पॉट चालू करके टीवी को उससे जोड़ें।';
+
+  @override
+  String get turnOnWifi => 'वाई-फ़ाई चालू करें';
+
+  @override
+  String get waitingForNetwork =>
+      'कनेक्ट होते ही हम आपका टीवी ढूँढना शुरू कर देंगे।';
+
+  @override
+  String get howHotspotWorks => 'हॉटस्पॉट से कास्टिंग कैसे काम करती है?';
+
+  @override
+  String get preparingForTv => 'आपके टीवी के लिए तैयार किया जा रहा है…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'आपके टीवी के लिए बदला जा रहा है… $percent%';
+  }
+
+  @override
+  String get lookingForTvsOnHotspot => 'आपके हॉटस्पॉट पर टीवी खोजे जा रहे हैं';
+
+  @override
+  String get noInternetConnection =>
+      'इंटरनेट कनेक्शन नहीं है। अपना कनेक्शन जाँचें और फिर कोशिश करें।';
+
+  @override
+  String get convertingToTvFormat => 'आपके टीवी के फ़ॉर्मेट में बदला जा रहा है';
+
+  @override
+  String get playMode => 'प्लेबैक मोड';
+
+  @override
+  String get playModeOnce => 'एक बार चलाएँ';
+
+  @override
+  String get playModeAutoplay => 'ऑटोप्ले';
+
+  @override
+  String get playModeRepeatAll => 'सभी दोहराएँ';
+
+  @override
+  String get playModeRepeatOne => 'एक दोहराएँ';
 }

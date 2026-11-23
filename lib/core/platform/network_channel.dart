@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -7,6 +9,7 @@ import '../../features/monetization/domain/ad_suppression.dart';
 /// elsewhere).
 abstract final class NetworkChannel {
   static const _channel = MethodChannel('castflow/network');
+  static const _events = EventChannel('castflow/network_events');
 
   static bool get _android =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
@@ -38,34 +41,62 @@ abstract final class NetworkChannel {
     };
   }
 
-  static Future<bool> openWifiSettings() async {
+  /// Whether the phone can reach the internet right now (any network). Android
+  /// says no when the default network isn't validated; that is double-checked
+  /// with a short DNS lookup so a network that just connected isn't reported
+  /// as offline. Off Android: assumed online.
+  static Future<bool> hasInternet() async {
+    if (!_android) return true;
+    final status = await networkStatus();
+    if (status['internet'] != false) return true;
+    try {
+      final r = await InternetAddress.lookup(
+        'google.com',
+      ).timeout(const Duration(seconds: 3));
+      return r.isNotEmpty && r.first.rawAddress.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Pushed by Android on every Wi-Fi / hotspot / VPN change (a
+  /// ConnectivityManager.NetworkCallback plus the hotspot state broadcast).
+  /// Empty off Android.
+  static Stream<Map<String, Object?>> networkEvents() {
+    if (!_android) return const Stream.empty();
+    return _events.receiveBroadcastStream().map(
+      (raw) => {
+        for (final e in (raw as Map<Object?, Object?>? ?? const {}).entries)
+          e.key.toString(): e.value,
+      },
+    );
+  }
+
+  /// Runs a native "open this settings screen" call with App Open
+  /// suppression armed, dropping the mark again if nothing opened.
+  static Future<bool> _openOutside(String method) async {
     if (!_android) return false;
     AdSuppression.suppressNextAppOpen();
-    return await _channel
-            .invokeMethod<bool>('openWifiSettings')
-            .catchError((_) => false) ??
+    final ok =
+        await _channel.invokeMethod<bool>(method).catchError((_) => false) ??
         false;
+    if (!ok) AdSuppression.clear();
+    return ok;
   }
+
+  static Future<bool> openWifiSettings() => _openOutside('openWifiSettings');
+
+  /// Android 10+: the Wi-Fi panel over the app (Settings.Panel); older
+  /// versions: the Wi-Fi settings screen.
+  static Future<bool> openWifiPanel() => _openOutside('openWifiPanel');
 
   /// Opens the system location settings screen.
-  static Future<bool> openLocationSettings() async {
-    if (!_android) return false;
-    AdSuppression.suppressNextAppOpen();
-    return await _channel
-            .invokeMethod<bool>('openLocationSettings')
-            .catchError((_) => false) ??
-        false;
-  }
+  static Future<bool> openLocationSettings() =>
+      _openOutside('openLocationSettings');
 
-  /// System tethering screen (falls back to wireless settings).
-  static Future<bool> openHotspotSettings() async {
-    if (!_android) return false;
-    AdSuppression.suppressNextAppOpen();
-    return await _channel
-            .invokeMethod<bool>('openHotspotSettings')
-            .catchError((_) => false) ??
-        false;
-  }
+  /// System hotspot / tethering screen (falls back to wireless settings).
+  static Future<bool> openHotspotSettings() =>
+      _openOutside('openHotspotSettings');
 
   /// Whether the screen is being mirrored right now (Smart View / Cast adds
   /// a presentation display), and the TV's name.
@@ -78,12 +109,5 @@ abstract final class NetworkChannel {
   }
 
   /// Opens the system Cast / Smart View screen. Returns false if none exists.
-  static Future<bool> openCastSettings() async {
-    if (!_android) return false;
-    AdSuppression.suppressNextAppOpen();
-    return await _channel
-            .invokeMethod<bool>('openCastSettings')
-            .catchError((_) => false) ??
-        false;
-  }
+  static Future<bool> openCastSettings() => _openOutside('openCastSettings');
 }

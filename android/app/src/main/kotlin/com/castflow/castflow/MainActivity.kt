@@ -1,6 +1,5 @@
 package com.castflow.castflow
 
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.hardware.display.DisplayManager
@@ -10,11 +9,6 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.net.wifi.WifiManager
-import java.net.Inet4Address
-import java.net.NetworkInterface
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -25,6 +19,7 @@ import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.googlemobileads.GoogleMobileAdsPlugin
 import io.flutter.plugins.googlemobileads.NativeAdFactory
@@ -196,7 +191,8 @@ class CustomNativeAdFactory(private val layoutInflater: LayoutInflater) : Native
 }
 
 class MainActivity : FlutterActivity() {
-    private var multicastLock: WifiManager.MulticastLock? = null
+    private var networkMonitor: NetworkMonitor? = null
+    private var mediaConvert: MediaConvert? = null
     private val nativeAdFactoryId = "castflow_native_ad"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -301,23 +297,19 @@ class MainActivity : FlutterActivity() {
 
         flutterEngine.platformViewsController.registry
             .registerViewFactory("castflow/webview", CastWebViewFactory(flutterEngine.dartExecutor.binaryMessenger))
+        val monitor = NetworkMonitor(applicationContext) { launch(it) }.also { networkMonitor = it }
+        // Live Wi-Fi / hotspot changes (ConnectivityManager.NetworkCallback + AP state broadcast).
+        EventChannel(flutterEngine.dartExecutor.binaryMessenger, "castflow/network_events").setStreamHandler(monitor)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "castflow/network").setMethodCallHandler { call, result ->
             when (call.method) {
                 // Android filters incoming multicast unless a lock is held, which
-                // breaks SSDP/mDNS TV discovery.
+                // breaks SSDP/mDNS TV discovery. Counted, see NetworkMonitor.
                 "acquireMulticastLock" -> {
-                    if (multicastLock == null) {
-                        val wifi = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-                        multicastLock = wifi.createMulticastLock("castflow-discovery").apply {
-                            setReferenceCounted(false)
-                            acquire()
-                        }
-                    }
+                    monitor.acquireMulticast()
                     result.success(true)
                 }
                 "releaseMulticastLock" -> {
-                    multicastLock?.let { if (it.isHeld) it.release() }
-                    multicastLock = null
+                    monitor.releaseMulticast()
                     result.success(true)
                 }
                 // System cast / Smart View screen for screen mirroring.
@@ -326,29 +318,12 @@ class MainActivity : FlutterActivity() {
                         Intent("android.settings.CAST_SETTINGS"),
                         Intent("com.samsung.android.smartmirroring.CAPTURE"),
                         Intent(Settings.ACTION_WIRELESS_SETTINGS),
-                    ).any { intent ->
-                        try {
-                            startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); true
-                        } catch (_: Exception) {
-                            false
-                        }
-                    }
+                    ).any { intent -> launch(intent) }
                     result.success(opened)
                 }
-                // Wi-Fi (via ConnectivityManager) and own-hotspot state (via the
-                // AP network interface; WifiManager is unreliable for this).
-                "networkStatus" -> {
-                    val ap = hotspotInterface()
-                    result.success(
-                        mapOf(
-                            "wifi" to isWifiConnected(),
-                            "hotspot" to (ap != null),
-                            "hotspotInterface" to ap?.first,
-                            "hotspotIp" to ap?.second,
-                            "vpn" to isVpnActive(),
-                        )
-                    )
-                }
+                // Wi-Fi (ConnectivityManager + LinkProperties) and own-hotspot state
+                // (WifiManager reflection + AP network interface), with our address on each.
+                "networkStatus" -> result.success(monitor.status())
                 // Smart View / Cast screen mirroring adds a presentation display
                 // while it runs; its name is the TV.
                 "mirroringStatus" -> {
@@ -358,14 +333,50 @@ class MainActivity : FlutterActivity() {
                     result.success(mapOf("active" to (display != null), "name" to display?.name))
                 }
                 "openWifiSettings" -> result.success(launch(Intent(Settings.ACTION_WIFI_SETTINGS)))
+                // Android 10+: the Wi-Fi panel slides over the app.
+                "openWifiPanel" -> result.success(monitor.openWifiPanel())
                 "openLocationSettings" -> result.success(launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)))
                 // Hotspot can't be enabled programmatically on modern Android, so
                 // open the system tethering screen instead.
-                "openHotspotSettings" -> {
-                    val tether = Intent(Intent.ACTION_MAIN).setComponent(
-                        ComponentName("com.android.settings", "com.android.settings.TetherSettings")
+                "openHotspotSettings" -> result.success(monitor.openHotspotSettings())
+                else -> result.notImplemented()
+            }
+        }
+
+        // Runtime conversion of media the TV can't play (media3 Transformer / JPEG).
+        val convertChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "castflow/media_convert")
+        mediaConvert = MediaConvert(applicationContext, convertChannel).also { convertChannel.setMethodCallHandler(it) }
+
+        // Keeps the process (and the media server the TV streams from) alive while casting.
+        val sessionChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "castflow/cast_session")
+        // Notification / lock screen buttons and seek bar -> Flutter.
+        CastSessionBridge.onCommand = { name, positionMs ->
+            runOnUiThread {
+                sessionChannel.invokeMethod("command", mapOf("name" to name, "positionMs" to positionMs))
+            }
+        }
+        sessionChannel.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "start" -> result.success(CastSessionService.start(applicationContext, call.argument<String>("title")))
+                // Title, play state, position and length for the notification and its seek bar.
+                "update" -> {
+                    CastSessionService.update(
+                        CastSessionInfo(
+                            title = call.argument<String>("title") ?: "",
+                            subtitle = call.argument<String>("subtitle"),
+                            playing = call.argument<Boolean>("playing") ?: false,
+                            positionMs = (call.argument<Number>("positionMs") ?: 0).toLong(),
+                            durationMs = (call.argument<Number>("durationMs") ?: 0).toLong(),
+                            hasPrevious = call.argument<Boolean>("hasPrevious") ?: false,
+                            hasNext = call.argument<Boolean>("hasNext") ?: false,
+                            preparing = call.argument<Boolean>("preparing") ?: false,
+                        )
                     )
-                    result.success(launch(tether) || launch(Intent(Settings.ACTION_WIRELESS_SETTINGS)))
+                    result.success(true)
+                }
+                "stop" -> {
+                    CastSessionService.stop(applicationContext)
+                    result.success(true)
                 }
                 else -> result.notImplemented()
             }
@@ -374,51 +385,25 @@ class MainActivity : FlutterActivity() {
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, nativeAdFactoryId)
+        CastSessionBridge.onCommand = null
+        networkMonitor?.unregister()
+        mediaConvert?.dispose()
+        mediaConvert = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 
     private fun launch(intent: Intent): Boolean = try {
-        startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); true
+        // Panels (Settings.Panel) must open in our task to float over the app.
+        if (!intent.action.orEmpty().startsWith("android.settings.panel")) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent); true
     } catch (_: Exception) {
         false
     }
 
-    /** True when any connected network uses the Wi-Fi transport. */
-    private fun isWifiConnected(): Boolean {
-        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        @Suppress("DEPRECATION")
-        return cm.allNetworks.any { n ->
-            val caps = cm.getNetworkCapabilities(n) ?: return@any false
-            caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) &&
-                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED)
-        }
-    }
-
-    /** A VPN hides LAN devices (TVs) from the phone. */
-    private fun isVpnActive(): Boolean {
-        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        @Suppress("DEPRECATION")
-        return cm.allNetworks.any { cm.getNetworkCapabilities(it)?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true }
-    }
-
-    /** The active access-point interface (name, IPv4) when our hotspot is on. */
-    private fun hotspotInterface(): Pair<String, String>? {
-        val apNames = listOf("ap0", "swlan0", "wlan1", "softap0", "ap_br_wlan0")
-        return try {
-            NetworkInterface.getNetworkInterfaces()?.toList().orEmpty()
-                .filter { it.isUp && !it.isLoopback && (it.name in apNames || it.name.startsWith("ap")) }
-                .firstNotNullOfOrNull { iface ->
-                    iface.inetAddresses.toList()
-                        .firstOrNull { it is Inet4Address && !it.isLoopbackAddress }
-                        ?.let { iface.name to it.hostAddress!! }
-                }
-        } catch (_: Exception) {
-            null
-        }
-    }
-
     override fun onDestroy() {
-        multicastLock?.let { if (it.isHeld) it.release() }
+        networkMonitor?.releaseAllMulticast()
+        networkMonitor?.unregister()
+        if (isFinishing) CastSessionService.stop(applicationContext)
         super.onDestroy()
     }
 }

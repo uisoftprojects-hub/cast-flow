@@ -58,6 +58,24 @@ class CastMedia {
   );
 }
 
+/// What happens when an item ends.
+enum PlayMode {
+  /// Play the current item once, then stop.
+  once,
+
+  /// Play on through the queue, stop after the last item (slideshows loop).
+  autoplay,
+
+  /// Play on through the queue and start again from the first item.
+  repeatAll,
+
+  /// Play the current item again and again.
+  repeatOne;
+
+  /// The next mode when the user taps the loop button.
+  PlayMode get next => PlayMode.values[(index + 1) % PlayMode.values.length];
+}
+
 @immutable
 class PlaybackState {
   const PlaybackState({
@@ -68,9 +86,24 @@ class PlaybackState {
     this.volume = 0.6,
     this.slideshowInterval,
     this.error,
+    this.preparing = false,
+    this.prepareProgress,
+    this.prepareDetail,
+    this.playMode = PlayMode.autoplay,
   });
 
   final List<CastMedia> queue;
+
+  /// The current item is being made ready for the TV (e.g. converted to a
+  /// format it plays). [prepareProgress] is 0..1 when known.
+  final bool preparing;
+  final double? prepareProgress;
+
+  /// What is converted into what, e.g. "MKV · H.265 / DTS → MP4 · H.264 / AAC".
+  final String? prepareDetail;
+
+  /// What happens when an item ends (loop / autoplay / play once).
+  final PlayMode playMode;
 
   /// Why the TV could not play the current item (shown to the user), or null.
   final String? error;
@@ -96,7 +129,13 @@ class PlaybackState {
     Duration? slideshowInterval,
     String? error,
     bool clearError = false,
+    bool? preparing,
+    double? prepareProgress,
+    String? prepareDetail,
+    PlayMode? playMode,
+    bool clearProgress = false,
   }) {
+    final isPreparing = preparing ?? this.preparing;
     return PlaybackState(
       queue: queue ?? this.queue,
       index: index ?? this.index,
@@ -105,6 +144,12 @@ class PlaybackState {
       volume: volume ?? this.volume,
       slideshowInterval: slideshowInterval ?? this.slideshowInterval,
       error: clearError ? null : (error ?? this.error),
+      preparing: isPreparing,
+      prepareProgress: !isPreparing || clearProgress
+          ? null
+          : (prepareProgress ?? this.prepareProgress),
+      prepareDetail: !isPreparing ? null : (prepareDetail ?? this.prepareDetail),
+      playMode: playMode ?? this.playMode,
     );
   }
 }

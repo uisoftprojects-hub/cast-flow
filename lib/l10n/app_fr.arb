@@ -584,5 +584,21 @@
   "permissionBlockedInSettings": "Autorisation bloquée dans les paramètres",
   "grantPermission": "Accorder l'autorisation",
   "checkAgain": "Vérifier à nouveau",
-  "appName": "Diffuser sur TV"
+  "appName": "Diffuser sur TV",
+  "allowPermission": "Autoriser",
+  "openSettings": "Ouvrir les paramètres",
+  "noNetworkMessage": "Activez le Wi-Fi (le même réseau que votre TV) ou partagez le point d'accès du téléphone et connectez-y la TV.",
+  "turnOnWifi": "Activer le Wi-Fi",
+  "waitingForNetwork": "Nous chercherons votre TV dès que vous serez connecté.",
+  "howHotspotWorks": "Comment fonctionne la diffusion via point d'accès ?",
+  "preparingForTv": "Préparation pour votre TV…",
+  "convertingForTv": "Conversion pour votre TV… {percent} %",
+  "lookingForTvsOnHotspot": "Recherche de TV sur votre point d'accès",
+  "noInternetConnection": "Pas de connexion internet. Vérifiez votre connexion et réessayez.",
+  "convertingToTvFormat": "Conversion au format de votre TV",
+  "playMode": "Mode de lecture",
+  "playModeOnce": "Lire une fois",
+  "playModeAutoplay": "Lecture automatique",
+  "playModeRepeatAll": "Tout répéter",
+  "playModeRepeatOne": "Répéter un"
 }

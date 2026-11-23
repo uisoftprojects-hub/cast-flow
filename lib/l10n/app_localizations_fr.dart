@@ -1746,4 +1746,59 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get appName => 'Diffuser sur TV';
+
+  @override
+  String get allowPermission => 'Autoriser';
+
+  @override
+  String get openSettings => 'Ouvrir les paramètres';
+
+  @override
+  String get noNetworkMessage =>
+      'Activez le Wi-Fi (le même réseau que votre TV) ou partagez le point d\'accès du téléphone et connectez-y la TV.';
+
+  @override
+  String get turnOnWifi => 'Activer le Wi-Fi';
+
+  @override
+  String get waitingForNetwork =>
+      'Nous chercherons votre TV dès que vous serez connecté.';
+
+  @override
+  String get howHotspotWorks =>
+      'Comment fonctionne la diffusion via point d\'accès ?';
+
+  @override
+  String get preparingForTv => 'Préparation pour votre TV…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Conversion pour votre TV… $percent %';
+  }
+
+  @override
+  String get lookingForTvsOnHotspot =>
+      'Recherche de TV sur votre point d\'accès';
+
+  @override
+  String get noInternetConnection =>
+      'Pas de connexion internet. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get convertingToTvFormat => 'Conversion au format de votre TV';
+
+  @override
+  String get playMode => 'Mode de lecture';
+
+  @override
+  String get playModeOnce => 'Lire une fois';
+
+  @override
+  String get playModeAutoplay => 'Lecture automatique';
+
+  @override
+  String get playModeRepeatAll => 'Tout répéter';
+
+  @override
+  String get playModeRepeatOne => 'Répéter un';
 }

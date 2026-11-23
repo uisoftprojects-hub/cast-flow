@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +15,7 @@ import '../../../core/widgets/buttons.dart';
 import '../../../core/widgets/tap_scale.dart';
 import '../../app_flow/domain/flow_config.dart';
 import '../../app_flow/presentation/app_flow_controller.dart';
+import '../../devices/presentation/network_controller.dart';
 import '../../monetization/presentation/ad_display_coordinator.dart';
 import '../../monetization/presentation/ad_manager.dart';
 import '../../monetization/presentation/splash_interstitial_manager.dart';
@@ -110,6 +111,24 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
 
   void _snack(String text) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+
+  /// Continue was tapped. Without internet nothing can be bought (or even
+  /// priced), so say so instead of doing nothing or failing in the store.
+  Future<void> _continue(StoreProduct? product) async {
+    if (_buying) return;
+    if (!await ref.read(internetCheckProvider)()) {
+      if (mounted) _snack(context.l10n.noInternetConnection);
+      return;
+    }
+    if (!mounted) return;
+    if (product == null) {
+      // Back online: load the plans again instead of leaving a dead button.
+      ref.invalidate(storeProductsProvider);
+      _snack(context.l10n.theStoreIsntAvailable);
+      return;
+    }
+    await _purchase(product);
+  }
 
   Future<void> _purchase(StoreProduct product) async {
     if (_buying) return;
@@ -246,31 +265,29 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                               style: context.text.bodyMedium,
                             ),
                             const SizedBox(height: AppSpace.xxl),
-                            for (final (i, (icon, label)) in _benefits.indexed)
+                            for (final (icon, label) in _benefits)
                               Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 10,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(icon, size: 20, color: p.primary),
+                                    const SizedBox(width: AppSpace.lg),
+                                    Expanded(
+                                      child: Text(
+                                        context.tr(label),
+                                        style: context.text.bodyLarge,
+                                      ),
                                     ),
-                                    child: Row(
-                                      children: [
-                                        Icon(icon, size: 20, color: p.primary),
-                                        const SizedBox(width: AppSpace.lg),
-                                        Expanded(
-                                          child: Text(
-                                            context.tr(label),
-                                            style: context.text.bodyLarge,
-                                          ),
-                                        ),
-                                        const Icon(
-                                          Icons.check_circle_rounded,
-                                          size: 22,
-                                          color: Color(0xFF22A55B),
-                                        ),
-                                      ],
+                                    const Icon(
+                                      Icons.check_circle_rounded,
+                                      size: 22,
+                                      color: Color(0xFF22A55B),
                                     ),
-                                  )
-                                  .animate(delay: (50 * i).ms)
-                                  .fadeIn(duration: 250.ms),
+                                  ],
+                                ),
+                              ),
                             const Spacer(),
                             const SizedBox(height: AppSpace.xl),
                             _Plans(
@@ -293,10 +310,11 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                                         context.l10n.continueAction),
                               expand: true,
                               loading: _buying,
-                              onPressed:
-                                  (selected == null || products.isLoading)
+                              // Stays tappable without plans (offline): it then
+                              // explains why instead of being a dead button.
+                              onPressed: products.isLoading
                                   ? null
-                                  : () => _purchase(selected),
+                                  : () => _continue(selected),
                             ),
                             const SizedBox(height: AppSpace.xs),
                             // One line always: it scales down instead of wrapping.
@@ -305,8 +323,6 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  _FooterLink(context.l10n.cancelAnytime, null),
-                                  Text('|', style: context.text.bodySmall),
                                   _FooterLink(
                                     context.l10n.privacyPolicy,
                                     () => openExternal(
@@ -319,6 +335,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                                     context.l10n.termsAndConditions,
                                     () => openExternal(context, AppLinks.terms),
                                   ),
+                                  Text('|', style: context.text.bodySmall),
+                                  _FooterLink(context.l10n.cancelAnytime, null),
                                 ],
                               ),
                             ),

@@ -584,5 +584,21 @@
   "permissionBlockedInSettings": "Uprawnienie zablokowane w ustawieniach",
   "grantPermission": "Przyznaj uprawnienie",
   "checkAgain": "Sprawdź ponownie",
-  "appName": "Prześlij na TV"
+  "appName": "Prześlij na TV",
+  "allowPermission": "Zezwól",
+  "openSettings": "Otwórz ustawienia",
+  "noNetworkMessage": "Włącz Wi-Fi (tę samą sieć co telewizor) albo udostępnij hotspot telefonu i połącz z nim telewizor.",
+  "turnOnWifi": "Włącz Wi-Fi",
+  "waitingForNetwork": "Zaczniemy szukać telewizora, gdy tylko się połączysz.",
+  "howHotspotWorks": "Jak działa przesyłanie przez hotspot?",
+  "preparingForTv": "Przygotowywanie dla telewizora…",
+  "convertingForTv": "Konwertowanie dla telewizora… {percent}%",
+  "lookingForTvsOnHotspot": "Szukanie telewizorów w Twoim hotspocie",
+  "noInternetConnection": "Brak połączenia z internetem. Sprawdź połączenie i spróbuj ponownie.",
+  "convertingToTvFormat": "Konwertowanie do formatu telewizora",
+  "playMode": "Tryb odtwarzania",
+  "playModeOnce": "Odtwórz raz",
+  "playModeAutoplay": "Autoodtwarzanie",
+  "playModeRepeatAll": "Powtarzaj wszystko",
+  "playModeRepeatOne": "Powtarzaj jeden"
 }

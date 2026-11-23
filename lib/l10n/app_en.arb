@@ -763,5 +763,28 @@
   "permissionBlockedInSettings": "Permission Blocked in Settings",
   "grantPermission": "Grant Permission",
   "checkAgain": "Check Again",
-  "appName": "Cast to TV"
+  "appName": "Cast to TV",
+  "allowPermission": "Allow Permission",
+  "openSettings": "Open Settings",
+  "noNetworkMessage": "Turn on Wi-Fi (the same network as your TV), or share your phone's hotspot and connect the TV to it.",
+  "turnOnWifi": "Turn on Wi-Fi",
+  "waitingForNetwork": "We'll start looking for your TV as soon as you're connected.",
+  "howHotspotWorks": "How does casting over hotspot work?",
+  "preparingForTv": "Preparing for your TV…",
+  "convertingForTv": "Converting for your TV… {percent}%",
+  "@convertingForTv": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "lookingForTvsOnHotspot": "Looking for TVs on your hotspot",
+  "noInternetConnection": "No internet connection. Check your connection and try again.",
+  "convertingToTvFormat": "Converting to your TV's format",
+  "playMode": "Playback mode",
+  "playModeOnce": "Play once",
+  "playModeAutoplay": "Autoplay",
+  "playModeRepeatAll": "Repeat all",
+  "playModeRepeatOne": "Repeat one"
 }

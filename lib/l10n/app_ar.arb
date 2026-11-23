@@ -584,5 +584,21 @@
   "permissionBlockedInSettings": "تم حظر الإذن في الإعدادات",
   "grantPermission": "منح الإذن",
   "checkAgain": "تحقق مرة أخرى",
-  "appName": "البث إلى التلفزيون"
+  "appName": "البث إلى التلفزيون",
+  "allowPermission": "السماح بالإذن",
+  "openSettings": "فتح الإعدادات",
+  "noNetworkMessage": "شغّل Wi-Fi (نفس شبكة التلفزيون)، أو شارك نقطة اتصال هاتفك ووصّل التلفزيون بها.",
+  "turnOnWifi": "تشغيل Wi-Fi",
+  "waitingForNetwork": "سنبدأ البحث عن التلفزيون فور اتصالك.",
+  "howHotspotWorks": "كيف يعمل البث عبر نقطة الاتصال؟",
+  "preparingForTv": "جارٍ التحضير للتلفزيون…",
+  "convertingForTv": "جارٍ التحويل للتلفزيون… {percent}%",
+  "lookingForTvsOnHotspot": "جارٍ البحث عن تلفازات على نقطة الاتصال",
+  "noInternetConnection": "لا يوجد اتصال بالإنترنت. تحقق من الاتصال وحاول مرة أخرى.",
+  "convertingToTvFormat": "جارٍ التحويل إلى صيغة تلفازك",
+  "playMode": "وضع التشغيل",
+  "playModeOnce": "تشغيل مرة واحدة",
+  "playModeAutoplay": "تشغيل تلقائي",
+  "playModeRepeatAll": "تكرار الكل",
+  "playModeRepeatOne": "تكرار الحالي"
 }

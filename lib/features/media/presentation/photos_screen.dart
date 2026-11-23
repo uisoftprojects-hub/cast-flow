@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
@@ -173,35 +172,37 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> {
                           crossAxisSpacing: 10,
                         ),
                     itemCount: items.length,
+                    // Build well ahead of the viewport so fast scrolling doesn't reveal blank tiles.
+                    cacheExtent: 1500,
                     itemBuilder: (_, i) {
                       final photo = items[i];
                       final selected = _selected.contains(photo.id);
                       return _PhotoTile(
-                            photo: photo,
-                            selecting: _selecting,
-                            selected: selected,
-                            onTap: () {
-                              if (_selecting) {
-                                _toggle(photo.id);
-                              } else {
-                                ClickCountInterstitialManager.recordClick(context, contextTag: 'photo_cast');
-                                castAndOpenRemote(
-                                  context,
-                                  ref,
-                                  _toMedia(items),
-                                  index: i,
-                                );
-                              }
-                            },
-                            onPreview: () => showPhotoPreview(context, photo.id),
-                            onLongPress: () => setState(() {
-                              _selecting = true;
-                              _selected.add(photo.id);
-                            }),
-                          )
-                          .animate(delay: (_stagger(i) * 20).ms)
-                          .fadeIn(duration: 300.ms)
-                          .scale(begin: const Offset(0.94, 0.94));
+                        photo: photo,
+                        selecting: _selecting,
+                        selected: selected,
+                        onTap: () {
+                          if (_selecting) {
+                            _toggle(photo.id);
+                          } else {
+                            ClickCountInterstitialManager.recordClick(
+                              context,
+                              contextTag: 'photo_cast',
+                            );
+                            castAndOpenRemote(
+                              context,
+                              ref,
+                              _toMedia(items),
+                              index: i,
+                            );
+                          }
+                        },
+                        onPreview: () => showPhotoPreview(context, photo.id),
+                        onLongPress: () => setState(() {
+                          _selecting = true;
+                          _selected.add(photo.id);
+                        }),
+                      );
                     },
                   ),
                   PositionedDirectional(
@@ -227,7 +228,6 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> {
   }
 
   /// Caps staggered entrance delays so long grids don't wait forever.
-  int _stagger(int i) => i > 15 ? 15 : i;
 }
 
 class _AlbumPill extends StatelessWidget {

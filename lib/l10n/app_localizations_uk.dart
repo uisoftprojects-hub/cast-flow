@@ -1744,4 +1744,58 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get appName => 'Трансляція на ТБ';
+
+  @override
+  String get allowPermission => 'Дозволити';
+
+  @override
+  String get openSettings => 'Відкрити налаштування';
+
+  @override
+  String get noNetworkMessage =>
+      'Увімкніть Wi-Fi (ту саму мережу, що й у телевізора) або роздайте точку доступу з телефона й під\'єднайте до неї телевізор.';
+
+  @override
+  String get turnOnWifi => 'Увімкнути Wi-Fi';
+
+  @override
+  String get waitingForNetwork =>
+      'Ми почнемо шукати телевізор, щойно ви під\'єднаєтеся.';
+
+  @override
+  String get howHotspotWorks => 'Як працює трансляція через точку доступу?';
+
+  @override
+  String get preparingForTv => 'Підготовка для телевізора…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Конвертація для телевізора… $percent%';
+  }
+
+  @override
+  String get lookingForTvsOnHotspot =>
+      'Пошук телевізорів у вашій точці доступу';
+
+  @override
+  String get noInternetConnection =>
+      'Немає підключення до інтернету. Перевірте з\'єднання й спробуйте ще раз.';
+
+  @override
+  String get convertingToTvFormat => 'Конвертація у формат вашого телевізора';
+
+  @override
+  String get playMode => 'Режим відтворення';
+
+  @override
+  String get playModeOnce => 'Відтворити раз';
+
+  @override
+  String get playModeAutoplay => 'Автовідтворення';
+
+  @override
+  String get playModeRepeatAll => 'Повторювати все';
+
+  @override
+  String get playModeRepeatOne => 'Повторювати один';
 }

@@ -32,11 +32,11 @@ class _AssetThumbnailState extends State<AssetThumbnail> {
   late Future<Uint8List?> _bytes = _load(widget.assetId);
 
   static Future<Uint8List?> _load(String id) {
-    if (_cache.length > 300) _cache.remove(_cache.keys.first);
+    if (_cache.length > 800) _cache.remove(_cache.keys.first);
     return _cache.putIfAbsent(id, () async {
       final entity = await AssetEntity.fromId(id);
       return entity?.thumbnailDataWithSize(
-        const ThumbnailSize.square(300),
+        const ThumbnailSize.square(256),
         quality: 80,
       );
     });

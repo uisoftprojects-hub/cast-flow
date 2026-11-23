@@ -12,12 +12,24 @@ final networkStatusReaderProvider = Provider<Future<NetworkStatus> Function()>(
       () async => NetworkStatus.fromMap(await NetworkChannel.networkStatus()),
 );
 
-/// Current Wi-Fi / hotspot state. Re-checked every few seconds while the app
-/// is in the foreground and immediately when the user returns to the app
-/// (e.g. from Wi-Fi or hotspot settings).
+/// Whether the internet is reachable (overridable in tests).
+final internetCheckProvider = Provider<Future<bool> Function()>((ref) => NetworkChannel.hasInternet);
+
+/// Network changes pushed by the platform as they happen (Android:
+/// ConnectivityManager.NetworkCallback + the hotspot state broadcast).
+/// Overridable in tests; empty off Android.
+final networkEventsProvider = Provider<Stream<NetworkStatus>>(
+  (ref) => NetworkChannel.networkEvents().map(NetworkStatus.fromMap),
+);
+
+/// Current Wi-Fi / hotspot state. Updated the moment Android reports a change,
+/// re-checked when the user returns to the app (e.g. from Wi-Fi or hotspot
+/// settings) and, as a safety net for OEMs that don't report hotspot changes,
+/// every few seconds while the app is in the foreground.
 class NetworkController extends Notifier<NetworkStatus?> {
   Timer? _poll;
   AppLifecycleListener? _lifecycle;
+  StreamSubscription<NetworkStatus>? _events;
 
   @override
   NetworkStatus? build() {
@@ -25,16 +37,30 @@ class NetworkController extends Notifier<NetworkStatus?> {
       onResume: () {
         refresh();
         _startPolling();
+        _listen();
       },
-      onHide: () => _poll?.cancel(),
+      // In the background nothing needs the network state: no callbacks held.
+      onHide: () {
+        _poll?.cancel();
+        _events?.cancel();
+        _events = null;
+      },
     );
     ref.onDispose(() {
       _poll?.cancel();
+      _events?.cancel();
       _lifecycle?.dispose();
     });
     _startPolling();
+    _listen();
     Future.microtask(refresh);
     return null; // unknown until the first check finishes
+  }
+
+  void _listen() {
+    _events ??= ref.read(networkEventsProvider).listen((next) {
+      if (ref.mounted && next != state) state = next;
+    }, onError: (Object _) {});
   }
 
   void _startPolling() {
@@ -43,6 +69,8 @@ class NetworkController extends Notifier<NetworkStatus?> {
   }
 
   Future<NetworkStatus> refresh() async {
+    // Disposed before the first check ran (screen closed, test): nothing to do.
+    if (!ref.mounted) return const NetworkStatus();
     final next = await ref.read(networkStatusReaderProvider)();
     if (ref.mounted && next != state) state = next;
     return next;

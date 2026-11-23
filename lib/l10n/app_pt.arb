@@ -584,5 +584,21 @@
   "permissionBlockedInSettings": "Permissão bloqueada nas configurações",
   "grantPermission": "Conceder permissão",
   "checkAgain": "Verificar novamente",
-  "appName": "Transmitir para TV"
+  "appName": "Transmitir para TV",
+  "allowPermission": "Permitir",
+  "openSettings": "Abrir Configurações",
+  "noNetworkMessage": "Ative o Wi-Fi (a mesma rede da TV) ou compartilhe o ponto de acesso do celular e conecte a TV a ele.",
+  "turnOnWifi": "Ativar Wi-Fi",
+  "waitingForNetwork": "Vamos procurar sua TV assim que você se conectar.",
+  "howHotspotWorks": "Como funciona transmitir pelo ponto de acesso?",
+  "preparingForTv": "Preparando para sua TV…",
+  "convertingForTv": "Convertendo para sua TV… {percent}%",
+  "lookingForTvsOnHotspot": "Procurando TVs no seu ponto de acesso",
+  "noInternetConnection": "Sem conexão com a internet. Verifique sua conexão e tente novamente.",
+  "convertingToTvFormat": "Convertendo para o formato da sua TV",
+  "playMode": "Modo de reprodução",
+  "playModeOnce": "Reproduzir uma vez",
+  "playModeAutoplay": "Reprodução automática",
+  "playModeRepeatAll": "Repetir tudo",
+  "playModeRepeatOne": "Repetir um"
 }

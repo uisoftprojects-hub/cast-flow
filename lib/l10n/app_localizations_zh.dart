@@ -1642,4 +1642,54 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get appName => '投屏到电视';
+
+  @override
+  String get allowPermission => '允许权限';
+
+  @override
+  String get openSettings => '打开设置';
+
+  @override
+  String get noNetworkMessage => '请打开 Wi-Fi（与电视相同的网络），或开启手机热点并让电视连接。';
+
+  @override
+  String get turnOnWifi => '打开 Wi-Fi';
+
+  @override
+  String get waitingForNetwork => '连接后我们会立即开始查找您的电视。';
+
+  @override
+  String get howHotspotWorks => '如何通过热点投屏？';
+
+  @override
+  String get preparingForTv => '正在为电视做准备…';
+
+  @override
+  String convertingForTv(int percent) {
+    return '正在为电视转换… $percent%';
+  }
+
+  @override
+  String get lookingForTvsOnHotspot => '正在您的热点上查找电视';
+
+  @override
+  String get noInternetConnection => '没有网络连接。请检查网络后重试。';
+
+  @override
+  String get convertingToTvFormat => '正在转换为电视支持的格式';
+
+  @override
+  String get playMode => '播放模式';
+
+  @override
+  String get playModeOnce => '播放一次';
+
+  @override
+  String get playModeAutoplay => '自动播放';
+
+  @override
+  String get playModeRepeatAll => '全部循环';
+
+  @override
+  String get playModeRepeatOne => '单个循环';
 }

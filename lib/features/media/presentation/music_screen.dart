@@ -33,6 +33,8 @@ class MusicScreen extends ConsumerWidget {
         kind: CastKind.music,
         seed: s.seed,
         duration: s.duration,
+        // The gallery item; the caster resolves it to the audio file.
+        url: 'asset:${s.id}',
       ),
   ];
 
@@ -107,14 +109,11 @@ class MusicScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpace.lg),
                 for (final (i, s) in items.indexed)
                   _SongRow(
-                        song: s,
-                        active: s.id == current,
-                        playing: playing && s.id == current,
-                        onTap: () => _play(context, ref, items, i),
-                      )
-                      .animate(delay: (40 * i).ms)
-                      .fadeIn(duration: 300.ms)
-                      .slideX(begin: 0.05, end: 0),
+                    song: s,
+                    active: s.id == current,
+                    playing: playing && s.id == current,
+                    onTap: () => _play(context, ref, items, i),
+                  ),
               ],
             ),
           ),

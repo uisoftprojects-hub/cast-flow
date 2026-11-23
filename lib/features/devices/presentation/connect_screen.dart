@@ -41,6 +41,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   @override
   void initState() {
     super.initState();
+    _discovery = ref.read(discoveryProvider.notifier);
     _lifecycle = AppLifecycleListener(
       onResume: () {
         ref.read(discoveryProvider.notifier).recheckPermissions();
@@ -78,8 +79,11 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   @override
   void dispose() {
     _lifecycle?.dispose();
+    _discovery.endPermissionFlow();
     super.dispose();
   }
+
+  late final DiscoveryController _discovery;
 
   Future<void> _connect(CastDevice device) async {
     ClickCountInterstitialManager.recordClick(context, contextTag: 'device_connect');
@@ -208,6 +212,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                   SliverToBoxAdapter(
                     child: _Radar(
                       scanning: discovery.scanning,
+                      hotspot: discovery.hotspot,
                       devices: discovery.devices,
                       connectedId: conn.device?.id,
                       // Permission problems are explained once, in the banner below.
@@ -312,7 +317,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                           connection: conn,
                           onConnect: () => _connect(d),
                           onDisconnect: () => ref.read(connectionProvider.notifier).disconnect(),
-                        ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.15, end: 0, curve: Curves.easeOutCubic);
+                        );
                       },
                     ),
                   ),
@@ -323,12 +328,21 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 }
 
 class _Radar extends StatelessWidget {
-  const _Radar({required this.scanning, required this.devices, this.connectedId, this.statusOverride});
+  const _Radar({
+    required this.scanning,
+    required this.devices,
+    this.connectedId,
+    this.statusOverride,
+    this.hotspot = false,
+  });
 
   final bool scanning;
   final List<CastDevice> devices;
   final String? connectedId;
   final String? statusOverride;
+
+  /// The phone is sharing its hotspot: say so instead of "Wi-Fi".
+  final bool hotspot;
 
   int get found => devices.length;
 
@@ -338,7 +352,9 @@ class _Radar extends StatelessWidget {
     final label =
         statusOverride ??
         (scanning
-            ? (found == 0 ? context.l10n.lookingForTvsOn : context.l10n.foundSoFar(found))
+            ? (found == 0
+                  ? (hotspot ? context.l10n.lookingForTvsOnHotspot : context.l10n.lookingForTvsOn)
+                  : context.l10n.foundSoFar(found))
             : context.l10n.deviceFound(found, found == 1 ? '' : 's'));
 
     return Padding(

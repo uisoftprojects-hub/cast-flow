@@ -584,5 +584,21 @@
   "permissionBlockedInSettings": "Izin Diblokir di Pengaturan",
   "grantPermission": "Berikan Izin",
   "checkAgain": "Periksa Lagi",
-  "appName": "Cast ke TV"
+  "appName": "Cast ke TV",
+  "allowPermission": "Izinkan",
+  "openSettings": "Buka Setelan",
+  "noNetworkMessage": "Nyalakan Wi-Fi (jaringan yang sama dengan TV), atau bagikan hotspot ponsel dan hubungkan TV ke sana.",
+  "turnOnWifi": "Nyalakan Wi-Fi",
+  "waitingForNetwork": "Kami akan mulai mencari TV Anda begitu Anda terhubung.",
+  "howHotspotWorks": "Bagaimana cara transmisi lewat hotspot?",
+  "preparingForTv": "Menyiapkan untuk TV Anda…",
+  "convertingForTv": "Mengonversi untuk TV Anda… {percent}%",
+  "lookingForTvsOnHotspot": "Mencari TV di hotspot Anda",
+  "noInternetConnection": "Tidak ada koneksi internet. Periksa koneksi Anda dan coba lagi.",
+  "convertingToTvFormat": "Mengonversi ke format TV Anda",
+  "playMode": "Mode pemutaran",
+  "playModeOnce": "Putar sekali",
+  "playModeAutoplay": "Putar otomatis",
+  "playModeRepeatAll": "Ulangi semua",
+  "playModeRepeatOne": "Ulangi satu"
 }

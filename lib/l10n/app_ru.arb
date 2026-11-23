@@ -584,5 +584,21 @@
   "permissionBlockedInSettings": "Разрешение заблокировано в настройках",
   "grantPermission": "Предоставить разрешение",
   "checkAgain": "Проверить снова",
-  "appName": "Трансляция на ТВ"
+  "appName": "Трансляция на ТВ",
+  "allowPermission": "Разрешить",
+  "openSettings": "Открыть настройки",
+  "noNetworkMessage": "Включите Wi-Fi (ту же сеть, что и у телевизора) или раздайте точку доступа с телефона и подключите к ней телевизор.",
+  "turnOnWifi": "Включить Wi-Fi",
+  "waitingForNetwork": "Мы начнём искать телевизор, как только вы подключитесь.",
+  "howHotspotWorks": "Как работает трансляция через точку доступа?",
+  "preparingForTv": "Подготовка для телевизора…",
+  "convertingForTv": "Конвертация для телевизора… {percent}%",
+  "lookingForTvsOnHotspot": "Поиск телевизоров в вашей точке доступа",
+  "noInternetConnection": "Нет подключения к интернету. Проверьте соединение и повторите попытку.",
+  "convertingToTvFormat": "Конвертация в формат вашего телевизора",
+  "playMode": "Режим воспроизведения",
+  "playModeOnce": "Воспроизвести один раз",
+  "playModeAutoplay": "Автовоспроизведение",
+  "playModeRepeatAll": "Повторять все",
+  "playModeRepeatOne": "Повторять один"
 }

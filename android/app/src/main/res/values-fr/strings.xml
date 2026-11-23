@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Diffuser sur TV</string>
+    <string name="cast_session_channel">Diffusion</string>
+    <string name="cast_session_title">Diffusion vers votre TV</string>
+    <string name="cast_session_text">Le flux reste actif</string>
+    <string name="cast_session_converting">Préparation pour votre TV…</string>
 </resources>

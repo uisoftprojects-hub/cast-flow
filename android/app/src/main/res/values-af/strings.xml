@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Saai uit na TV</string>
+    <string name="cast_session_channel">Uitsending</string>
+    <string name="cast_session_title">Stuur na jou TV</string>
+    <string name="cast_session_text">Hou die stroom aan die gang</string>
+    <string name="cast_session_converting">Berei voor vir jou TV…</string>
 </resources>

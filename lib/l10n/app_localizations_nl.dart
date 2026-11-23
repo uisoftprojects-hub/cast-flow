@@ -1730,4 +1730,56 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get appName => 'Casten naar tv';
+
+  @override
+  String get allowPermission => 'Toestemming geven';
+
+  @override
+  String get openSettings => 'Instellingen openen';
+
+  @override
+  String get noNetworkMessage =>
+      'Zet wifi aan (hetzelfde netwerk als je tv) of deel de hotspot van je telefoon en verbind de tv ermee.';
+
+  @override
+  String get turnOnWifi => 'Wifi aanzetten';
+
+  @override
+  String get waitingForNetwork => 'We zoeken je tv zodra je verbonden bent.';
+
+  @override
+  String get howHotspotWorks => 'Hoe werkt casten via hotspot?';
+
+  @override
+  String get preparingForTv => 'Voorbereiden voor je tv…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Omzetten voor je tv… $percent%';
+  }
+
+  @override
+  String get lookingForTvsOnHotspot => 'Zoeken naar tv\'s op je hotspot';
+
+  @override
+  String get noInternetConnection =>
+      'Geen internetverbinding. Controleer je verbinding en probeer het opnieuw.';
+
+  @override
+  String get convertingToTvFormat => 'Omzetten naar het formaat van je tv';
+
+  @override
+  String get playMode => 'Afspeelmodus';
+
+  @override
+  String get playModeOnce => 'Eén keer afspelen';
+
+  @override
+  String get playModeAutoplay => 'Automatisch afspelen';
+
+  @override
+  String get playModeRepeatAll => 'Alles herhalen';
+
+  @override
+  String get playModeRepeatOne => 'Eén herhalen';
 }

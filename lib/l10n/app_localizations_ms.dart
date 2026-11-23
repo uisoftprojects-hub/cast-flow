@@ -1731,4 +1731,58 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get appName => 'Cast ke TV';
+
+  @override
+  String get allowPermission => 'Benarkan Kebenaran';
+
+  @override
+  String get openSettings => 'Buka Tetapan';
+
+  @override
+  String get noNetworkMessage =>
+      'Hidupkan Wi-Fi (rangkaian yang sama dengan TV), atau kongsi hotspot telefon dan sambungkan TV kepadanya.';
+
+  @override
+  String get turnOnWifi => 'Hidupkan Wi-Fi';
+
+  @override
+  String get waitingForNetwork =>
+      'Kami akan mula mencari TV anda sebaik sahaja anda bersambung.';
+
+  @override
+  String get howHotspotWorks =>
+      'Bagaimana penghantaran melalui hotspot berfungsi?';
+
+  @override
+  String get preparingForTv => 'Menyediakan untuk TV anda…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Menukar untuk TV anda… $percent%';
+  }
+
+  @override
+  String get lookingForTvsOnHotspot => 'Mencari TV pada hotspot anda';
+
+  @override
+  String get noInternetConnection =>
+      'Tiada sambungan internet. Semak sambungan anda dan cuba lagi.';
+
+  @override
+  String get convertingToTvFormat => 'Menukar kepada format TV anda';
+
+  @override
+  String get playMode => 'Mod main';
+
+  @override
+  String get playModeOnce => 'Main sekali';
+
+  @override
+  String get playModeAutoplay => 'Main automatik';
+
+  @override
+  String get playModeRepeatAll => 'Ulang semua';
+
+  @override
+  String get playModeRepeatOne => 'Ulang satu';
 }

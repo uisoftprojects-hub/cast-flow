@@ -1738,4 +1738,57 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get appName => 'Prześlij na TV';
+
+  @override
+  String get allowPermission => 'Zezwól';
+
+  @override
+  String get openSettings => 'Otwórz ustawienia';
+
+  @override
+  String get noNetworkMessage =>
+      'Włącz Wi-Fi (tę samą sieć co telewizor) albo udostępnij hotspot telefonu i połącz z nim telewizor.';
+
+  @override
+  String get turnOnWifi => 'Włącz Wi-Fi';
+
+  @override
+  String get waitingForNetwork =>
+      'Zaczniemy szukać telewizora, gdy tylko się połączysz.';
+
+  @override
+  String get howHotspotWorks => 'Jak działa przesyłanie przez hotspot?';
+
+  @override
+  String get preparingForTv => 'Przygotowywanie dla telewizora…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Konwertowanie dla telewizora… $percent%';
+  }
+
+  @override
+  String get lookingForTvsOnHotspot => 'Szukanie telewizorów w Twoim hotspocie';
+
+  @override
+  String get noInternetConnection =>
+      'Brak połączenia z internetem. Sprawdź połączenie i spróbuj ponownie.';
+
+  @override
+  String get convertingToTvFormat => 'Konwertowanie do formatu telewizora';
+
+  @override
+  String get playMode => 'Tryb odtwarzania';
+
+  @override
+  String get playModeOnce => 'Odtwórz raz';
+
+  @override
+  String get playModeAutoplay => 'Autoodtwarzanie';
+
+  @override
+  String get playModeRepeatAll => 'Powtarzaj wszystko';
+
+  @override
+  String get playModeRepeatOne => 'Powtarzaj jeden';
 }

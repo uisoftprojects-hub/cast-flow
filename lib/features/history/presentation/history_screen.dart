@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
@@ -184,7 +183,7 @@ class _HistoryTile extends ConsumerWidget {
             ],
           ),
         ),
-      ).animate().fadeIn(duration: 300.ms),
+      ),
     );
   }
 }

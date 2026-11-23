@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -185,14 +184,12 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
                 itemBuilder: (context, i) {
                   final entry = supportedLanguages.entries.elementAt(i);
                   return _LanguageRow(
-                        native: entry.value.$1,
-                        english: entry.value.$2,
-                        flag: entry.value.$3,
-                        selected: entry.key == _selected,
-                        onTap: () => setState(() => _selected = entry.key),
-                      )
-                      .animate(delay: ((i > 10 ? 10 : i) * 30).ms)
-                      .fadeIn(duration: 250.ms);
+                    native: entry.value.$1,
+                    english: entry.value.$2,
+                    flag: entry.value.$3,
+                    selected: entry.key == _selected,
+                    onTap: () => setState(() => _selected = entry.key),
+                  );
                 },
               ),
               // Medium native ad at bottom, full available width, ZERO horizontal padding

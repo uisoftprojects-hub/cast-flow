@@ -584,5 +584,21 @@
   "permissionBlockedInSettings": "Permesso bloccato nelle impostazioni",
   "grantPermission": "Concedi permesso",
   "checkAgain": "Controlla di nuovo",
-  "appName": "Trasmetti sulla TV"
+  "appName": "Trasmetti sulla TV",
+  "allowPermission": "Consenti autorizzazione",
+  "openSettings": "Apri Impostazioni",
+  "noNetworkMessage": "Attiva il Wi-Fi (la stessa rete della TV) oppure condividi l'hotspot del telefono e collega la TV.",
+  "turnOnWifi": "Attiva Wi-Fi",
+  "waitingForNetwork": "Cercheremo la tua TV appena sarai connesso.",
+  "howHotspotWorks": "Come funziona la trasmissione tramite hotspot?",
+  "preparingForTv": "Preparazione per la tua TV…",
+  "convertingForTv": "Conversione per la tua TV… {percent}%",
+  "lookingForTvsOnHotspot": "Ricerca di TV sul tuo hotspot",
+  "noInternetConnection": "Nessuna connessione a internet. Controlla la connessione e riprova.",
+  "convertingToTvFormat": "Conversione nel formato della tua TV",
+  "playMode": "Modalità di riproduzione",
+  "playModeOnce": "Riproduci una volta",
+  "playModeAutoplay": "Riproduzione automatica",
+  "playModeRepeatAll": "Ripeti tutto",
+  "playModeRepeatOne": "Ripeti uno"
 }

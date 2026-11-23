@@ -25,11 +25,47 @@ import '../../../core/l10n.dart';
 
 /// Screen mirroring: Start / Stop and its status on top, live details right
 /// under it, then plain-text tips and the quality choice, all on one screen.
-class MirroringScreen extends ConsumerWidget {
+class MirroringScreen extends ConsumerStatefulWidget {
   const MirroringScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MirroringScreen> createState() => _MirroringScreenState();
+}
+
+class _MirroringScreenState extends ConsumerState<MirroringScreen> {
+  /// Set from the first tap until the system Cast screen has been opened (or
+  /// the start was abandoned): fast double taps and taps while an
+  /// interstitial is up never start mirroring twice.
+  bool _starting = false;
+
+  Future<void> _start() async {
+    if (_starting) return;
+    _starting = true;
+    try {
+      // Mirroring needs Wi-Fi or the phone's hotspot. Without either, the
+      // no-network screen is shown instead (it returns true once connected).
+      if (!await requireNetwork(
+        context,
+        source: 'mirroring',
+        // Mirroring only needs Wi-Fi; photos, videos and music stay reachable below.
+        showHotspot: false,
+        footer: const _MirrorOfflineCast(),
+      )) {
+        return;
+      }
+      if (!mounted) return;
+      // When this tap shows an interstitial, wait until it is dismissed (or
+      // failed to load / show) so the Cast screen never opens behind the ad.
+      await ClickCountInterstitialManager.recordClick(context, contextTag: 'start_mirroring');
+      if (!mounted) return;
+      await ref.read(mirroringProvider.notifier).start();
+    } finally {
+      _starting = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final m = ref.watch(mirroringProvider);
     final net = ref.watch(networkProvider);
     final ctrl = ref.read(mirroringProvider.notifier);
@@ -51,17 +87,7 @@ class MirroringScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, AppSpace.lg),
             child: Column(
               children: [
-                _StartArea(
-                  size: startSize,
-                  state: m,
-                  onTap: m.isLive
-                      ? ctrl.stop
-                      : () async {
-                          ClickCountInterstitialManager.recordClick(context, contextTag: 'start_mirroring');
-                          // Mirroring needs Wi-Fi or the phone's hotspot.
-                          if (await requireNetwork(context, source: 'mirroring')) ctrl.start();
-                        },
-                ),
+                _StartArea(size: startSize, state: m, onTap: m.isLive ? ctrl.stop : _start),
                 AnimatedSize(
                   duration: AppDurations.medium,
                   curve: Curves.easeOutCubic,
@@ -122,6 +148,22 @@ class MirroringScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Bottom of the no-Wi-Fi screen: the cast shortcuts for the phone's own media.
+class _MirrorOfflineCast extends StatelessWidget {
+  const _MirrorOfflineCast();
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(context.l10n.castPhotosVideosMusic, style: context.text.labelLarge),
+      const SizedBox(height: 8),
+      const MediaShortcuts(),
+    ],
+  );
 }
 
 /// Status line, the round Start / Stop button and what it is doing.

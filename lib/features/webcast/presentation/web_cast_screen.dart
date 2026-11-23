@@ -578,7 +578,7 @@ class _StartPage extends StatelessWidget {
                     spacing: AppSpace.md,
                     runSpacing: AppSpace.lg,
                     children: [
-                      for (final (i, s) in quickSites.indexed)
+                      for (final s in quickSites)
                         SizedBox(
                           width: 72,
                           child: TapScale(
@@ -606,7 +606,7 @@ class _StartPage extends StatelessWidget {
                               ],
                             ),
                           ),
-                        ).animate(delay: (40 * i).ms).fadeIn().scale(begin: const Offset(0.9, 0.9)),
+                        ),
                     ],
                   ),
                   const SizedBox(height: AppSpace.xxl),

@@ -1716,4 +1716,57 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appName => 'Cast to TV';
+
+  @override
+  String get allowPermission => 'Allow Permission';
+
+  @override
+  String get openSettings => 'Open Settings';
+
+  @override
+  String get noNetworkMessage =>
+      'Turn on Wi-Fi (the same network as your TV), or share your phone\'s hotspot and connect the TV to it.';
+
+  @override
+  String get turnOnWifi => 'Turn on Wi-Fi';
+
+  @override
+  String get waitingForNetwork =>
+      'We\'ll start looking for your TV as soon as you\'re connected.';
+
+  @override
+  String get howHotspotWorks => 'How does casting over hotspot work?';
+
+  @override
+  String get preparingForTv => 'Preparing for your TV…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'Converting for your TV… $percent%';
+  }
+
+  @override
+  String get lookingForTvsOnHotspot => 'Looking for TVs on your hotspot';
+
+  @override
+  String get noInternetConnection =>
+      'No internet connection. Check your connection and try again.';
+
+  @override
+  String get convertingToTvFormat => 'Converting to your TV\'s format';
+
+  @override
+  String get playMode => 'Playback mode';
+
+  @override
+  String get playModeOnce => 'Play once';
+
+  @override
+  String get playModeAutoplay => 'Autoplay';
+
+  @override
+  String get playModeRepeatAll => 'Repeat all';
+
+  @override
+  String get playModeRepeatOne => 'Repeat one';
 }

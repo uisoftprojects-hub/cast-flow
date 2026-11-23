@@ -508,5 +508,21 @@
   "permissionBlockedInSettings": "Дозвіл заблоковано в налаштуваннях",
   "grantPermission": "Надати дозвіл",
   "checkAgain": "Перевірити ще раз",
-  "appName": "Трансляція на ТБ"
+  "appName": "Трансляція на ТБ",
+  "allowPermission": "Дозволити",
+  "openSettings": "Відкрити налаштування",
+  "noNetworkMessage": "Увімкніть Wi-Fi (ту саму мережу, що й у телевізора) або роздайте точку доступу з телефона й під'єднайте до неї телевізор.",
+  "turnOnWifi": "Увімкнути Wi-Fi",
+  "waitingForNetwork": "Ми почнемо шукати телевізор, щойно ви під'єднаєтеся.",
+  "howHotspotWorks": "Як працює трансляція через точку доступу?",
+  "preparingForTv": "Підготовка для телевізора…",
+  "convertingForTv": "Конвертація для телевізора… {percent}%",
+  "lookingForTvsOnHotspot": "Пошук телевізорів у вашій точці доступу",
+  "noInternetConnection": "Немає підключення до інтернету. Перевірте з'єднання й спробуйте ще раз.",
+  "convertingToTvFormat": "Конвертація у формат вашого телевізора",
+  "playMode": "Режим відтворення",
+  "playModeOnce": "Відтворити раз",
+  "playModeAutoplay": "Автовідтворення",
+  "playModeRepeatAll": "Повторювати все",
+  "playModeRepeatOne": "Повторювати один"
 }

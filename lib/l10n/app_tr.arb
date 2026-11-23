@@ -584,5 +584,21 @@
   "permissionBlockedInSettings": "Ayarlarda İzin Engellendi",
   "grantPermission": "İzin Ver",
   "checkAgain": "Tekrar Kontrol Et",
-  "appName": "TV'ye Yansıt"
+  "appName": "TV'ye Yansıt",
+  "allowPermission": "İzin ver",
+  "openSettings": "Ayarları aç",
+  "noNetworkMessage": "Wi-Fi'ı açın (TV ile aynı ağ) ya da telefonun hotspot'unu paylaşıp TV'yi ona bağlayın.",
+  "turnOnWifi": "Wi-Fi'ı aç",
+  "waitingForNetwork": "Bağlandığınız anda TV'nizi aramaya başlayacağız.",
+  "howHotspotWorks": "Hotspot üzerinden yayın nasıl çalışır?",
+  "preparingForTv": "TV'niz için hazırlanıyor…",
+  "convertingForTv": "TV'niz için dönüştürülüyor… %{percent}",
+  "lookingForTvsOnHotspot": "Hotspot'unuzda TV'ler aranıyor",
+  "noInternetConnection": "İnternet bağlantısı yok. Bağlantınızı kontrol edip tekrar deneyin.",
+  "convertingToTvFormat": "TV'nizin biçimine dönüştürülüyor",
+  "playMode": "Oynatma modu",
+  "playModeOnce": "Bir kez oynat",
+  "playModeAutoplay": "Otomatik oynat",
+  "playModeRepeatAll": "Tümünü tekrarla",
+  "playModeRepeatOne": "Birini tekrarla"
 }

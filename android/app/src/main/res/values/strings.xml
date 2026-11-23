@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Cast to TV</string>
+    <string name="cast_session_channel">Casting</string>
+    <string name="cast_session_title">Casting to your TV</string>
+    <string name="cast_session_text">Keeping the stream running</string>
+    <string name="cast_session_converting">Preparing for your TV…</string>
 </resources>

@@ -51,8 +51,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
     }
 
-    expect(find.text('Connect with Wi-Fi'), findsOneWidget);
-    expect(find.text('Continue with hotspot'), findsOneWidget);
+    expect(find.text('Turn on Wi-Fi'), findsOneWidget);
+    expect(find.text('Use Mobile Hotspot'), findsNothing, reason: 'mirroring offers Wi-Fi only');
+    expect(find.text('Cast photos, videos & music'), findsOneWidget);
     expect(c.read(mirroringProvider).phase, MirrorPhase.idle);
     expect(pickerOpened, isFalse);
 

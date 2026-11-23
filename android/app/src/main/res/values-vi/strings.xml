@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Truyền lên TV</string>
+    <string name="cast_session_channel">Truyền</string>
+    <string name="cast_session_title">Đang truyền tới TV</string>
+    <string name="cast_session_text">Giữ luồng phát hoạt động</string>
+    <string name="cast_session_converting">Đang chuẩn bị cho TV…</string>
 </resources>

@@ -82,7 +82,17 @@ class _RateSheetState extends ConsumerState<_RateSheet> {
     for (var i = 1; i <= 5; i++) {
       _timers.add(Timer(Duration(milliseconds: 100 * i), () => mounted ? setState(() => _intro = i) : null));
     }
-    _timers.add(Timer(const Duration(milliseconds: 800), () => mounted ? setState(() => _intro = 0) : null));
+    // When the hint ends, the Settings popup rests on 5 stars (the user can change it).
+    // The exit sheet keeps "no rating" so its button stays "Tap to exit".
+    _timers.add(
+      Timer(const Duration(milliseconds: 800), () {
+        if (!mounted) return;
+        setState(() {
+          _intro = 0;
+          if (!widget.exit && _rating == 0) _rating = 5;
+        });
+      }),
+    );
   }
 
   @override

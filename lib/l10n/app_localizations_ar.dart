@@ -1700,4 +1700,56 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get appName => 'البث إلى التلفزيون';
+
+  @override
+  String get allowPermission => 'السماح بالإذن';
+
+  @override
+  String get openSettings => 'فتح الإعدادات';
+
+  @override
+  String get noNetworkMessage =>
+      'شغّل Wi-Fi (نفس شبكة التلفزيون)، أو شارك نقطة اتصال هاتفك ووصّل التلفزيون بها.';
+
+  @override
+  String get turnOnWifi => 'تشغيل Wi-Fi';
+
+  @override
+  String get waitingForNetwork => 'سنبدأ البحث عن التلفزيون فور اتصالك.';
+
+  @override
+  String get howHotspotWorks => 'كيف يعمل البث عبر نقطة الاتصال؟';
+
+  @override
+  String get preparingForTv => 'جارٍ التحضير للتلفزيون…';
+
+  @override
+  String convertingForTv(int percent) {
+    return 'جارٍ التحويل للتلفزيون… $percent%';
+  }
+
+  @override
+  String get lookingForTvsOnHotspot => 'جارٍ البحث عن تلفازات على نقطة الاتصال';
+
+  @override
+  String get noInternetConnection =>
+      'لا يوجد اتصال بالإنترنت. تحقق من الاتصال وحاول مرة أخرى.';
+
+  @override
+  String get convertingToTvFormat => 'جارٍ التحويل إلى صيغة تلفازك';
+
+  @override
+  String get playMode => 'وضع التشغيل';
+
+  @override
+  String get playModeOnce => 'تشغيل مرة واحدة';
+
+  @override
+  String get playModeAutoplay => 'تشغيل تلقائي';
+
+  @override
+  String get playModeRepeatAll => 'تكرار الكل';
+
+  @override
+  String get playModeRepeatOne => 'تكرار الحالي';
 }

@@ -584,5 +584,21 @@
   "permissionBlockedInSettings": "ترتیبات میں اجازت بلاک ہے",
   "grantPermission": "اجازت دیں",
   "checkAgain": "دوبارہ چیک کریں",
-  "appName": "ٹی وی پر کاسٹ"
+  "appName": "ٹی وی پر کاسٹ",
+  "allowPermission": "اجازت دیں",
+  "openSettings": "سیٹنگز کھولیں",
+  "noNetworkMessage": "وائی فائی آن کریں (وہی نیٹ ورک جس پر ٹی وی ہے)، یا فون کا ہاٹ اسپاٹ آن کر کے ٹی وی کو اس سے جوڑیں۔",
+  "turnOnWifi": "وائی فائی آن کریں",
+  "waitingForNetwork": "کنیکٹ ہوتے ہی ہم آپ کا ٹی وی ڈھونڈنا شروع کر دیں گے۔",
+  "howHotspotWorks": "ہاٹ اسپاٹ سے کاسٹنگ کیسے کام کرتی ہے؟",
+  "preparingForTv": "آپ کے ٹی وی کے لیے تیار کیا جا رہا ہے…",
+  "convertingForTv": "آپ کے ٹی وی کے لیے تبدیل کیا جا رہا ہے… {percent}%",
+  "lookingForTvsOnHotspot": "آپ کے ہاٹ اسپاٹ پر ٹی وی تلاش کیے جا رہے ہیں",
+  "noInternetConnection": "انٹرنیٹ کنکشن نہیں ہے۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
+  "convertingToTvFormat": "آپ کے ٹی وی کے فارمیٹ میں تبدیل کیا جا رہا ہے",
+  "playMode": "پلے بیک موڈ",
+  "playModeOnce": "ایک بار چلائیں",
+  "playModeAutoplay": "آٹو پلے",
+  "playModeRepeatAll": "سب دہرائیں",
+  "playModeRepeatOne": "ایک دہرائیں"
 }

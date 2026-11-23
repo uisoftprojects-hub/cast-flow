@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TV\'ye Yansıt</string>
+    <string name="cast_session_channel">Yayın</string>
+    <string name="cast_session_title">TV\'nize yayınlanıyor</string>
+    <string name="cast_session_text">Yayın devam ediyor</string>
+    <string name="cast_session_converting">TV\'niz için hazırlanıyor…</string>
 </resources>
