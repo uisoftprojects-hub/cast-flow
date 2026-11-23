@@ -77,7 +77,14 @@ class DiscoveryController extends Notifier<DiscoveryState> {
   DiscoveryState build() {
     ref.onDispose(_cancel);
     ref.listen(networkProvider, (prev, next) {
-      if (next != null && next.ready && state.networkRequired) scan();
+      // Wi-Fi (or the hotspot) came back: carry on by itself instead of leaving
+      // the "no network" / error screen up until the user taps Retry.
+      final cameBack = prev?.ready != true;
+      if (next != null &&
+          next.ready &&
+          (state.networkRequired || (cameBack && (state.phase == DiscoveryPhase.failed || state.error != null)))) {
+        scan();
+      }
       if (next != null && !next.ready && (state.scanning || state.hotspot)) {
         _run++;
         _cancel();
@@ -388,6 +395,13 @@ class ConnectionController extends Notifier<CastConnection> {
     ref.listen(networkProvider, (prev, next) {
       if (next != null && !next.ready && state.isConnected) {
         state = CastConnection(status: ConnectionStatus.failed, device: state.device, error: networkLost);
+      } else if (next != null &&
+          next.ready &&
+          state.status == ConnectionStatus.failed &&
+          state.error == networkLost &&
+          state.device != null) {
+        // The network is back: reconnect to the TV that was lost, no tap needed.
+        unawaited(connect(state.device!));
       }
     });
     return const CastConnection();

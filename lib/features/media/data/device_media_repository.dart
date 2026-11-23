@@ -50,9 +50,12 @@ class DeviceMediaRepository implements MediaRepository {
   /// counts as access), READ_EXTERNAL_STORAGE up to 12.
   Future<List<ph.Permission>> _permissionsFor(RequestType type) async {
     if (await _sdkInt() <= 32) return [ph.Permission.storage];
+    // Photos and videos are one "photos and videos" prompt: ask for both
+    // together whichever screen asked, so allowing it from Videos also opens
+    // Photos (and the other way round), instead of leaving the other empty.
+    final visual = type.containsImage() || type.containsVideo();
     return [
-      if (type.containsImage()) ph.Permission.photos,
-      if (type.containsVideo()) ph.Permission.videos,
+      if (visual) ...[ph.Permission.photos, ph.Permission.videos],
       if (type.containsAudio()) ph.Permission.audio,
     ];
   }
@@ -93,7 +96,8 @@ class DeviceMediaRepository implements MediaRepository {
       () => PhotoManager.requestPermissionExtend(
         requestOption: PermissionRequestOption(
           androidPermission: AndroidPermission(
-            type: type,
+            // Photos and videos share one grant (see _permissionsFor).
+            type: type.containsImage() || type.containsVideo() ? RequestType.common : type,
             mediaLocation: false,
           ),
         ),

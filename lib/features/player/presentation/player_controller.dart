@@ -49,7 +49,28 @@ class PlayerController extends Notifier<PlaybackState> {
     ref.onDispose(() => _ticker?.cancel());
     // Losing the receiver ends the session.
     ref.listen(connectionProvider, (prev, next) {
-      if (prev?.isConnected == true && !next.isConnected) stop();
+      if (prev?.isConnected == true && !next.isConnected) {
+        // Lost because the network dropped: remember what was playing so it
+        // carries on by itself when the network and the TV are back.
+        if (next.error == ConnectionController.networkLost && state.isActive) {
+          _resume = (
+            deviceId: prev?.device?.id,
+            queue: state.queue,
+            index: state.index,
+            position: state.position,
+            slideshow: state.slideshowInterval,
+          );
+        }
+        stop();
+      } else if (next.isConnected && _resume != null) {
+        final r = _resume!;
+        _resume = null;
+        // Only the TV that was lost: a different TV starts from scratch.
+        if (r.deviceId == next.device?.id) {
+          _resumeSeek = r.position;
+          play(r.queue, index: r.index, slideshowInterval: r.slideshow);
+        }
+      }
     });
     // The notification's buttons and seek bar drive the player like the screen does.
     CastSessionChannel.onCommand = _onSessionCommand;
@@ -76,6 +97,12 @@ class PlayerController extends Notifier<PlaybackState> {
         stop();
     }
   }
+
+  /// What was playing when the network dropped (see build).
+  ({String? deviceId, List<CastMedia> queue, int index, Duration position, Duration? slideshow})? _resume;
+
+  /// Position to seek to once the resumed item is on the TV.
+  Duration? _resumeSeek;
 
   PlaybackState? _lastSynced;
   DateTime _lastSyncAt = DateTime.now();
@@ -123,6 +150,7 @@ class PlayerController extends Notifier<PlaybackState> {
     Duration? slideshowInterval,
   }) {
     if (queue.isEmpty) return;
+    _resume = null; // a new cast replaces anything waiting to resume
     ref.read(analyticsProvider).log(AnalyticsEvent.castStart, {
       AnalyticsParam.mediaType: queue[index].kind,
       AnalyticsParam.itemCount: queue.length,
@@ -299,6 +327,9 @@ class PlayerController extends Notifier<PlaybackState> {
         .then((_) {
           if (gen != _loadGen || state.media != media) return;
           _loadedAt = DateTime.now();
+          final seekTo = _resumeSeek;
+          _resumeSeek = null;
+          if (seekTo != null && seekTo > const Duration(seconds: 3) && _isStream(media)) seek(seekTo);
           state = state.copyWith(
             playing: true,
             clearError: true,
