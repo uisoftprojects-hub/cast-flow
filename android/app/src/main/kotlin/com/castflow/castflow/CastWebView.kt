@@ -181,12 +181,27 @@ class CastWebView(context: Context, messenger: BinaryMessenger, id: Int, initial
             // are confirmed by content type on the Dart side.
             val ranged = request.requestHeaders.keys.any { it.equals("Range", true) } &&
                 SKIP_EXTENSIONS.none { path.endsWith(it) }
-            if (!byExtension && !ranged) return null
-            if (!reported.add(url.substringBefore('#'))) return null
+            // YouTube: ranges ride in the query, not a header. Only itag 18/22 are
+            // muxed (video+audio); the adaptive ones would cast without sound.
+            val host = (request.url.host ?: "").lowercase()
+            val itag = request.url.getQueryParameter("itag")
+            val youtube = host.endsWith("googlevideo.com") && path.endsWith("/videoplayback") &&
+                (itag == "18" || itag == "22")
+            if (!byExtension && !ranged && !youtube) return null
+            // YouTube repeats the same stream per chunk with a different range/rn/rbuf.
+            val reportUrl = if (youtube) {
+                val b = request.url.buildUpon().clearQuery()
+                for (name in request.url.queryParameterNames) {
+                    if (name == "range" || name == "rn" || name == "rbuf") continue
+                    for (v in request.url.getQueryParameters(name)) b.appendQueryParameter(name, v)
+                }
+                b.build().toString()
+            } else url
+            if (!reported.add(reportUrl.substringBefore('#'))) return null
             send(
                 "resource",
                 mapOf(
-                    "url" to url,
+                    "url" to reportUrl,
                     "token" to token,
                     "probe" to !byExtension,
                     "headers" to headersFor(url, request.requestHeaders),
