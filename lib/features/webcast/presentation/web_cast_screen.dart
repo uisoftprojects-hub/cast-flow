@@ -378,10 +378,8 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
         appBar: CastAppBar(title: context.l10n.webCast),
         bottomNavigationBar: native
             ? BrowserBottomBar(
-                count: videos.count,
                 onBack: _canBack ? _web.back : null,
                 onForward: _canForward ? _web.forward : null,
-                onCast: _onCastTap,
                 onStartPage: _home,
               )
             : null,

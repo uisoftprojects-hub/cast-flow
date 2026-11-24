@@ -51,6 +51,7 @@ Widget _wrap(Widget child, {ThemeData? theme}) => MaterialApp(
 
 void main() {
   setUpAll(() => HttpOverrides.global = null);
+  browserBarTests();
 
   group('What can be done with a web video on the connected TV', () {
     test('no TV yet: everything not protected is castable (it is checked at cast time)', () {
@@ -347,4 +348,19 @@ class _FeedConverter extends MediaConverter {
       c.close();
     }
   }
+}
+
+void browserBarTests() {
+  testWidgets('the browser bottom bar has back, forward and home only: Cast to TV is the pill', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: BrowserBottomBar(onBack: null, onForward: () {}, onStartPage: () {})),
+      ),
+    );
+    expect(find.byType(IconButton), findsNWidgets(3));
+    expect(find.byIcon(Icons.cast_rounded), findsNothing);
+  });
 }

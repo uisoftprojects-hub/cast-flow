@@ -17,22 +17,13 @@ import '../../player/presentation/player_controller.dart';
 import '../domain/video_rules.dart';
 import '../domain/web_video.dart';
 
-/// Browser bottom navigation: back, forward, Cast (with count badge) and the
-/// start page.
+/// Browser bottom navigation: back, forward and the start page. Casting is the
+/// "Cast to TV" pill over the page ([CastToTvPill]), the one and only cast option.
 class BrowserBottomBar extends StatelessWidget {
-  const BrowserBottomBar({
-    super.key,
-    required this.count,
-    required this.onBack,
-    required this.onForward,
-    required this.onCast,
-    required this.onStartPage,
-  });
+  const BrowserBottomBar({super.key, required this.onBack, required this.onForward, required this.onStartPage});
 
-  final int count;
   final VoidCallback? onBack;
   final VoidCallback? onForward;
-  final VoidCallback onCast;
   final VoidCallback onStartPage;
 
   @override
@@ -56,98 +47,8 @@ class BrowserBottomBar extends StatelessWidget {
             children: [
               item(Iconsax.arrow_left_2_copy, l.browserBack, onBack),
               item(Iconsax.arrow_right_3_copy, l.browserForward, onForward),
-              CastNavButton(count: count, onTap: onCast),
               item(Iconsax.home_2_copy, l.browserStartPage, onStartPage),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Dimmed until a video is found; then active with a count badge and a
-/// subtle pulse.
-class CastNavButton extends StatelessWidget {
-  const CastNavButton({super.key, required this.count, required this.onTap});
-
-  final int count;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.palette;
-    final active = count > 0;
-    final icon = AnimatedContainer(
-      duration: AppDurations.medium,
-      width: 52,
-      height: 40,
-      decoration: BoxDecoration(
-        gradient: active ? AppColors.mainGradient : null,
-        color: active ? null : p.primaryTint.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        boxShadow: active ? AppShadows.glow(AppColors.primary) : null,
-      ),
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.cast_rounded,
-        size: 22,
-        color: active ? Colors.white : p.textSecondary.withValues(alpha: 0.55),
-      ),
-    );
-    return Semantics(
-      button: true,
-      label: active ? context.l10n.castVideoCount(count) : context.l10n.castVideo,
-      child: Tooltip(
-        message: context.l10n.castVideo,
-        child: InkResponse(
-          onTap: onTap,
-          radius: 32,
-          child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                if (active)
-                  icon
-                      .animate(key: const ValueKey('pulse'), onPlay: (c) => context.loopMotion(c, reverse: true))
-                      .scale(
-                        begin: const Offset(1, 1),
-                        end: const Offset(1.07, 1.07),
-                        duration: 900.ms,
-                        curve: Curves.easeInOut,
-                      )
-                else
-                  icon,
-                if (active)
-                  PositionedDirectional(
-                    top: -6,
-                    end: -6,
-                    child: ExcludeSemantics(
-                      child: Container(
-                        constraints: const BoxConstraints(minWidth: 20),
-                        height: 20,
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: p.surface, width: 2),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          count > 9 ? '9+' : '$count',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            height: 1,
-                          ),
-                        ),
-                      ),
-                    ).animate(key: ValueKey(count)).scale(begin: const Offset(0.4, 0.4), curve: Curves.easeOutBack),
-                  ),
-              ],
-            ),
           ),
         ),
       ),

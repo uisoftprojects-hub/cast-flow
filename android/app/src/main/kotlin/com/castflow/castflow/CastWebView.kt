@@ -319,9 +319,20 @@ class CastWebView(context: Context, messenger: BinaryMessenger, id: Int, initial
       b.setAttribute('aria-label', 'Cast to TV');
       b.style.cssText = 'position:fixed;width:42px;height:42px;border-radius:21px;background:linear-gradient(135deg,#3B82F6,#1D4ED8);box-shadow:0 2px 10px rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;pointer-events:auto;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;';
       b.innerHTML = CAST_SVG;
+      // The page must not react to the tap (play/pause, navigation), so the touch events
+      // are swallowed. That also stops the browser from sending the click that follows
+      // a touch, so the cast is triggered on release (touch / pointer / mouse) and the
+      // click only as a fallback; the guard makes one tap fire once.
       var eat = function(e){ try { e.preventDefault(); e.stopPropagation(); } catch(x){} };
-      ['touchstart','touchend','mousedown','mouseup','pointerdown','pointerup'].forEach(function(n){ b.addEventListener(n, eat, true); });
-      b.addEventListener('click', function(e){ eat(e); try { B.castTap(JSON.stringify({url: srcOf(v)})); } catch(x){} }, true);
+      var fire = function(e){
+        eat(e);
+        var now = Date.now();
+        if (b.__t && now - b.__t < 600) return;
+        b.__t = now;
+        try { B.castTap(JSON.stringify({url: srcOf(v)})); } catch(x){}
+      };
+      ['touchstart','pointerdown','mousedown','mouseup'].forEach(function(n){ b.addEventListener(n, eat, true); });
+      ['touchend','pointerup','click'].forEach(function(n){ b.addEventListener(n, fire, true); });
       layer().appendChild(b);
       v.__cfBtn = b;
       tracked.push(v);
