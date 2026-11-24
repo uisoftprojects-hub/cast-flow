@@ -3319,6 +3319,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'About {time} left'**
   String convertingTimeLeft(Object time);
+
+  /// No description provided for @howToMirror.
+  ///
+  /// In en, this message translates to:
+  /// **'How to mirror'**
+  String get howToMirror;
+
+  /// No description provided for @mirrorStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone and TV must be on the same Wi-Fi'**
+  String get mirrorStep1;
+
+  /// No description provided for @mirrorStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Start mirroring, then choose your TV from the list'**
+  String get mirrorStep2;
+
+  /// No description provided for @mirrorStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap ⋮ and turn on Enable wireless display'**
+  String get mirrorStep3;
+
+  /// No description provided for @mirrorStep4.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn the phone sideways for full-screen video'**
+  String get mirrorStep4;
+
+  /// No description provided for @convertThis.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert this'**
+  String get convertThis;
+
+  /// No description provided for @videoCannotBeCast.
+  ///
+  /// In en, this message translates to:
+  /// **'This video cannot be cast from this page'**
+  String get videoCannotBeCast;
+
+  /// No description provided for @videoNotSupportedByTv.
+  ///
+  /// In en, this message translates to:
+  /// **'{device} can\'t play {format} directly'**
+  String videoNotSupportedByTv(Object device, Object format);
+
+  /// No description provided for @liveStreamUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'{device} can\'t play this live stream, and live streams can\'t be converted'**
+  String liveStreamUnsupported(Object device);
 }
 
 class _AppLocalizationsDelegate

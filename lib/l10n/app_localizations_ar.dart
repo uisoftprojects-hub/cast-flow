@@ -1769,4 +1769,35 @@ class AppLocalizationsAr extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return 'متبقٍ نحو $time';
   }
+
+  @override
+  String get howToMirror => 'كيفية عرض الشاشة';
+
+  @override
+  String get mirrorStep1 => 'يجب أن يكون الهاتف والتلفاز على شبكة Wi-Fi نفسها';
+
+  @override
+  String get mirrorStep2 => 'اضغط «بدء العرض» ثم اختر التلفاز من القائمة';
+
+  @override
+  String get mirrorStep3 => 'اضغط ⋮ ثم فعّل «تمكين العرض اللاسلكي»';
+
+  @override
+  String get mirrorStep4 => 'أدِر الهاتف أفقيًا لعرض الفيديو بملء الشاشة';
+
+  @override
+  String get convertThis => 'حوّل هذا';
+
+  @override
+  String get videoCannotBeCast => 'لا يمكن بث هذا الفيديو من هذه الصفحة';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return 'لا يستطيع $device تشغيل $format مباشرة';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return 'لا يستطيع $device تشغيل هذا البث المباشر ولا يمكن تحويل البث المباشر';
+  }
 }

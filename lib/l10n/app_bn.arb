@@ -604,5 +604,14 @@
   "convertingExplain": "আপনার টিভি সরাসরি {from} চালাতে পারে না, তাই এটি {to}-এ রূপান্তর করা হচ্ছে।",
   "convertingKeepOpen": "অ্যাপ খোলা রাখুন। প্রস্তুত হলে এটি নিজে থেকেই টিভিতে চালু হবে।",
   "checkingTvFormats": "আপনার টিভি কী চালাতে পারে তা দেখা হচ্ছে…",
-  "convertingTimeLeft": "আর প্রায় {time}"
+  "convertingTimeLeft": "আর প্রায় {time}",
+  "howToMirror": "কীভাবে মিরর করবেন",
+  "mirrorStep1": "আপনার ফোন ও টিভি একই Wi-Fi-তে থাকতে হবে",
+  "mirrorStep2": "মিররিং শুরু করুন-এ ট্যাপ করে তালিকা থেকে টিভি বেছে নিন",
+  "mirrorStep3": "⋮-এ ট্যাপ করে “ওয়্যারলেস ডিসপ্লে চালু করুন” অন করুন",
+  "mirrorStep4": "পূর্ণ স্ক্রিন ভিডিওর জন্য ফোন পাশে ঘোরান",
+  "convertThis": "এটি রূপান্তর করুন",
+  "videoCannotBeCast": "এই পেজ থেকে এই ভিডিও কাস্ট করা যাবে না",
+  "videoNotSupportedByTv": "{device} সরাসরি {format} চালাতে পারে না",
+  "liveStreamUnsupported": "{device} এই লাইভ স্ট্রিম চালাতে পারে না, আর লাইভ স্ট্রিম রূপান্তর করা যায় না"
 }

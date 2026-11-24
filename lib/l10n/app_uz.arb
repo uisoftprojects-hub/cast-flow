@@ -528,5 +528,14 @@
   "convertingExplain": "Televizoringiz {from} ni to‘g‘ridan-to‘g‘ri ijro eta olmaydi, shuning uchun u {to} ga o‘zgartirilmoqda.",
   "convertingKeepOpen": "Ilovani ochiq qoldiring. Tayyor bo‘lgach televizorda o‘zi boshlanadi.",
   "checkingTvFormats": "Televizoringiz nimani ijro eta olishi tekshirilmoqda…",
-  "convertingTimeLeft": "Taxminan {time} qoldi"
+  "convertingTimeLeft": "Taxminan {time} qoldi",
+  "howToMirror": "Ekranni qanday aks ettirish",
+  "mirrorStep1": "Telefon va televizor bir xil Wi-Fi’da bo‘lishi kerak",
+  "mirrorStep2": "Aks ettirishni boshlash ni bosing, so‘ng ro‘yxatdan televizorni tanlang",
+  "mirrorStep3": "⋮ ni bosing va Simsiz displeyni yoqish ni yoqing",
+  "mirrorStep4": "To‘liq ekran video uchun telefonni yonlama qiling",
+  "convertThis": "Aylantirish",
+  "videoCannotBeCast": "Bu videoni ushbu sahifadan uzatib bo‘lmaydi",
+  "videoNotSupportedByTv": "{device} {format} ni to‘g‘ridan-to‘g‘ri ijro eta olmaydi",
+  "liveStreamUnsupported": "{device} bu jonli efirni ijro eta olmaydi va jonli efirni o‘zgartirib bo‘lmaydi"
 }

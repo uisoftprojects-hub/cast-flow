@@ -528,5 +528,14 @@
   "convertingExplain": "Jou TV kan nie {from} direk speel nie, daarom word dit na {to} omgeskakel.",
   "convertingKeepOpen": "Hou die toep oop. Dit begin vanself op jou TV wanneer dit gereed is.",
   "checkingTvFormats": "Kyk wat jou TV kan speel…",
-  "convertingTimeLeft": "Nog ongeveer {time}"
+  "convertingTimeLeft": "Nog ongeveer {time}",
+  "howToMirror": "Hoe om te spieël",
+  "mirrorStep1": "Jou foon en TV moet op dieselfde Wi-Fi wees",
+  "mirrorStep2": "Tik Begin spieël en kies dan jou TV uit die lys",
+  "mirrorStep3": "Tik ⋮ en skakel Aktiveer draadlose skerm aan",
+  "mirrorStep4": "Draai die foon opsy vir volskermvideo",
+  "convertThis": "Skakel dit om",
+  "videoCannotBeCast": "Hierdie video kan nie vanaf hierdie bladsy uitgesaai word nie",
+  "videoNotSupportedByTv": "{device} kan nie {format} direk speel nie",
+  "liveStreamUnsupported": "{device} kan nie hierdie regstreekse stroom speel nie, en regstreekse strome kan nie omgeskakel word nie"
 }

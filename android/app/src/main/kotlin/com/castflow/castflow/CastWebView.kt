@@ -221,6 +221,18 @@ class CastWebView(context: Context, messenger: BinaryMessenger, id: Int, initial
             }
         }
 
+        /** The cast icon drawn over a video on the page was tapped. */
+        @JavascriptInterface
+        fun castTap(json: String) {
+            val t = token
+            try {
+                val url = JSONObject(json).optString("url")
+                send("castTap", mapOf("url" to url, "token" to t))
+            } catch (_: Exception) {
+                send("castTap", mapOf("url" to "", "token" to t))
+            }
+        }
+
         @JavascriptInterface
         fun drm() {
             val t = token
@@ -281,11 +293,76 @@ class CastWebView(context: Context, messenger: BinaryMessenger, id: Int, initial
       }
       check(v);
     }
-    function scan(){ try { var vs = document.querySelectorAll('video'); for (var i = 0; i < vs.length; i++) watch(vs[i]); } catch(e){} }
+    function scan(){ try { var vs = document.querySelectorAll('video'); for (var i = 0; i < vs.length; i++) watch(vs[i]); } catch(e){} soon(); }
+    // A round cast button drawn over every video on the page (not part of the page's own DOM
+    // tree: one fixed layer that lets everything else through). Tapping it asks the app to cast.
+    var ovRoot = null, tracked = [], raf = 0;
+    var CAST_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="#ffffff"><path d="M1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11zm20-7H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>';
+    function layer(){
+      if (ovRoot && ovRoot.isConnected) return ovRoot;
+      ovRoot = document.createElement('div');
+      ovRoot.setAttribute('data-castflow', '1');
+      ovRoot.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;z-index:2147483647;pointer-events:none;';
+      (document.body || document.documentElement).appendChild(ovRoot);
+      return ovRoot;
+    }
+    function srcOf(v){
+      var s = v.currentSrc || v.src || '';
+      if (!s) { var so = v.querySelector('source'); if (so) s = so.src || ''; }
+      return /^https?:/i.test(s) ? s : '';
+    }
+    function button(v){
+      var b = v.__cfBtn;
+      if (b && b.isConnected) return b;
+      b = document.createElement('div');
+      b.setAttribute('role', 'button');
+      b.setAttribute('aria-label', 'Cast to TV');
+      b.style.cssText = 'position:fixed;width:42px;height:42px;border-radius:21px;background:linear-gradient(135deg,#3B82F6,#1D4ED8);box-shadow:0 2px 10px rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;pointer-events:auto;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;';
+      b.innerHTML = CAST_SVG;
+      var eat = function(e){ try { e.preventDefault(); e.stopPropagation(); } catch(x){} };
+      ['touchstart','touchend','mousedown','mouseup','pointerdown','pointerup'].forEach(function(n){ b.addEventListener(n, eat, true); });
+      b.addEventListener('click', function(e){ eat(e); try { B.castTap(JSON.stringify({url: srcOf(v)})); } catch(x){} }, true);
+      layer().appendChild(b);
+      v.__cfBtn = b;
+      tracked.push(v);
+      return b;
+    }
+    function layout(){
+      try {
+        var vw = window.innerWidth, vh = window.innerHeight;
+        var vs = document.querySelectorAll('video');
+        for (var i = 0; i < vs.length; i++) {
+          var v = vs[i], r = v.getBoundingClientRect();
+          // Big enough to be the page's video, and on screen.
+          var show = !document.hidden && r.width >= 160 && r.height >= 90 && r.bottom > 40 && r.top < vh - 40 && r.right > 40 && r.left < vw - 40;
+          if (show) { var cs = getComputedStyle(v); show = cs.display !== 'none' && cs.visibility !== 'hidden' && cs.opacity !== '0'; }
+          if (!show) { if (v.__cfBtn) v.__cfBtn.style.display = 'none'; continue; }
+          var b = button(v);
+          b.style.left = Math.max(8, Math.min(r.right, vw) - 52) + 'px';
+          b.style.top = (Math.max(r.top, 0) + 8) + 'px';
+          b.style.display = 'flex';
+        }
+        // Videos that were removed from the page take their button with them.
+        for (var t = tracked.length - 1; t >= 0; t--) {
+          var tv = tracked[t];
+          if (!tv.isConnected) {
+            if (tv.__cfBtn && tv.__cfBtn.parentNode) tv.__cfBtn.parentNode.removeChild(tv.__cfBtn);
+            tracked.splice(t, 1);
+          }
+        }
+      } catch(e){}
+    }
+    function soon(){ if (raf) return; raf = requestAnimationFrame(function(){ raf = 0; layout(); }); }
     var timer = null;
     var mo = new MutationObserver(function(){ if (timer) return; timer = setTimeout(function(){ timer = null; scan(); }, 400); });
     function start(){
       scan();
+      try {
+        window.addEventListener('scroll', soon, {passive: true, capture: true});
+        window.addEventListener('resize', soon, {passive: true});
+        window.addEventListener('orientationchange', soon, {passive: true});
+        setInterval(soon, 600);
+      } catch(e){}
       try { mo.observe(document.documentElement || document, {childList: true, subtree: true, attributes: true, attributeFilter: ['src']}); } catch(e){}
     }
     if (navigator.requestMediaKeySystemAccess && !navigator.__castflowDrm) {

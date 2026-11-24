@@ -604,5 +604,14 @@
   "convertingExplain": "TV'niz {from} biçimini doğrudan oynatamıyor, bu yüzden {to} biçimine dönüştürülüyor.",
   "convertingKeepOpen": "Uygulamayı açık tutun. Hazır olunca TV'nizde kendiliğinden başlar.",
   "checkingTvFormats": "TV'nizin neyi oynatabildiği kontrol ediliyor…",
-  "convertingTimeLeft": "Yaklaşık {time} kaldı"
+  "convertingTimeLeft": "Yaklaşık {time} kaldı",
+  "howToMirror": "Ekran yansıtma nasıl yapılır",
+  "mirrorStep1": "Telefon ve TV aynı Wi-Fi ağında olmalı",
+  "mirrorStep2": "Yansıtmayı başlat'a dokunun, ardından listeden TV'nizi seçin",
+  "mirrorStep3": "⋮ simgesine dokunun ve Kablosuz ekranı etkinleştir seçeneğini açın",
+  "mirrorStep4": "Tam ekran video için telefonu yan çevirin",
+  "convertThis": "Dönüştür",
+  "videoCannotBeCast": "Bu video bu sayfadan yayınlanamaz",
+  "videoNotSupportedByTv": "{device}, {format} biçimini doğrudan oynatamıyor",
+  "liveStreamUnsupported": "{device} bu canlı yayını oynatamıyor ve canlı yayınlar dönüştürülemez"
 }

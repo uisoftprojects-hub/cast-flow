@@ -1816,4 +1816,40 @@ class AppLocalizationsUk extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return 'Залишилось близько $time';
   }
+
+  @override
+  String get howToMirror => 'Як дзеркалити екран';
+
+  @override
+  String get mirrorStep1 =>
+      'Телефон і телевізор мають бути в одній мережі Wi-Fi';
+
+  @override
+  String get mirrorStep2 =>
+      'Натисніть «Почати дзеркалення» й виберіть телевізор зі списку';
+
+  @override
+  String get mirrorStep3 =>
+      'Натисніть ⋮ та ввімкніть «Увімкнути бездротовий екран»';
+
+  @override
+  String get mirrorStep4 =>
+      'Поверніть телефон горизонтально для відео на весь екран';
+
+  @override
+  String get convertThis => 'Конвертувати';
+
+  @override
+  String get videoCannotBeCast =>
+      'Це відео не можна транслювати з цієї сторінки';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device не відтворює $format напряму';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device не відтворює цю трансляцію, а прямі трансляції не можна конвертувати';
+  }
 }

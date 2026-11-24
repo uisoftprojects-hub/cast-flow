@@ -528,5 +528,14 @@
   "convertingExplain": "Hindi direktang mapaplay ng TV mo ang {from}, kaya kino-convert ito sa {to}.",
   "convertingKeepOpen": "Panatilihing bukas ang app. Kusa itong magsisimula sa TV mo kapag handa na.",
   "checkingTvFormats": "Sinusuri kung ano ang kayang i-play ng TV mo…",
-  "convertingTimeLeft": "Mga {time} na lang"
+  "convertingTimeLeft": "Mga {time} na lang",
+  "howToMirror": "Paano mag-mirror",
+  "mirrorStep1": "Dapat nasa iisang Wi-Fi ang phone at TV",
+  "mirrorStep2": "I-tap ang Simulan ang mirroring, saka piliin ang TV mo sa listahan",
+  "mirrorStep3": "I-tap ang ⋮ at i-on ang Enable wireless display",
+  "mirrorStep4": "Ikiling ang phone para sa full-screen na video",
+  "convertThis": "I-convert ito",
+  "videoCannotBeCast": "Hindi ma-cast ang video na ito mula sa page na ito",
+  "videoNotSupportedByTv": "Hindi direktang mapaplay ng {device} ang {format}",
+  "liveStreamUnsupported": "Hindi mapaplay ng {device} ang live stream na ito, at hindi ma-convert ang mga live stream"
 }

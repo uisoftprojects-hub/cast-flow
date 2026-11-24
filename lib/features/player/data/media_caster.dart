@@ -91,7 +91,19 @@ class DlnaMediaCaster implements MediaCaster {
 
     final String url;
     var mime = MediaServer.mimeFor(source, fallback: fallbackMime);
-    if (source.startsWith('http://') || source.startsWith('https://')) {
+    final isWeb = source.startsWith('http://') || source.startsWith('https://');
+    final converter = _converter;
+    if (isWeb && media.convert && converter != null && converter.available) {
+      // "Convert this": the phone reads the web video (with the page's headers, HLS
+      // segments included) through its own server, converts it to MP4 (H.264 + AAC) and
+      // then serves that file to the TV like any local video.
+      final feed = await _server.publishProxy(source, media.headers, host: '127.0.0.1', mime: mime);
+      final detail = conversionLabel(conversion: Conversion.mp4, mime: mime);
+      onPrepare?.call(0, detail);
+      final out = await converter.toMp4(feed.toString(), id: media.id, onProgress: (p) => onPrepare?.call(p, detail));
+      mime = 'video/mp4';
+      url = (await _server.publishFile(out, host: host, mime: mime)).toString();
+    } else if (isWeb) {
       // TVs can't send the page's Referer/Cookie, and many can't do TLS, so
       // anything but a plain header-free http:// URL goes through the phone.
       // HLS playlists are rewritten there so their segments do too.

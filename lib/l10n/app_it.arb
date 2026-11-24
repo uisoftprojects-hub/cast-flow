@@ -604,5 +604,14 @@
   "convertingExplain": "La tua TV non può riprodurre {from} direttamente, quindi viene convertito in {to}.",
   "convertingKeepOpen": "Tieni l'app aperta. Parte da sola sulla tua TV quando è pronto.",
   "checkingTvFormats": "Controllo di ciò che la tua TV può riprodurre…",
-  "convertingTimeLeft": "Circa {time} rimanenti"
+  "convertingTimeLeft": "Circa {time} rimanenti",
+  "howToMirror": "Come eseguire il mirroring",
+  "mirrorStep1": "Telefono e TV devono essere sulla stessa rete Wi-Fi",
+  "mirrorStep2": "Tocca Avvia mirroring, poi scegli la tua TV dall'elenco",
+  "mirrorStep3": "Tocca ⋮ e attiva Abilita display wireless",
+  "mirrorStep4": "Ruota il telefono in orizzontale per il video a schermo intero",
+  "convertThis": "Converti",
+  "videoCannotBeCast": "Questo video non può essere trasmesso da questa pagina",
+  "videoNotSupportedByTv": "{device} non può riprodurre {format} direttamente",
+  "liveStreamUnsupported": "{device} non può riprodurre questa diretta e le dirette non si possono convertire"
 }

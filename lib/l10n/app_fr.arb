@@ -604,5 +604,14 @@
   "convertingExplain": "Votre TV ne peut pas lire {from} directement, il est donc converti en {to}.",
   "convertingKeepOpen": "Gardez l'appli ouverte. La lecture démarre toute seule sur votre TV quand c'est prêt.",
   "checkingTvFormats": "Vérification de ce que votre TV peut lire…",
-  "convertingTimeLeft": "Environ {time} restantes"
+  "convertingTimeLeft": "Environ {time} restantes",
+  "howToMirror": "Comment dupliquer l'écran",
+  "mirrorStep1": "Votre téléphone et votre TV doivent être sur le même Wi-Fi",
+  "mirrorStep2": "Appuyez sur Démarrer la duplication, puis choisissez votre TV dans la liste",
+  "mirrorStep3": "Appuyez sur ⋮ et activez Activer l'affichage sans fil",
+  "mirrorStep4": "Tournez le téléphone à l'horizontale pour la vidéo plein écran",
+  "convertThis": "Convertir",
+  "videoCannotBeCast": "Cette vidéo ne peut pas être diffusée depuis cette page",
+  "videoNotSupportedByTv": "{device} ne peut pas lire {format} directement",
+  "liveStreamUnsupported": "{device} ne peut pas lire ce direct, et les directs ne peuvent pas être convertis"
 }

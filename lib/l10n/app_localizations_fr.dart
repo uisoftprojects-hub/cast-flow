@@ -1818,4 +1818,40 @@ class AppLocalizationsFr extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return 'Environ $time restantes';
   }
+
+  @override
+  String get howToMirror => 'Comment dupliquer l\'écran';
+
+  @override
+  String get mirrorStep1 =>
+      'Votre téléphone et votre TV doivent être sur le même Wi-Fi';
+
+  @override
+  String get mirrorStep2 =>
+      'Appuyez sur Démarrer la duplication, puis choisissez votre TV dans la liste';
+
+  @override
+  String get mirrorStep3 =>
+      'Appuyez sur ⋮ et activez Activer l\'affichage sans fil';
+
+  @override
+  String get mirrorStep4 =>
+      'Tournez le téléphone à l\'horizontale pour la vidéo plein écran';
+
+  @override
+  String get convertThis => 'Convertir';
+
+  @override
+  String get videoCannotBeCast =>
+      'Cette vidéo ne peut pas être diffusée depuis cette page';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device ne peut pas lire $format directement';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device ne peut pas lire ce direct, et les directs ne peuvent pas être convertis';
+  }
 }

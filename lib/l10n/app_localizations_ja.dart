@@ -1728,4 +1728,35 @@ class AppLocalizationsJa extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return '残り約$time';
   }
+
+  @override
+  String get howToMirror => 'ミラーリングの手順';
+
+  @override
+  String get mirrorStep1 => 'スマホとテレビを同じWi-Fiに接続してください';
+
+  @override
+  String get mirrorStep2 => '「ミラーリング開始」をタップし、リストからテレビを選択';
+
+  @override
+  String get mirrorStep3 => '⋮をタップし「ワイヤレスディスプレイを有効にする」をオンに';
+
+  @override
+  String get mirrorStep4 => 'フルスクリーン動画はスマホを横向きにしてください';
+
+  @override
+  String get convertThis => '変換する';
+
+  @override
+  String get videoCannotBeCast => 'このページからこの動画はキャストできません';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device は $format を直接再生できません';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device はこのライブ配信を再生できず、ライブ配信は変換できません';
+  }
 }

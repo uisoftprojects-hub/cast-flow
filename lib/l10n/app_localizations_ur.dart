@@ -1801,4 +1801,36 @@ class AppLocalizationsUr extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return 'تقریباً $time باقی';
   }
+
+  @override
+  String get howToMirror => 'اسکرین مرر کیسے کریں';
+
+  @override
+  String get mirrorStep1 => 'فون اور ٹی وی ایک ہی وائی فائی پر ہونے چاہئیں';
+
+  @override
+  String get mirrorStep2 =>
+      'مررنگ شروع کریں پر ٹیپ کریں، پھر فہرست سے اپنا ٹی وی چنیں';
+
+  @override
+  String get mirrorStep3 => '⋮ پر ٹیپ کریں اور وائرلیس ڈسپلے فعال کریں آن کریں';
+
+  @override
+  String get mirrorStep4 => 'فل اسکرین ویڈیو کے لیے فون کو آڑا کریں';
+
+  @override
+  String get convertThis => 'اسے تبدیل کریں';
+
+  @override
+  String get videoCannotBeCast => 'اس صفحے سے یہ ویڈیو کاسٹ نہیں ہو سکتی';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device $format براہِ راست نہیں چلا سکتا';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device یہ لائیو اسٹریم نہیں چلا سکتا اور لائیو اسٹریم تبدیل نہیں ہو سکتی';
+  }
 }

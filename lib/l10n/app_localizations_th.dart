@@ -1764,4 +1764,35 @@ class AppLocalizationsTh extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return 'เหลืออีกประมาณ $time';
   }
+
+  @override
+  String get howToMirror => 'วิธีมิเรอร์หน้าจอ';
+
+  @override
+  String get mirrorStep1 => 'โทรศัพท์และทีวีต้องอยู่ใน Wi-Fi เดียวกัน';
+
+  @override
+  String get mirrorStep2 => 'แตะเริ่มมิเรอร์ แล้วเลือกทีวีจากรายการ';
+
+  @override
+  String get mirrorStep3 => 'แตะ ⋮ แล้วเปิด เปิดใช้งานจอแสดงผลไร้สาย';
+
+  @override
+  String get mirrorStep4 => 'หมุนโทรศัพท์ตามแนวนอนเพื่อดูวิดีโอเต็มจอ';
+
+  @override
+  String get convertThis => 'แปลงสิ่งนี้';
+
+  @override
+  String get videoCannotBeCast => 'ไม่สามารถแคสต์วิดีโอนี้จากหน้านี้ได้';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device เล่น $format โดยตรงไม่ได้';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device เล่นสตรีมสดนี้ไม่ได้ และสตรีมสดแปลงไม่ได้';
+  }
 }

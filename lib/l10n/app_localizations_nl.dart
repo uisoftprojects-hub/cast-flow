@@ -1799,4 +1799,37 @@ class AppLocalizationsNl extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return 'Nog ongeveer $time';
   }
+
+  @override
+  String get howToMirror => 'Zo spiegel je';
+
+  @override
+  String get mirrorStep1 => 'Je telefoon en tv moeten op hetzelfde wifi zitten';
+
+  @override
+  String get mirrorStep2 => 'Tik op Start spiegelen en kies je tv uit de lijst';
+
+  @override
+  String get mirrorStep3 => 'Tik op ⋮ en zet Draadloos scherm inschakelen aan';
+
+  @override
+  String get mirrorStep4 =>
+      'Draai je telefoon liggend voor video op volledig scherm';
+
+  @override
+  String get convertThis => 'Omzetten';
+
+  @override
+  String get videoCannotBeCast =>
+      'Deze video kan niet vanaf deze pagina worden gecast';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device kan $format niet rechtstreeks afspelen';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device kan deze livestream niet afspelen en livestreams kunnen niet worden omgezet';
+  }
 }

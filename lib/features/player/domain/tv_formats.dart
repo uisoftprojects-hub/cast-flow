@@ -177,6 +177,8 @@ String conversionLabel({required Conversion conversion, required String mime, Me
     'video/x-msvideo' => 'AVI',
     'video/3gpp' => '3GP',
     'video/mp4' => 'MP4',
+    'application/vnd.apple.mpegurl' || 'application/x-mpegurl' => 'HLS',
+    'application/dash+xml' => 'DASH',
     'video/mp2t' => 'TS',
     'image/heic' || 'image/heif' => 'HEIC',
     'image/webp' => 'WebP',

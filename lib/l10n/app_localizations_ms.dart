@@ -1803,4 +1803,37 @@ class AppLocalizationsMs extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return 'Kira-kira $time lagi';
   }
+
+  @override
+  String get howToMirror => 'Cara mencerminkan skrin';
+
+  @override
+  String get mirrorStep1 => 'Telefon dan TV mesti berada pada Wi-Fi yang sama';
+
+  @override
+  String get mirrorStep2 =>
+      'Ketik Mula pencerminan, kemudian pilih TV anda daripada senarai';
+
+  @override
+  String get mirrorStep3 => 'Ketik ⋮ dan hidupkan Dayakan paparan wayarles';
+
+  @override
+  String get mirrorStep4 => 'Pusingkan telefon ke sisi untuk video skrin penuh';
+
+  @override
+  String get convertThis => 'Tukar ini';
+
+  @override
+  String get videoCannotBeCast =>
+      'Video ini tidak boleh dihantar dari halaman ini';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device tidak dapat memainkan $format secara terus';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device tidak dapat memainkan strim langsung ini dan strim langsung tidak boleh ditukar';
+  }
 }

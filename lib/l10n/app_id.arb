@@ -604,5 +604,14 @@
   "convertingExplain": "TV Anda tidak bisa memutar {from} secara langsung, jadi diubah ke {to}.",
   "convertingKeepOpen": "Biarkan aplikasi terbuka. Akan mulai sendiri di TV Anda saat siap.",
   "checkingTvFormats": "Memeriksa apa yang bisa diputar TV Anda…",
-  "convertingTimeLeft": "Sekitar {time} lagi"
+  "convertingTimeLeft": "Sekitar {time} lagi",
+  "howToMirror": "Cara mirroring",
+  "mirrorStep1": "Ponsel dan TV harus berada di Wi-Fi yang sama",
+  "mirrorStep2": "Ketuk Mulai mirroring, lalu pilih TV Anda dari daftar",
+  "mirrorStep3": "Ketuk ⋮ lalu aktifkan Aktifkan layar nirkabel",
+  "mirrorStep4": "Putar ponsel ke samping untuk video layar penuh",
+  "convertThis": "Konversi ini",
+  "videoCannotBeCast": "Video ini tidak dapat di-cast dari halaman ini",
+  "videoNotSupportedByTv": "{device} tidak bisa memutar {format} secara langsung",
+  "liveStreamUnsupported": "{device} tidak bisa memutar siaran langsung ini, dan siaran langsung tidak bisa dikonversi"
 }

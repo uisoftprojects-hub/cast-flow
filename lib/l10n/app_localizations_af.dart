@@ -1796,4 +1796,36 @@ class AppLocalizationsAf extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return 'Nog ongeveer $time';
   }
+
+  @override
+  String get howToMirror => 'Hoe om te spieël';
+
+  @override
+  String get mirrorStep1 => 'Jou foon en TV moet op dieselfde Wi-Fi wees';
+
+  @override
+  String get mirrorStep2 => 'Tik Begin spieël en kies dan jou TV uit die lys';
+
+  @override
+  String get mirrorStep3 => 'Tik ⋮ en skakel Aktiveer draadlose skerm aan';
+
+  @override
+  String get mirrorStep4 => 'Draai die foon opsy vir volskermvideo';
+
+  @override
+  String get convertThis => 'Skakel dit om';
+
+  @override
+  String get videoCannotBeCast =>
+      'Hierdie video kan nie vanaf hierdie bladsy uitgesaai word nie';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device kan nie $format direk speel nie';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device kan nie hierdie regstreekse stroom speel nie, en regstreekse strome kan nie omgeskakel word nie';
+  }
 }

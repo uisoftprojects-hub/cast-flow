@@ -1793,4 +1793,36 @@ class AppLocalizationsVi extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return 'Còn khoảng $time';
   }
+
+  @override
+  String get howToMirror => 'Cách phản chiếu màn hình';
+
+  @override
+  String get mirrorStep1 => 'Điện thoại và TV phải dùng cùng một Wi-Fi';
+
+  @override
+  String get mirrorStep2 =>
+      'Nhấn Bắt đầu phản chiếu rồi chọn TV trong danh sách';
+
+  @override
+  String get mirrorStep3 => 'Nhấn ⋮ và bật Bật màn hình không dây';
+
+  @override
+  String get mirrorStep4 => 'Xoay ngang điện thoại để xem video toàn màn hình';
+
+  @override
+  String get convertThis => 'Chuyển đổi';
+
+  @override
+  String get videoCannotBeCast => 'Không thể truyền video này từ trang này';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device không phát trực tiếp $format được';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device không phát được luồng trực tiếp này và luồng trực tiếp không thể chuyển đổi';
+  }
 }

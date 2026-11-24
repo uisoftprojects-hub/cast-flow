@@ -1795,4 +1795,37 @@ class AppLocalizationsHi extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return 'लगभग $time बाकी';
   }
+
+  @override
+  String get howToMirror => 'मिरर कैसे करें';
+
+  @override
+  String get mirrorStep1 => 'आपका फ़ोन और टीवी एक ही वाई-फ़ाई पर होने चाहिए';
+
+  @override
+  String get mirrorStep2 =>
+      'मिररिंग शुरू करें पर टैप करें, फिर सूची से अपना टीवी चुनें';
+
+  @override
+  String get mirrorStep3 =>
+      '⋮ पर टैप करें और “वायरलेस डिस्प्ले चालू करें” ऑन करें';
+
+  @override
+  String get mirrorStep4 => 'फ़ुल-स्क्रीन वीडियो के लिए फ़ोन को आड़ा घुमाएँ';
+
+  @override
+  String get convertThis => 'इसे बदलें';
+
+  @override
+  String get videoCannotBeCast => 'इस पेज से यह वीडियो कास्ट नहीं किया जा सकता';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device सीधे $format नहीं चला सकता';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device यह लाइव स्ट्रीम नहीं चला सकता, और लाइव स्ट्रीम बदली नहीं जा सकती';
+  }
 }

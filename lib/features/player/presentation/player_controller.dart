@@ -369,6 +369,8 @@ class PlayerController extends Notifier<PlaybackState> {
   /// Local photos and videos can be converted; web streams can't.
   static bool _canConvert(CastMedia m) {
     final url = m.url ?? '';
+    // A web video is converted only when the user chose "Convert this".
+    if (m.convert) return url.isNotEmpty;
     return (m.kind == CastKind.photo || m.kind == CastKind.video || m.kind == CastKind.music) &&
         url.isNotEmpty &&
         !url.startsWith('http://') &&

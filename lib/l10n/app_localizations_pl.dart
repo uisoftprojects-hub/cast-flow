@@ -1809,4 +1809,38 @@ class AppLocalizationsPl extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return 'Zostało około $time';
   }
+
+  @override
+  String get howToMirror => 'Jak odbić ekran';
+
+  @override
+  String get mirrorStep1 =>
+      'Telefon i telewizor muszą być w tej samej sieci Wi-Fi';
+
+  @override
+  String get mirrorStep2 =>
+      'Dotknij Rozpocznij odbicie, a potem wybierz telewizor z listy';
+
+  @override
+  String get mirrorStep3 => 'Dotknij ⋮ i włącz Włącz wyświetlacz bezprzewodowy';
+
+  @override
+  String get mirrorStep4 =>
+      'Obróć telefon poziomo, aby oglądać wideo na pełnym ekranie';
+
+  @override
+  String get convertThis => 'Konwertuj';
+
+  @override
+  String get videoCannotBeCast => 'Tego filmu nie można przesłać z tej strony';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device nie odtworzy $format bezpośrednio';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device nie odtworzy tej transmisji na żywo, a transmisji nie można konwertować';
+  }
 }

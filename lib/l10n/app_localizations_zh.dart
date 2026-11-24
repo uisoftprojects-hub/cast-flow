@@ -1708,4 +1708,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return '还剩约 $time';
   }
+
+  @override
+  String get howToMirror => '如何投屏';
+
+  @override
+  String get mirrorStep1 => '手机和电视必须连接同一个 Wi-Fi';
+
+  @override
+  String get mirrorStep2 => '点按“开始投屏”，然后从列表中选择电视';
+
+  @override
+  String get mirrorStep3 => '点按 ⋮ 并开启“启用无线显示”';
+
+  @override
+  String get mirrorStep4 => '横屏握持手机即可全屏播放视频';
+
+  @override
+  String get convertThis => '转换此视频';
+
+  @override
+  String get videoCannotBeCast => '无法从此页面投放该视频';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device 无法直接播放 $format';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device 无法播放此直播，且直播无法转换';
+  }
 }

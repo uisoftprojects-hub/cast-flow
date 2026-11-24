@@ -273,8 +273,9 @@ class _StartArea extends StatelessWidget {
   }
 }
 
-/// "Before you start": plain bullet lines on the screen, no card. The Wi-Fi
-/// and VPN lines show a live tick or cross.
+/// "How to mirror": four plain bullet lines on the screen, no card. The Wi-Fi
+/// line shows a live tick or cross; a VPN warning appears only while a VPN is on
+/// (it hides TVs from the phone).
 class _Tips extends StatelessWidget {
   const _Tips({required this.network});
   final NetworkStatus? network;
@@ -311,11 +312,13 @@ class _Tips extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l.beforeYouStart, style: context.text.labelLarge),
-        bullet(l.phoneAndTvAre, n?.ready),
-        bullet(l.noVpnIsConnected, n == null ? null : !n.vpn),
-        bullet(l.tvIsOnWith, null),
-        bullet(l.phoneIsCloseTo, null),
+        Text(l.howToMirror, style: context.text.labelLarge),
+        bullet(l.mirrorStep1, n?.ready),
+        bullet(l.mirrorStep2, null),
+        bullet(l.mirrorStep3, null),
+        bullet(l.mirrorStep4, null),
+        // Only when it is a problem right now.
+        if (n != null && n.vpn) bullet(l.noVpnIsConnected, false),
       ],
     );
   }

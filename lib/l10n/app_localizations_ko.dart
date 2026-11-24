@@ -1727,4 +1727,35 @@ class AppLocalizationsKo extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return '약 $time 남음';
   }
+
+  @override
+  String get howToMirror => '미러링 방법';
+
+  @override
+  String get mirrorStep1 => '휴대폰과 TV가 같은 Wi-Fi에 연결되어 있어야 합니다';
+
+  @override
+  String get mirrorStep2 => '미러링 시작을 탭한 다음 목록에서 TV를 선택하세요';
+
+  @override
+  String get mirrorStep3 => '⋮를 탭하고 무선 디스플레이 사용을 켜세요';
+
+  @override
+  String get mirrorStep4 => '전체 화면 동영상은 휴대폰을 가로로 돌리세요';
+
+  @override
+  String get convertThis => '변환하기';
+
+  @override
+  String get videoCannotBeCast => '이 페이지에서는 이 동영상을 전송할 수 없습니다';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device에서 $format을(를) 바로 재생할 수 없습니다';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device에서 이 라이브 스트림을 재생할 수 없으며 라이브 스트림은 변환할 수 없습니다';
+  }
 }

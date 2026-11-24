@@ -1786,4 +1786,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String convertingTimeLeft(Object time) {
     return 'About $time left';
   }
+
+  @override
+  String get howToMirror => 'How to mirror';
+
+  @override
+  String get mirrorStep1 => 'Your phone and TV must be on the same Wi-Fi';
+
+  @override
+  String get mirrorStep2 =>
+      'Tap Start mirroring, then choose your TV from the list';
+
+  @override
+  String get mirrorStep3 => 'Tap ⋮ and turn on Enable wireless display';
+
+  @override
+  String get mirrorStep4 => 'Turn the phone sideways for full-screen video';
+
+  @override
+  String get convertThis => 'Convert this';
+
+  @override
+  String get videoCannotBeCast => 'This video cannot be cast from this page';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device can\'t play $format directly';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device can\'t play this live stream, and live streams can\'t be converted';
+  }
 }

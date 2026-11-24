@@ -28,6 +28,7 @@ class CastMedia {
     this.url,
     this.headers = const {},
     this.thumbnail,
+    this.convert = false,
   });
 
   final String id;
@@ -43,6 +44,11 @@ class CastMedia {
   final Map<String, String> headers;
   final String? thumbnail;
 
+  /// A web video the TV can't play as it is (e.g. HLS on a DLNA TV): the user
+  /// chose "Convert this", so it is downloaded through the phone and converted
+  /// to MP4 (H.264 + AAC) before it is sent.
+  final bool convert;
+
   bool get isTimed => duration > Duration.zero;
 
   CastMedia withDuration(Duration d) => CastMedia(
@@ -55,6 +61,7 @@ class CastMedia {
     url: url,
     headers: headers,
     thumbnail: thumbnail,
+    convert: convert,
   );
 }
 
