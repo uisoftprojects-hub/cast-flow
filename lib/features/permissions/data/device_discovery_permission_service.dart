@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
 
 import '../../../core/platform/network_channel.dart';
+import '../../monetization/domain/ad_gate.dart';
 import '../../monetization/domain/ad_suppression.dart';
 import '../domain/app_permission.dart';
 
@@ -89,7 +90,7 @@ class DeviceDiscoveryPermissionService implements DiscoveryPermissionService {
     final sdk = await _sdkInt();
     if (sdk <= 32) {
       AdSuppression.hold(flowHold);
-      final status = await AdSuppression.around(() => ph.Permission.locationWhenInUse.request());
+      final status = await AdGate.afterAds(() => ph.Permission.locationWhenInUse.request());
       if (status.isGranted) {
         final serviceEnabled = await isLocationServiceEnabled();
         if (!serviceEnabled) {
@@ -104,7 +105,7 @@ class DeviceDiscoveryPermissionService implements DiscoveryPermissionService {
       return DiscoveryPermissionStatus.denied;
     } else {
       AdSuppression.hold(flowHold);
-      final status = await AdSuppression.around(() => ph.Permission.nearbyWifiDevices.request());
+      final status = await AdGate.afterAds(() => ph.Permission.nearbyWifiDevices.request());
       if (status.isGranted) {
         AdSuppression.release(flowHold);
         return DiscoveryPermissionStatus.granted;

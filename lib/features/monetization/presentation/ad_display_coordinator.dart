@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../domain/ad_gate.dart';
 import '../domain/ad_logger.dart';
 import '../domain/ad_models.dart';
 
@@ -28,6 +29,16 @@ class AdDisplayCoordinator {
 
   final _displayStream = StreamController<bool>.broadcast();
   Stream<bool> get onDisplayStateChanged => _displayStream.stream;
+
+  /// Completes once no full-screen ad is on screen. Returns true if one was showing
+  /// and had to be waited for, false if the screen was already clear.
+  Future<bool> waitUntilClear() async {
+    if (!_isFullScreenShowing) return false;
+    await _displayStream.stream
+        .firstWhere((showing) => !showing)
+        .timeout(const Duration(minutes: 2), onTimeout: () => false);
+    return true;
+  }
 
   void setPurchaseInProgress(bool inProgress) {
     _isPurchaseInProgress = inProgress;
@@ -118,6 +129,11 @@ class AdDisplayCoordinator {
 
 final adDisplayCoordinatorProvider = Provider<AdDisplayCoordinator>((ref) {
   final coordinator = AdDisplayCoordinator();
-  ref.onDispose(coordinator.dispose);
+  // System prompts wait for ads through this (see AdGate).
+  AdGate.register(coordinator.waitUntilClear);
+  ref.onDispose(() {
+    AdGate.unregister(coordinator.waitUntilClear);
+    coordinator.dispose();
+  });
   return coordinator;
 });

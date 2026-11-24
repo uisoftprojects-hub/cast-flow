@@ -18,7 +18,7 @@ import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
-import '../../monetization/domain/ad_suppression.dart';
+import '../../monetization/domain/ad_gate.dart';
 import '../domain/cast_media.dart';
 import '../domain/tv_formats.dart';
 import 'cast_thumbnail.dart';
@@ -553,14 +553,14 @@ class _QueueSheet extends ConsumerWidget {
     final picked = <(String path, String name)>[];
     switch (kind) {
       case CastKind.photo:
-        for (final f in await AdSuppression.around(() => ImagePicker().pickMultiImage())) {
+        for (final f in await AdGate.afterAds(() => ImagePicker().pickMultiImage())) {
           picked.add((f.path, f.name));
         }
       case CastKind.video:
-        final v = await AdSuppression.around(() => ImagePicker().pickVideo(source: ImageSource.gallery));
+        final v = await AdGate.afterAds(() => ImagePicker().pickVideo(source: ImageSource.gallery));
         if (v != null) picked.add((v.path, v.name));
       case CastKind.music:
-        for (final f in await AdSuppression.around(() => FilePicker.pickFiles(type: FileType.audio))) {
+        for (final f in await AdGate.afterAds(() => FilePicker.pickFiles(type: FileType.audio))) {
           if (f.path != null) picked.add((f.path!, f.name));
         }
       default:

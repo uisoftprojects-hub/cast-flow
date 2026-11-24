@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../core/analytics/analytics.dart';
 import '../../../core/analytics/analytics_events.dart';
 import '../../../core/storage/local_store.dart';
+import '../../monetization/domain/ad_gate.dart';
 import '../../monetization/domain/ad_suppression.dart';
 import '../../pairing/presentation/pairing_controller.dart';
 import '../../permissions/data/device_discovery_permission_service.dart';
@@ -30,7 +31,7 @@ final nearbyPermissionProvider = Provider<Future<void> Function()>(
   (ref) => () async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     try {
-      await AdSuppression.around(() => Permission.nearbyWifiDevices.request());
+      await AdGate.afterAds(() => Permission.nearbyWifiDevices.request());
     } catch (_) {}
   },
 );

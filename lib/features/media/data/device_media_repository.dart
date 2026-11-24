@@ -7,7 +7,7 @@ import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:photo_manager/photo_manager.dart';
 
 import '../../../core/utils/serial_runner.dart';
-import '../../monetization/domain/ad_suppression.dart';
+import '../../monetization/domain/ad_gate.dart';
 import '../domain/media_models.dart';
 
 /// Thrown when the user hasn't allowed access to photos / videos / music.
@@ -72,7 +72,7 @@ class DeviceMediaRepository implements MediaRepository {
       var statuses = [for (final p in perms) await p.status];
       if (!statuses.any(ok)) {
         try {
-          final result = await AdSuppression.around(() => perms.request());
+          final result = await AdGate.afterAds(() => perms.request());
           statuses = [
             for (final p in perms) result[p] ?? ph.PermissionStatus.denied,
           ];
@@ -92,7 +92,7 @@ class DeviceMediaRepository implements MediaRepository {
     }
     // Already allowed above on Android, so this shows no prompt there; on iOS
     // it is the real request.
-    final state = await AdSuppression.around(
+    final state = await AdGate.afterAds(
       () => PhotoManager.requestPermissionExtend(
         requestOption: PermissionRequestOption(
           androidPermission: AndroidPermission(
