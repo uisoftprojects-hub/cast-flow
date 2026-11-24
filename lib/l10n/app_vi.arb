@@ -600,5 +600,18 @@
   "playModeOnce": "Phát một lần",
   "playModeAutoplay": "Tự động phát",
   "playModeRepeatAll": "Lặp lại tất cả",
-  "playModeRepeatOne": "Lặp lại một"
+  "playModeRepeatOne": "Lặp lại một",
+  "convertingExplain": "TV của bạn không phát trực tiếp {from} được, nên đang chuyển sang {to}.",
+  "convertingKeepOpen": "Hãy để ứng dụng mở. Khi xong, nó sẽ tự phát trên TV.",
+  "checkingTvFormats": "Đang kiểm tra TV của bạn phát được gì…",
+  "convertingTimeLeft": "Còn khoảng {time}",
+  "howToMirror": "Cách phản chiếu màn hình",
+  "mirrorStep1": "Điện thoại và TV phải dùng cùng một Wi-Fi",
+  "mirrorStep2": "Nhấn Bắt đầu phản chiếu rồi chọn TV trong danh sách",
+  "mirrorStep3": "Nhấn ⋮ và bật Bật màn hình không dây",
+  "mirrorStep4": "Xoay ngang điện thoại để xem video toàn màn hình",
+  "convertThis": "Chuyển đổi",
+  "videoCannotBeCast": "Không thể truyền video này từ trang này",
+  "videoNotSupportedByTv": "{device} không phát trực tiếp {format} được",
+  "liveStreamUnsupported": "{device} không phát được luồng trực tiếp này và luồng trực tiếp không thể chuyển đổi"
 }

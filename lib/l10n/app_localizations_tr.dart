@@ -1783,4 +1783,55 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Birini tekrarla';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'TV\'niz $from biçimini doğrudan oynatamıyor, bu yüzden $to biçimine dönüştürülüyor.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Uygulamayı açık tutun. Hazır olunca TV\'nizde kendiliğinden başlar.';
+
+  @override
+  String get checkingTvFormats =>
+      'TV\'nizin neyi oynatabildiği kontrol ediliyor…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Yaklaşık $time kaldı';
+  }
+
+  @override
+  String get howToMirror => 'Ekran yansıtma nasıl yapılır';
+
+  @override
+  String get mirrorStep1 => 'Telefon ve TV aynı Wi-Fi ağında olmalı';
+
+  @override
+  String get mirrorStep2 =>
+      'Yansıtmayı başlat\'a dokunun, ardından listeden TV\'nizi seçin';
+
+  @override
+  String get mirrorStep3 =>
+      '⋮ simgesine dokunun ve Kablosuz ekranı etkinleştir seçeneğini açın';
+
+  @override
+  String get mirrorStep4 => 'Tam ekran video için telefonu yan çevirin';
+
+  @override
+  String get convertThis => 'Dönüştür';
+
+  @override
+  String get videoCannotBeCast => 'Bu video bu sayfadan yayınlanamaz';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device, $format biçimini doğrudan oynatamıyor';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device bu canlı yayını oynatamıyor ve canlı yayınlar dönüştürülemez';
+  }
 }

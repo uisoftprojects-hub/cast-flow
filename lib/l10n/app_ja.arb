@@ -600,5 +600,18 @@
   "playModeOnce": "1回だけ再生",
   "playModeAutoplay": "自動再生",
   "playModeRepeatAll": "全曲リピート",
-  "playModeRepeatOne": "1曲リピート"
+  "playModeRepeatOne": "1曲リピート",
+  "convertingExplain": "お使いのテレビは{from}を直接再生できないため、{to}に変換しています。",
+  "convertingKeepOpen": "アプリを開いたままにしてください。準備ができるとテレビで自動的に始まります。",
+  "checkingTvFormats": "テレビが再生できる形式を確認中…",
+  "convertingTimeLeft": "残り約{time}",
+  "howToMirror": "ミラーリングの手順",
+  "mirrorStep1": "スマホとテレビを同じWi-Fiに接続してください",
+  "mirrorStep2": "「ミラーリング開始」をタップし、リストからテレビを選択",
+  "mirrorStep3": "⋮をタップし「ワイヤレスディスプレイを有効にする」をオンに",
+  "mirrorStep4": "フルスクリーン動画はスマホを横向きにしてください",
+  "convertThis": "変換する",
+  "videoCannotBeCast": "このページからこの動画はキャストできません",
+  "videoNotSupportedByTv": "{device} は {format} を直接再生できません",
+  "liveStreamUnsupported": "{device} はこのライブ配信を再生できず、ライブ配信は変換できません"
 }

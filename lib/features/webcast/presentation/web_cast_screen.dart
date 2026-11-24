@@ -78,9 +78,7 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
   int _progress = 100;
   bool _canBack = false;
   bool _canForward = false;
-  bool _banner = false;
   bool _preparing = false;
-  Timer? _bannerTimer;
   WebVideo? _casting;
 
   bool get _native => CastWebView.supported;
@@ -93,7 +91,6 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
 
   @override
   void dispose() {
-    _bannerTimer?.cancel();
     _input.dispose();
     _focus.dispose();
     super.dispose();
@@ -123,7 +120,6 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
     _url = null;
     _input.clear();
     _page = const AsyncData([]);
-    _banner = false;
     _canBack = _canForward = false;
     ref.read(pageVideosProvider.notifier).navigated('', -1);
   });
@@ -136,13 +132,11 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
   void onNavigated(String url, int token, {required bool canGoBack, required bool canGoForward}) {
     if (!mounted) return;
     ref.read(pageVideosProvider.notifier).navigated(url, token);
-    _bannerTimer?.cancel();
     setState(() {
       _url = url;
       if (!_focus.hasFocus) _input.text = url;
       _canBack = canGoBack;
       _canForward = canGoForward;
-      _banner = false;
     });
   }
 
@@ -189,6 +183,23 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
     if (mounted) ref.read(pageVideosProvider.notifier).markDrm(token);
   }
 
+  /// The cast icon drawn over a video on the page was tapped. [url] is that video's
+  /// own address when the page has one (it may be empty for streamed players): the
+  /// matching found video is cast, otherwise the list of found videos is shown.
+  @override
+  void onCastTap(String url, int token) {
+    if (!mounted) return;
+    final videos = ref.read(pageVideosProvider).videos;
+    final match = url.isEmpty ? null : videos.where((v) => videoKey(v.url) == videoKey(url)).firstOrNull;
+    if (match != null) {
+      _castVideo(match);
+    } else if (videos.length == 1) {
+      _castVideo(videos.first);
+    } else {
+      _onCastTap();
+    }
+  }
+
   // ---- Casting ----
 
   /// First video on a page: show the "Video found" prompt once.
@@ -198,17 +209,8 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
       AnalyticsParam.videoCount: next.count,
       AnalyticsParam.host: Uri.tryParse(_url!)?.host,
     });
+    // The "Cast to TV" pill is already on the page; this only records the first sighting.
     ref.read(pageVideosProvider.notifier).markPromptShown();
-    setState(() => _banner = true);
-    _bannerTimer?.cancel();
-    _bannerTimer = Timer(const Duration(seconds: 10), () {
-      if (mounted) setState(() => _banner = false);
-    });
-  }
-
-  void _dismissBanner() {
-    _bannerTimer?.cancel();
-    setState(() => _banner = false);
   }
 
   void _snack(String message) {
@@ -218,14 +220,13 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
   }
 
   Future<void> _onCastTap() async {
-    _dismissBanner();
     final videos = ref.read(pageVideosProvider).videos;
     if (videos.isEmpty) return _snack(context.l10n.noVideoYet);
     final picked = await showVideosSheet(context, videos);
-    if (picked != null && mounted) await _castVideo(picked);
+    if (picked != null && mounted) await _castVideo(picked.video, convert: picked.convert);
   }
 
-  Future<void> _castVideo(WebVideo v) async {
+  Future<void> _castVideo(WebVideo v, {bool convert = false}) async {
     final l = context.l10n;
     final analytics = ref.read(analyticsProvider);
     final host = Uri.tryParse(_url ?? v.url)?.host;
@@ -242,16 +243,24 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
     if (!await ensureConnected(context, ref)) return;
     if (!mounted) return;
     final device = ref.read(connectionProvider).device!;
-    if (!deviceSupports(device, v.type)) {
-      await showDialog<void>(
+    var convertIt = convert;
+    if (!convertIt && !deviceSupports(device, v.type)) {
+      // The TV can't play this format. A recorded video can be converted to MP4 here
+      // and then plays; a live stream can't be.
+      final canConvert = !isLiveStream(v);
+      final choice = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(l.formatUnsupportedTitle),
           content: Text(l.formatUnsupported(device.name, v.type.label)),
-          actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l.ok))],
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(canConvert ? l.cancel : l.ok)),
+            if (canConvert) TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l.convertThis)),
+          ],
         ),
       );
-      return;
+      if (choice != true || !mounted) return;
+      convertIt = true;
     }
     setState(() => _preparing = true);
     _snack(l.refreshingVideo);
@@ -271,6 +280,7 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
         url: fresh.url,
         headers: fresh.headers,
         thumbnail: fresh.poster,
+        convert: convertIt,
       ),
     ]);
     setState(() => _casting = fresh);
@@ -325,14 +335,16 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (_banner && !casting && videos.count > 0)
-                VideoFoundBanner(
-                  onCast: () {
-                    _dismissBanner();
-                    final list = ref.read(pageVideosProvider).videos;
-                    list.length == 1 ? _castVideo(list.first) : _onCastTap();
-                  },
-                  onDismiss: _dismissBanner,
+              if (!casting && videos.count > 0)
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: CastToTvPill(
+                    count: videos.count,
+                    onTap: () {
+                      final list = ref.read(pageVideosProvider).videos;
+                      list.length == 1 ? _castVideo(list.first) : _onCastTap();
+                    },
+                  ),
                 ),
               if (casting) BrowserCastBar(poster: _casting),
             ],
@@ -366,10 +378,8 @@ class _WebCastScreenState extends ConsumerState<WebCastScreen> implements CastWe
         appBar: CastAppBar(title: context.l10n.webCast),
         bottomNavigationBar: native
             ? BrowserBottomBar(
-                count: videos.count,
                 onBack: _canBack ? _web.back : null,
                 onForward: _canForward ? _web.forward : null,
-                onCast: _onCastTap,
                 onStartPage: _home,
               )
             : null,

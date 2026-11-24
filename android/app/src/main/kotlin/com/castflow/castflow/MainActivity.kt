@@ -128,7 +128,7 @@ class CustomNativeAdFactory(private val layoutInflater: LayoutInflater) : Native
         }
 
         if (onboarding) {
-            // ~138dp layout: Media (w45, 120dp tall, FIT_CENTER, 8dp rounded), AdChoices 22x22 in left gutter 34dp.
+            // ~138dp layout: Media (120dp x 120dp square, FIT_CENTER, 8dp rounded), AdChoices 22x22 in left gutter 34dp.
             val mediaContainer = nativeAdView.findViewById<View>(R.id.ad_media_container)
             val mediaView = nativeAdView.findViewById<MediaView>(R.id.ad_media)
             val content = nativeAd.mediaContent

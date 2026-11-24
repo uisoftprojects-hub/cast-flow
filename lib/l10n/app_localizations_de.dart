@@ -1797,4 +1797,55 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Eins wiederholen';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'Dein TV kann $from nicht direkt abspielen, deshalb wird es in $to umgewandelt.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Lass die App geöffnet. Es startet automatisch auf deinem TV, sobald es fertig ist.';
+
+  @override
+  String get checkingTvFormats => 'Prüfe, was dein TV abspielen kann…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Noch etwa $time';
+  }
+
+  @override
+  String get howToMirror => 'So spiegelst du';
+
+  @override
+  String get mirrorStep1 => 'Handy und TV müssen im selben WLAN sein';
+
+  @override
+  String get mirrorStep2 =>
+      'Tippe auf „Spiegeln starten“ und wähle deinen TV aus der Liste';
+
+  @override
+  String get mirrorStep3 =>
+      'Tippe auf ⋮ und aktiviere „Wireless Display aktivieren“';
+
+  @override
+  String get mirrorStep4 => 'Drehe das Handy für Vollbildvideo quer';
+
+  @override
+  String get convertThis => 'Umwandeln';
+
+  @override
+  String get videoCannotBeCast =>
+      'Dieses Video kann von dieser Seite nicht übertragen werden';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device kann $format nicht direkt abspielen';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device kann diesen Livestream nicht abspielen, und Livestreams lassen sich nicht umwandeln';
+  }
 }

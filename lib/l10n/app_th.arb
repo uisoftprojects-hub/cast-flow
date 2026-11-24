@@ -600,5 +600,18 @@
   "playModeOnce": "เล่นครั้งเดียว",
   "playModeAutoplay": "เล่นอัตโนมัติ",
   "playModeRepeatAll": "เล่นซ้ำทั้งหมด",
-  "playModeRepeatOne": "เล่นซ้ำหนึ่งรายการ"
+  "playModeRepeatOne": "เล่นซ้ำหนึ่งรายการ",
+  "convertingExplain": "ทีวีของคุณเล่น {from} โดยตรงไม่ได้ จึงกำลังแปลงเป็น {to}",
+  "convertingKeepOpen": "เปิดแอปค้างไว้ เมื่อพร้อมจะเริ่มเล่นบนทีวีเอง",
+  "checkingTvFormats": "กำลังตรวจสอบสิ่งที่ทีวีของคุณเล่นได้…",
+  "convertingTimeLeft": "เหลืออีกประมาณ {time}",
+  "howToMirror": "วิธีมิเรอร์หน้าจอ",
+  "mirrorStep1": "โทรศัพท์และทีวีต้องอยู่ใน Wi-Fi เดียวกัน",
+  "mirrorStep2": "แตะเริ่มมิเรอร์ แล้วเลือกทีวีจากรายการ",
+  "mirrorStep3": "แตะ ⋮ แล้วเปิด เปิดใช้งานจอแสดงผลไร้สาย",
+  "mirrorStep4": "หมุนโทรศัพท์ตามแนวนอนเพื่อดูวิดีโอเต็มจอ",
+  "convertThis": "แปลงสิ่งนี้",
+  "videoCannotBeCast": "ไม่สามารถแคสต์วิดีโอนี้จากหน้านี้ได้",
+  "videoNotSupportedByTv": "{device} เล่น {format} โดยตรงไม่ได้",
+  "liveStreamUnsupported": "{device} เล่นสตรีมสดนี้ไม่ได้ และสตรีมสดแปลงไม่ได้"
 }

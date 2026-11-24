@@ -600,5 +600,18 @@
   "playModeOnce": "播放一次",
   "playModeAutoplay": "自动播放",
   "playModeRepeatAll": "全部循环",
-  "playModeRepeatOne": "单个循环"
+  "playModeRepeatOne": "单个循环",
+  "convertingExplain": "您的电视无法直接播放 {from}，因此正在转换为 {to}。",
+  "convertingKeepOpen": "请保持应用打开。准备好后会自动在电视上开始播放。",
+  "checkingTvFormats": "正在检查电视支持的格式…",
+  "convertingTimeLeft": "还剩约 {time}",
+  "howToMirror": "如何投屏",
+  "mirrorStep1": "手机和电视必须连接同一个 Wi-Fi",
+  "mirrorStep2": "点按“开始投屏”，然后从列表中选择电视",
+  "mirrorStep3": "点按 ⋮ 并开启“启用无线显示”",
+  "mirrorStep4": "横屏握持手机即可全屏播放视频",
+  "convertThis": "转换此视频",
+  "videoCannotBeCast": "无法从此页面投放该视频",
+  "videoNotSupportedByTv": "{device} 无法直接播放 {format}",
+  "liveStreamUnsupported": "{device} 无法播放此直播，且直播无法转换"
 }

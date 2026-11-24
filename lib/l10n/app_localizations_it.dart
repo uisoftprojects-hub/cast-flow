@@ -1784,4 +1784,57 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Ripeti uno';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'La tua TV non può riprodurre $from direttamente, quindi viene convertito in $to.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Tieni l\'app aperta. Parte da sola sulla tua TV quando è pronto.';
+
+  @override
+  String get checkingTvFormats =>
+      'Controllo di ciò che la tua TV può riprodurre…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Circa $time rimanenti';
+  }
+
+  @override
+  String get howToMirror => 'Come eseguire il mirroring';
+
+  @override
+  String get mirrorStep1 =>
+      'Telefono e TV devono essere sulla stessa rete Wi-Fi';
+
+  @override
+  String get mirrorStep2 =>
+      'Tocca Avvia mirroring, poi scegli la tua TV dall\'elenco';
+
+  @override
+  String get mirrorStep3 => 'Tocca ⋮ e attiva Abilita display wireless';
+
+  @override
+  String get mirrorStep4 =>
+      'Ruota il telefono in orizzontale per il video a schermo intero';
+
+  @override
+  String get convertThis => 'Converti';
+
+  @override
+  String get videoCannotBeCast =>
+      'Questo video non può essere trasmesso da questa pagina';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device non può riprodurre $format direttamente';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device non può riprodurre questa diretta e le dirette non si possono convertire';
+  }
 }

@@ -9,7 +9,31 @@ import '../../../../core/widgets/buttons.dart';
 
 import '../../../../core/l10n.dart';
 
-const _steps = [
+typedef _Step = (IconData, String, String, Widget);
+
+/// TV brands with their own walkthrough (menu names and prompts differ).
+enum TvBrand {
+  all('All TVs', 'Any smart TV', Iconsax.monitor_copy),
+  samsung('Samsung', 'Smart TV (Tizen)', Iconsax.monitor_copy),
+  lg('LG', 'webOS TV', Iconsax.monitor_copy),
+  sony('Sony', 'Bravia · Google TV', Iconsax.monitor_copy),
+  roku('Roku', 'Roku TV · Roku players', Iconsax.monitor_copy),
+  androidTv('Android / Google TV', 'TCL · Hisense · Philips · Xiaomi · Shield', Iconsax.monitor_copy);
+
+  const TvBrand(this.label, this.models, this.icon);
+  final String label;
+  final String models;
+  final IconData icon;
+}
+
+const _scanStep = (
+  Iconsax.radar_2_copy,
+  'Scan for devices',
+  'Open Devices in Cast to TV and wait a few seconds for your TV to appear.',
+  _ScanVisual(),
+);
+
+const _allSteps = <_Step>[
   (
     Iconsax.wifi_copy,
     'Join the same Wi-Fi',
@@ -22,12 +46,7 @@ const _steps = [
     'Enable Screen Mirroring, Miracast or Google Cast in the TV settings.',
     _TvSettingVisual(),
   ),
-  (
-    Iconsax.radar_2_copy,
-    'Scan for devices',
-    'Open Devices in Cast to TV and wait a few seconds for your TV to appear.',
-    _ScanVisual(),
-  ),
+  _scanStep,
   (
     Iconsax.tick_circle_copy,
     'Tap Connect',
@@ -36,24 +55,187 @@ const _steps = [
   ),
 ];
 
-Future<void> showConnectionGuide(BuildContext context) {
+const _wifiStepAndroid = (
+  Iconsax.wifi_copy,
+  'Check the TV’s Wi-Fi',
+  'On the TV open Settings › Network & Internet and join the same Wi-Fi as your phone.',
+  _MenuVisual(
+    path: 'Settings › Network & Internet',
+    rows: [
+      _MenuRow('Wi-Fi', value: 'Home Wi-Fi ✓', focus: true),
+      _MenuRow('Network status', value: 'Connected'),
+    ],
+  ),
+);
+
+const _pinStep = (
+  Iconsax.lock_copy,
+  'Enter the code shown on the TV',
+  'Tap your TV in Cast to TV. A code appears on the TV screen: type it on your phone to pair once.',
+  _PinVisual(),
+);
+
+List<_Step> _stepsFor(TvBrand brand) => switch (brand) {
+  TvBrand.all => _allSteps,
+  TvBrand.samsung => const [
+    (
+      Iconsax.wifi_copy,
+      'Check the TV’s Wi-Fi',
+      'On the TV open Settings › General › Network and make sure it is on the same Wi-Fi as your phone.',
+      _MenuVisual(
+        path: 'Settings › General › Network',
+        rows: [
+          _MenuRow('Network Status', value: 'Home Wi-Fi ✓', focus: true),
+          _MenuRow('Open Network Settings'),
+          _MenuRow('Expert Settings'),
+        ],
+      ),
+    ),
+    (
+      Iconsax.shield_tick_copy,
+      'Let your phone connect',
+      'Open Settings › General › External Device Manager › Device Connect Manager and set Access Notification to “First Time Only”.',
+      _MenuVisual(
+        path: 'General › External Device Manager › Device Connect Manager',
+        rows: [
+          _MenuRow('Device List'),
+          _MenuRow('Access Notification', value: 'First Time Only', focus: true),
+        ],
+      ),
+    ),
+    _scanStep,
+    (
+      Iconsax.tick_circle_copy,
+      'Tap Connect, then Allow',
+      'Tap Connect. When the Samsung TV asks, choose Allow with the TV remote.',
+      _ConnectVisual(),
+    ),
+  ],
+  TvBrand.lg => const [
+    (
+      Iconsax.wifi_copy,
+      'Check the TV’s Wi-Fi',
+      'On the TV open Settings › All Settings › Network › Wi-Fi Connection and join the same Wi-Fi as your phone.',
+      _MenuVisual(
+        path: 'All Settings › Network',
+        rows: [
+          _MenuRow('Wi-Fi Connection', value: 'Home Wi-Fi ✓', focus: true),
+          _MenuRow('Wired Connection (Ethernet)'),
+        ],
+      ),
+    ),
+    (
+      Iconsax.shield_tick_copy,
+      'Let your phone connect',
+      'Open Settings › General › Devices › External Devices › TV On With Mobile and turn on “Turn on via Wi-Fi”.',
+      _MenuVisual(
+        path: 'General › Devices › External Devices',
+        rows: [_MenuRow('TV On With Mobile', focus: true), _MenuRow('Turn on via Wi-Fi', on: true)],
+      ),
+    ),
+    _scanStep,
+    (
+      Iconsax.tick_circle_copy,
+      'Tap Connect, then Allow',
+      'Tap Connect. When the LG TV asks, choose Allow with the Magic Remote.',
+      _ConnectVisual(),
+    ),
+  ],
+  TvBrand.sony => const [
+    _wifiStepAndroid,
+    (
+      Iconsax.setting_2_copy,
+      'Let your phone wake the TV',
+      'Turn on “Remote start” in Settings › Network & Internet so the TV answers your phone while it is asleep.',
+      _MenuVisual(
+        path: 'Settings › Network & Internet',
+        rows: [_MenuRow('Wi-Fi'), _MenuRow('Remote start', on: true, focus: true)],
+      ),
+    ),
+    _scanStep,
+    _pinStep,
+  ],
+  TvBrand.roku => const [
+    (
+      Iconsax.wifi_copy,
+      'Check the Roku’s Wi-Fi',
+      'On the Roku open Settings › Network › About and check it is connected to the same Wi-Fi as your phone.',
+      _MenuVisual(
+        path: 'Settings › Network › About',
+        rows: [
+          _MenuRow('Status', value: 'Connected ✓', focus: true),
+          _MenuRow('Network name', value: 'Home Wi-Fi'),
+        ],
+      ),
+    ),
+    (
+      Iconsax.shield_tick_copy,
+      'Allow control from apps',
+      'Open Settings › System › Advanced system settings › Control by mobile apps › Network access and choose Default (or Permissive).',
+      _MenuVisual(
+        path: 'System › Advanced system settings › Control by mobile apps',
+        rows: [
+          _MenuRow('Network access', value: 'Default', focus: true),
+          _MenuRow('Disabled'),
+        ],
+      ),
+    ),
+    _scanStep,
+    (
+      Iconsax.tick_circle_copy,
+      'Tap Connect',
+      'Tap your Roku, then Connect. Roku does not ask for a code or permission, so it connects right away.',
+      _ConnectVisual(prompt: false),
+    ),
+  ],
+  TvBrand.androidTv => const [
+    _wifiStepAndroid,
+    (
+      Iconsax.setting_2_copy,
+      'Turn on the remote service',
+      'Open Settings › Apps › Show system apps › Android TV Remote Service and make sure it is enabled.',
+      _MenuVisual(
+        path: 'Settings › Apps › System apps',
+        rows: [
+          _MenuRow('Android TV Remote Service', value: 'Enabled', focus: true),
+          _MenuRow('Chromecast built-in'),
+        ],
+      ),
+    ),
+    _scanStep,
+    _pinStep,
+  ],
+};
+
+Future<void> showConnectionGuide(BuildContext context, {TvBrand brand = TvBrand.all}) {
   return showModalBottomSheet<void>(
     useRootNavigator: true,
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    builder: (_) => const SafeArea(top: false, child: ConnectionGuideSheet()),
+    builder: (_) => SafeArea(top: false, child: ConnectionGuideSheet(initialBrand: brand)),
   );
 }
 
 /// "How to connect": four illustrated steps, each with a small animated
-/// picture of what the user should see on the phone and the TV.
-class ConnectionGuideSheet extends StatelessWidget {
-  const ConnectionGuideSheet({super.key});
+/// picture of what the user should see on the phone and the TV. A brand picker
+/// at the top swaps in that brand's own steps (menu names, prompts, codes).
+class ConnectionGuideSheet extends StatefulWidget {
+  const ConnectionGuideSheet({super.key, this.initialBrand = TvBrand.all});
+
+  final TvBrand initialBrand;
+
+  @override
+  State<ConnectionGuideSheet> createState() => _ConnectionGuideSheetState();
+}
+
+class _ConnectionGuideSheetState extends State<ConnectionGuideSheet> {
+  late TvBrand _brand = widget.initialBrand;
 
   @override
   Widget build(BuildContext context) {
+    final steps = _stepsFor(_brand);
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.9,
@@ -65,22 +247,90 @@ class ConnectionGuideSheet extends StatelessWidget {
         children: [
           Text(context.l10n.howToConnect, style: context.text.headlineMedium),
           const SizedBox(height: AppSpace.xs),
-          Text(context.l10n.fourQuickStepsTo, style: context.text.bodyMedium),
-          const SizedBox(height: AppSpace.xl),
-          for (final (i, (icon, title, body, visual)) in _steps.indexed)
+          Text(
+            _brand == TvBrand.all ? context.l10n.fourQuickStepsTo : '${_brand.label} · ${context.tr(_brand.models)}',
+            style: context.text.bodyMedium,
+          ),
+          const SizedBox(height: AppSpace.md),
+          _BrandChips(selected: _brand, onSelected: (b) => setState(() => _brand = b)),
+          const SizedBox(height: AppSpace.lg),
+          AnimatedSwitcher(
+            duration: AppDurations.medium,
+            child: Column(
+              key: ValueKey(_brand),
+              children: [
+                for (final (i, (icon, title, body, visual)) in steps.indexed)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpace.lg),
+                    child: _StepCard(
+                      number: i + 1,
+                      icon: icon,
+                      title: context.tr(title),
+                      body: context.tr(body),
+                      visual: visual,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (_brand != TvBrand.all)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpace.lg),
-              child: _StepCard(
-                number: i + 1,
-                icon: icon,
-                title: context.tr(title),
-                body: context.tr(body),
-                visual: visual,
+              child: Text(
+                context.tr('Menu names can differ a little by model and year.'),
+                style: context.text.bodySmall,
+                textAlign: TextAlign.center,
               ),
             ),
           GradientButton(label: context.l10n.gotIt, expand: true, onPressed: () => Navigator.of(context).pop()),
         ],
       ),
+    );
+  }
+}
+
+/// Brand picker: "All TVs" first, then the brands with their own guide. Wraps onto
+/// a second row so every brand is visible without scrolling sideways.
+class _BrandChips extends StatelessWidget {
+  const _BrandChips({required this.selected, required this.onSelected});
+
+  final TvBrand selected;
+  final ValueChanged<TvBrand> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Wrap(
+      spacing: AppSpace.sm,
+      runSpacing: AppSpace.sm,
+      children: [
+        for (final b in TvBrand.values)
+          Semantics(
+            button: true,
+            selected: b == selected,
+            label: b.label,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              onTap: () => onSelected(b),
+              child: AnimatedContainer(
+                duration: AppDurations.fast,
+                height: 38,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  gradient: b == selected ? AppColors.mainGradient : null,
+                  color: b == selected ? null : p.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  border: Border.all(color: b == selected ? Colors.transparent : p.divider),
+                ),
+                child: Text(
+                  b == TvBrand.all ? context.tr(b.label) : b.label,
+                  style: context.text.labelLarge?.copyWith(color: b == selected ? Colors.white : p.textPrimary),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -500,7 +750,10 @@ class _ScanVisual extends StatelessWidget {
 
 // Step 4: tap Connect on the phone, then Allow on the TV if it asks.
 class _ConnectVisual extends StatelessWidget {
-  const _ConnectVisual();
+  const _ConnectVisual({this.prompt = true});
+
+  /// The TV asks "Allow?" (most TVs). Roku doesn't: it just shows connected.
+  final bool prompt;
 
   @override
   Widget build(BuildContext context) {
@@ -544,37 +797,266 @@ class _ConnectVisual extends StatelessWidget {
         const SizedBox(width: 22),
         _Tv(
           child: Center(
+            child: prompt
+                ? _AllowPrompt()
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle_rounded, size: 34, color: Color(0xFF3DDC97)),
+                      const SizedBox(height: 4),
+                      Text(
+                        context.l10n.connected,
+                        style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The TV's "Allow Cast to TV to connect?" dialog, with Allow pulsing.
+class _AllowPrompt extends StatelessWidget {
+  const _AllowPrompt();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 104,
+      padding: const EdgeInsets.all(7),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            context.l10n.allowCastflowToConnect,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 7, fontWeight: FontWeight.w700, color: Color(0xFF1B1D2E)),
+          ),
+          const SizedBox(height: 5),
+          // Long translations shrink to fit the little dialog instead of overflowing.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(context.l10n.deny, style: const TextStyle(fontSize: 7, color: Color(0xFF8A8FA8))),
+                const SizedBox(width: 14),
+                Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        gradient: AppColors.mainGradient,
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                      ),
+                      child: Text(
+                        context.l10n.allow,
+                        style: const TextStyle(fontSize: 7, fontWeight: FontWeight.w800, color: Colors.white),
+                      ),
+                    )
+                    .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
+                    .scale(begin: const Offset(1, 1), end: const Offset(1.12, 1.12), duration: 700.ms),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One line of a TV settings menu: a label, an optional value, or an on/off switch.
+class _MenuRow {
+  const _MenuRow(this.label, {this.value, this.on, this.focus = false});
+
+  final String label;
+  final String? value;
+
+  /// Non-null: the row is a switch, shown on or off.
+  final bool? on;
+
+  /// The row the remote's cursor is on (highlighted, gently pulsing).
+  final bool focus;
+}
+
+/// A TV screen showing one settings menu: the path at the top and the rows to
+/// look at, with the one to open or switch highlighted. Drawn, not a photo, so
+/// it stays sharp in light and dark and every language.
+class _MenuVisual extends StatelessWidget {
+  const _MenuVisual({required this.path, required this.rows});
+
+  final String path;
+  final List<_MenuRow> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(_MenuRow r) {
+      final on = r.focus;
+      final line = Container(
+        margin: const EdgeInsets.only(bottom: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        decoration: BoxDecoration(color: on ? Colors.white : Colors.white10, borderRadius: BorderRadius.circular(6)),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                r.label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: on ? const Color(0xFF1B1D2E) : Colors.white70,
+                ),
+              ),
+            ),
+            if (r.value != null) ...[
+              const SizedBox(width: 6),
+              Text(
+                r.value!,
+                style: TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w800,
+                  color: on ? AppColors.primary : Colors.white54,
+                ),
+              ),
+            ],
+            if (r.on != null) ...[
+              const SizedBox(width: 6),
+              Container(
+                width: 24,
+                height: 13,
+                padding: const EdgeInsets.all(2),
+                alignment: r.on! ? Alignment.centerRight : Alignment.centerLeft,
+                decoration: BoxDecoration(
+                  gradient: r.on! ? AppColors.mainGradient : null,
+                  color: r.on! ? null : Colors.white24,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Container(
+                  width: 9,
+                  height: 9,
+                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+      return on
+          ? line
+                .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
+                .scale(begin: const Offset(1, 1), end: const Offset(1.04, 1.04), duration: 700.ms)
+          : line;
+    }
+
+    return _Tv(
+      width: 250,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              path,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.white),
+            ),
+            const SizedBox(height: 6),
+            for (final r in rows) row(r),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Android TV / Google TV pairing: a code on the TV, typed on the phone.
+class _PinVisual extends StatelessWidget {
+  const _PinVisual();
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    const code = ['4', '8', '2', '9', '1', '7'];
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _Phone(
+          child: Padding(
+            padding: const EdgeInsets.all(6),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Iconsax.lock_copy, size: 18, color: p.primary),
+                const SizedBox(height: 6),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 2,
+                  runSpacing: 2,
+                  children: [
+                    for (final (i, d) in code.indexed)
+                      Container(
+                            width: 14,
+                            height: 18,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: p.primaryTint,
+                              borderRadius: BorderRadius.circular(3),
+                              border: Border.all(color: p.primary),
+                            ),
+                            child: Text(
+                              d,
+                              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: p.textPrimary),
+                            ),
+                          )
+                          .animate(onPlay: (c) => context.loopMotion(c), delay: (160 * i).ms)
+                          .fadeIn(duration: 250.ms)
+                          .then(delay: 1400.ms)
+                          .fadeOut(duration: 200.ms),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.mainGradient,
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                  ),
+                  child: Text(
+                    context.l10n.connect,
+                    style: const TextStyle(fontSize: 7, fontWeight: FontWeight.w800, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 22),
+        _Tv(
+          child: Center(
             child: Container(
-              width: 104,
-              padding: const EdgeInsets.all(7),
+              width: 112,
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    context.l10n.allowCastflowToConnect,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 7, fontWeight: FontWeight.w700, color: Color(0xFF1B1D2E)),
+                    context.tr('Pairing code'),
+                    style: const TextStyle(fontSize: 7, fontWeight: FontWeight.w700, color: Color(0xFF8A8FA8)),
                   ),
-                  const SizedBox(height: 5),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Text(context.l10n.deny, style: TextStyle(fontSize: 7, color: Color(0xFF8A8FA8))),
-                      Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              gradient: AppColors.mainGradient,
-                              borderRadius: BorderRadius.circular(AppRadius.pill),
-                            ),
-                            child: Text(
-                              context.l10n.allow,
-                              style: TextStyle(fontSize: 7, fontWeight: FontWeight.w800, color: Colors.white),
-                            ),
-                          )
-                          .animate(onPlay: (c) => context.loopMotion(c, reverse: true))
-                          .scale(begin: const Offset(1, 1), end: const Offset(1.12, 1.12), duration: 700.ms),
-                    ],
+                  const SizedBox(height: 4),
+                  Text(
+                    code.join(' '),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1,
+                      color: Color(0xFF1B1D2E),
+                    ),
                   ),
                 ],
               ),

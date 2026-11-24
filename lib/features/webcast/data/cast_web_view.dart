@@ -17,6 +17,9 @@ abstract interface class CastWebListener {
   /// A <video>/<source> reported by the injected script.
   void onDom(Map<String, Object?> report, int token);
   void onDrm(int token);
+
+  /// The cast icon drawn over a video on the page was tapped ([url] may be empty).
+  void onCastTap(String url, int token);
 }
 
 /// Drives one native WebView instance.
@@ -89,6 +92,8 @@ class CastWebController {
         listener.onDom({...a, 'headers': _headers(a['headers'])}, token);
       case 'drm':
         listener.onDrm(token);
+      case 'castTap':
+        listener.onCastTap((a['url'] as String?) ?? '', token);
     }
     return null;
   }

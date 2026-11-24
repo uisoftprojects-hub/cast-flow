@@ -600,5 +600,18 @@
   "playModeOnce": "एक बार चलाएँ",
   "playModeAutoplay": "ऑटोप्ले",
   "playModeRepeatAll": "सभी दोहराएँ",
-  "playModeRepeatOne": "एक दोहराएँ"
+  "playModeRepeatOne": "एक दोहराएँ",
+  "convertingExplain": "आपका टीवी {from} सीधे नहीं चला सकता, इसलिए इसे {to} में बदला जा रहा है।",
+  "convertingKeepOpen": "ऐप खुला रखें। तैयार होते ही यह अपने-आप आपके टीवी पर शुरू हो जाएगा।",
+  "checkingTvFormats": "जाँचा जा रहा है कि आपका टीवी क्या चला सकता है…",
+  "convertingTimeLeft": "लगभग {time} बाकी",
+  "howToMirror": "मिरर कैसे करें",
+  "mirrorStep1": "आपका फ़ोन और टीवी एक ही वाई-फ़ाई पर होने चाहिए",
+  "mirrorStep2": "मिररिंग शुरू करें पर टैप करें, फिर सूची से अपना टीवी चुनें",
+  "mirrorStep3": "⋮ पर टैप करें और “वायरलेस डिस्प्ले चालू करें” ऑन करें",
+  "mirrorStep4": "फ़ुल-स्क्रीन वीडियो के लिए फ़ोन को आड़ा घुमाएँ",
+  "convertThis": "इसे बदलें",
+  "videoCannotBeCast": "इस पेज से यह वीडियो कास्ट नहीं किया जा सकता",
+  "videoNotSupportedByTv": "{device} सीधे {format} नहीं चला सकता",
+  "liveStreamUnsupported": "{device} यह लाइव स्ट्रीम नहीं चला सकता, और लाइव स्ट्रीम बदली नहीं जा सकती"
 }

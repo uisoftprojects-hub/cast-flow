@@ -169,3 +169,28 @@ const formatSupport = <DeviceType, Set<VideoType>>{
 };
 
 bool deviceSupports(CastDevice d, VideoType t) => formatSupport[d.type]?.contains(t) ?? false;
+
+/// A manifest that never ends (no duration once it was read): a live stream.
+/// It can be cast where the TV plays it, but never converted to a file.
+bool isLiveStream(WebVideo v) => v.type.isManifest && v.probed && (v.duration == null || v.duration == Duration.zero);
+
+/// What can be done with [v] on the connected [tv] (null: no TV connected yet).
+enum VideoStatus {
+  /// The TV plays it as it is (or there is no TV yet to say otherwise).
+  ok,
+
+  /// DRM: can't be cast at all.
+  protected,
+
+  /// The TV can't play this format, but converting it to MP4 will do.
+  convertible,
+
+  /// The TV can't play this format and a live stream can't be converted.
+  live,
+}
+
+VideoStatus videoStatusFor(WebVideo v, CastDevice? tv) {
+  if (v.protected) return VideoStatus.protected;
+  if (tv == null || deviceSupports(tv, v.type)) return VideoStatus.ok;
+  return isLiveStream(v) ? VideoStatus.live : VideoStatus.convertible;
+}

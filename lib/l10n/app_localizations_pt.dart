@@ -1781,4 +1781,56 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Repetir um';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'Sua TV não consegue reproduzir $from diretamente, por isso está sendo convertido para $to.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Mantenha o app aberto. Começa sozinho na sua TV quando estiver pronto.';
+
+  @override
+  String get checkingTvFormats =>
+      'Verificando o que sua TV consegue reproduzir…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Faltam cerca de $time';
+  }
+
+  @override
+  String get howToMirror => 'Como espelhar a tela';
+
+  @override
+  String get mirrorStep1 => 'O celular e a TV precisam estar no mesmo Wi-Fi';
+
+  @override
+  String get mirrorStep2 =>
+      'Toque em Iniciar espelhamento e escolha sua TV na lista';
+
+  @override
+  String get mirrorStep3 => 'Toque em ⋮ e ative Ativar exibição sem fio';
+
+  @override
+  String get mirrorStep4 =>
+      'Gire o celular na horizontal para vídeo em tela cheia';
+
+  @override
+  String get convertThis => 'Converter';
+
+  @override
+  String get videoCannotBeCast =>
+      'Este vídeo não pode ser transmitido desta página';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device não reproduz $format diretamente';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device não reproduz esta transmissão ao vivo, e transmissões ao vivo não podem ser convertidas';
+  }
 }

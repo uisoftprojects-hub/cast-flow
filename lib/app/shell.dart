@@ -9,9 +9,7 @@ import '../core/l10n.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/app_tokens.dart';
-import '../features/monetization/presentation/click_count_interstitial_manager.dart';
 import '../features/player/presentation/mini_player_bar.dart';
-import '../features/premium/domain/premium_status_service.dart';
 import '../features/settings/presentation/rate_sheet.dart';
 
 const _tabs = [
@@ -73,17 +71,6 @@ class AppShell extends ConsumerWidget {
             _FloatingNavBar(
               index: navigationShell.currentIndex,
               onTap: (i) {
-                if (i != navigationShell.currentIndex) {
-                  // Tab 3 is Settings -> exclude settings screen from click interstitial
-                  if (i != 3) {
-                    ref
-                        .read(clickCountInterstitialManagerProvider)
-                        .onUserClick(
-                          isPremium: ref.read(isPremiumProvider),
-                          contextTag: 'bottom_nav_tab_$i',
-                        );
-                  }
-                }
                 navigationShell.goBranch(i, initialLocation: i == navigationShell.currentIndex);
               },
             ),

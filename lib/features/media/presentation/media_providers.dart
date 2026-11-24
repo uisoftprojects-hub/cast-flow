@@ -8,13 +8,15 @@ final mediaRepositoryProvider = Provider<MediaRepository>(
   (ref) => DeviceMediaRepository(),
 );
 
-// Each provider watches the preview mode so switching it refetches.
-final albumsProvider = FutureProvider<List<PhotoAlbum>>((ref) {
+// Each provider watches the preview mode so switching it refetches. They are
+// auto-dispose: opening a screen always reads the gallery again, so access that
+// was just allowed (from this or another screen) shows up at once.
+final albumsProvider = FutureProvider.autoDispose<List<PhotoAlbum>>((ref) {
   ref.watch(previewModeProvider);
   return ref.watch(mediaRepositoryProvider).albums();
 });
 
-final photosProvider = FutureProvider.family<List<PhotoItem>, String>((
+final photosProvider = FutureProvider.autoDispose.family<List<PhotoItem>, String>((
   ref,
   albumId,
 ) {
@@ -22,12 +24,12 @@ final photosProvider = FutureProvider.family<List<PhotoItem>, String>((
   return ref.watch(mediaRepositoryProvider).photos(albumId);
 });
 
-final videosProvider = FutureProvider<List<VideoItem>>((ref) {
+final videosProvider = FutureProvider.autoDispose<List<VideoItem>>((ref) {
   ref.watch(previewModeProvider);
   return ref.watch(mediaRepositoryProvider).videos();
 });
 
-final songsProvider = FutureProvider<List<SongItem>>((ref) {
+final songsProvider = FutureProvider.autoDispose<List<SongItem>>((ref) {
   ref.watch(previewModeProvider);
   return ref.watch(mediaRepositoryProvider).songs();
 });

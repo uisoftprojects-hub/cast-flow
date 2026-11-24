@@ -1,4 +1,3 @@
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,8 +18,9 @@ import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/tap_scale.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
-import '../../monetization/domain/ad_suppression.dart';
+import '../../monetization/domain/ad_gate.dart';
 import '../domain/cast_media.dart';
+import '../domain/tv_formats.dart';
 import 'cast_thumbnail.dart';
 import 'player_controller.dart';
 
@@ -170,20 +170,9 @@ class _Preview extends StatelessWidget {
                     ),
                   ),
                 // Fades in and out smoothly with the conversion.
-                PositionedDirectional(
-                  start: 0,
-                  end: 0,
-                  bottom: 0,
+                Positioned.fill(
                   child: AnimatedSwitcher(
                     duration: AppDurations.medium,
-                    switchInCurve: Curves.easeOutCubic,
-                    transitionBuilder: (c, a) => FadeTransition(
-                      opacity: a,
-                      child: SlideTransition(
-                        position: Tween(begin: const Offset(0, 0.25), end: Offset.zero).animate(a),
-                        child: c,
-                      ),
-                    ),
                     child: state.preparing
                         ? ConversionBar(
                             key: const ValueKey('conversion'),
@@ -202,86 +191,151 @@ class _Preview extends StatelessWidget {
   }
 }
 
-/// Panel over the preview while the item is converted into the format the TV
-/// plays: what is being converted, a smoothly moving bar and the percentage.
-class ConversionBar extends StatelessWidget {
+/// Covers the preview while an item is made ready for the TV. The picture dims,
+/// a ring in the middle counts up, and plain words say what is going on:
+/// - before conversion starts (or while the converter has not reported yet):
+///   "Checking what your TV can play…";
+/// - while converting: why ("Your TV can't play MKV directly, so it is being
+///   converted to MP4."), the percentage, the technical detail, roughly how
+///   long is left, and that the cast starts by itself when ready.
+class ConversionBar extends StatefulWidget {
   const ConversionBar({super.key, this.progress, this.detail});
 
   /// 0..1, or null while the converter hasn't reported yet.
   final double? progress;
+
+  /// "MKV · H.265 / DTS → MP4 · H.264 / AAC"; null while still checking.
   final String? detail;
+
+  @override
+  State<ConversionBar> createState() => _ConversionBarState();
+}
+
+class _ConversionBarState extends State<ConversionBar> {
+  final _started = DateTime.now();
+
+  /// "About 40 s left", from how fast it went so far (needs a few seconds and
+  /// some progress first; a guess made earlier would swing wildly).
+  Duration? get _left {
+    final p = widget.progress;
+    if (p == null || p < 0.05 || p >= 1) return null;
+    final elapsed = DateTime.now().difference(_started);
+    if (elapsed < const Duration(seconds: 4)) return null;
+    return Duration(milliseconds: (elapsed.inMilliseconds * (1 - p) / p).round());
+  }
+
+  /// Moves smoothly between the converter's reports; unknown progress (null)
+  /// is shown as an endless spinner / bar instead.
+  Widget _smooth(double? progress, Widget Function(double? value) builder) {
+    if (progress == null) return builder(null);
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(end: progress),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOut,
+      builder: (_, v, _) => builder(v),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final p = progress?.clamp(0.0, 1.0);
+    final progress = widget.progress?.clamp(0.0, 1.0);
+    final names = conversionNames(widget.detail);
+    final converting = widget.detail != null && widget.detail!.isNotEmpty;
+    final left = _left;
+    const white = Colors.white;
+
+    final title = converting ? l.convertingToTvFormat : l.checkingTvFormats;
+    final explain = names != null ? l.convertingExplain(names.from, names.to) : null;
+
     return Semantics(
       liveRegion: true,
-      label: p == null ? l.preparingForTv : l.convertingForTv((p * 100).round()),
+      label: progress == null ? title : l.convertingForTv((progress * 100).round()),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(AppSpace.lg, AppSpace.xl, AppSpace.lg, AppSpace.md),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.black.withValues(alpha: 0), Colors.black.withValues(alpha: 0.78)],
-          ),
-        ),
+        color: Colors.black.withValues(alpha: 0.62),
+        padding: const EdgeInsets.all(AppSpace.lg),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                const Icon(Iconsax.convert_copy, color: Colors.white, size: 16),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    l.convertingToTvFormat,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.text.labelLarge?.copyWith(color: Colors.white),
+            Expanded(
+              child: Center(
+                // The ring counts up smoothly between the converter's reports.
+                child: _smooth(
+                  progress,
+                  (v) => SizedBox.square(
+                    dimension: 76,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox.expand(
+                          child: CircularProgressIndicator(
+                            value: v,
+                            strokeWidth: 5,
+                            color: white,
+                            backgroundColor: Colors.white24,
+                          ),
+                        ),
+                        if (v != null)
+                          Text(
+                            '${(v * 100).round()}%',
+                            style: context.text.titleMedium?.copyWith(
+                              color: white,
+                              fontWeight: FontWeight.w700,
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                            ),
+                          )
+                        else
+                          Icon(Iconsax.convert_copy, color: white.withValues(alpha: 0.9), size: 28),
+                      ],
+                    ),
                   ),
                 ),
-                if (p != null)
-                  // The number counts up with the bar instead of jumping.
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(end: p),
-                    duration: const Duration(milliseconds: 600),
-                    curve: Curves.easeOut,
-                    builder: (_, v, _) => Text(
-                      '${(v * 100).round()}%',
-                      style: context.text.labelLarge?.copyWith(color: Colors.white, fontFeatures: const [FontFeature.tabularFigures()]),
-                    ),
-                  ),
-              ],
+              ),
             ),
-            if (detail != null && detail!.isNotEmpty) ...[
-              const SizedBox(height: 2),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: context.text.titleSmall?.copyWith(color: white, fontWeight: FontWeight.w700),
+            ),
+            if (explain != null) ...[
+              const SizedBox(height: 4),
               Text(
-                detail!,
-                maxLines: 1,
+                explain,
+                textAlign: TextAlign.center,
+                maxLines: 3,
                 overflow: TextOverflow.ellipsis,
-                style: context.text.bodySmall?.copyWith(color: Colors.white70),
+                style: context.text.bodySmall?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
               ),
             ],
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: p == null
-                  ? const LinearProgressIndicator(minHeight: 5, color: Colors.white, backgroundColor: Colors.white24)
-                  : TweenAnimationBuilder<double>(
-                      tween: Tween(end: p),
-                      duration: const Duration(milliseconds: 600),
-                      curve: Curves.easeOut,
-                      builder: (_, v, _) => LinearProgressIndicator(
-                        minHeight: 5,
-                        value: v,
-                        color: Colors.white,
-                        backgroundColor: Colors.white24,
-                      ),
-                    ),
-            ),
+            if (converting) ...[
+              const SizedBox(height: 6),
+              Text(
+                widget.detail!,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.text.labelSmall?.copyWith(color: Colors.white60),
+              ),
+              const SizedBox(height: AppSpace.sm),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: _smooth(
+                  progress,
+                  (v) => LinearProgressIndicator(minHeight: 5, value: v, color: white, backgroundColor: Colors.white24),
+                ),
+              ),
+              const SizedBox(height: AppSpace.sm),
+              Text(
+                left == null
+                    ? l.convertingKeepOpen
+                    : '${l.convertingTimeLeft(formatDuration(left))}  ·  ${l.convertingKeepOpen}',
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: context.text.labelSmall?.copyWith(color: Colors.white70),
+              ),
+            ],
           ],
         ),
       ),
@@ -499,14 +553,14 @@ class _QueueSheet extends ConsumerWidget {
     final picked = <(String path, String name)>[];
     switch (kind) {
       case CastKind.photo:
-        for (final f in await AdSuppression.around(() => ImagePicker().pickMultiImage())) {
+        for (final f in await AdGate.afterAds(() => ImagePicker().pickMultiImage())) {
           picked.add((f.path, f.name));
         }
       case CastKind.video:
-        final v = await AdSuppression.around(() => ImagePicker().pickVideo(source: ImageSource.gallery));
+        final v = await AdGate.afterAds(() => ImagePicker().pickVideo(source: ImageSource.gallery));
         if (v != null) picked.add((v.path, v.name));
       case CastKind.music:
-        for (final f in await AdSuppression.around(() => FilePicker.pickFiles(type: FileType.audio))) {
+        for (final f in await AdGate.afterAds(() => FilePicker.pickFiles(type: FileType.audio))) {
           if (f.path != null) picked.add((f.path!, f.name));
         }
       default:

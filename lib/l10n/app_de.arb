@@ -600,5 +600,18 @@
   "playModeOnce": "Einmal abspielen",
   "playModeAutoplay": "Automatisch weiter",
   "playModeRepeatAll": "Alle wiederholen",
-  "playModeRepeatOne": "Eins wiederholen"
+  "playModeRepeatOne": "Eins wiederholen",
+  "convertingExplain": "Dein TV kann {from} nicht direkt abspielen, deshalb wird es in {to} umgewandelt.",
+  "convertingKeepOpen": "Lass die App geöffnet. Es startet automatisch auf deinem TV, sobald es fertig ist.",
+  "checkingTvFormats": "Prüfe, was dein TV abspielen kann…",
+  "convertingTimeLeft": "Noch etwa {time}",
+  "howToMirror": "So spiegelst du",
+  "mirrorStep1": "Handy und TV müssen im selben WLAN sein",
+  "mirrorStep2": "Tippe auf „Spiegeln starten“ und wähle deinen TV aus der Liste",
+  "mirrorStep3": "Tippe auf ⋮ und aktiviere „Wireless Display aktivieren“",
+  "mirrorStep4": "Drehe das Handy für Vollbildvideo quer",
+  "convertThis": "Umwandeln",
+  "videoCannotBeCast": "Dieses Video kann von dieser Seite nicht übertragen werden",
+  "videoNotSupportedByTv": "{device} kann {format} nicht direkt abspielen",
+  "liveStreamUnsupported": "{device} kann diesen Livestream nicht abspielen, und Livestreams lassen sich nicht umwandeln"
 }

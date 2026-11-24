@@ -600,5 +600,18 @@
   "playModeOnce": "ایک بار چلائیں",
   "playModeAutoplay": "آٹو پلے",
   "playModeRepeatAll": "سب دہرائیں",
-  "playModeRepeatOne": "ایک دہرائیں"
+  "playModeRepeatOne": "ایک دہرائیں",
+  "convertingExplain": "آپ کا ٹی وی {from} براہِ راست نہیں چلا سکتا، اس لیے اسے {to} میں تبدیل کیا جا رہا ہے۔",
+  "convertingKeepOpen": "ایپ کھلی رکھیں۔ تیار ہوتے ہی یہ خود بخود آپ کے ٹی وی پر شروع ہو جائے گا۔",
+  "checkingTvFormats": "دیکھا جا رہا ہے کہ آپ کا ٹی وی کیا چلا سکتا ہے…",
+  "convertingTimeLeft": "تقریباً {time} باقی",
+  "howToMirror": "اسکرین مرر کیسے کریں",
+  "mirrorStep1": "فون اور ٹی وی ایک ہی وائی فائی پر ہونے چاہئیں",
+  "mirrorStep2": "مررنگ شروع کریں پر ٹیپ کریں، پھر فہرست سے اپنا ٹی وی چنیں",
+  "mirrorStep3": "⋮ پر ٹیپ کریں اور وائرلیس ڈسپلے فعال کریں آن کریں",
+  "mirrorStep4": "فل اسکرین ویڈیو کے لیے فون کو آڑا کریں",
+  "convertThis": "اسے تبدیل کریں",
+  "videoCannotBeCast": "اس صفحے سے یہ ویڈیو کاسٹ نہیں ہو سکتی",
+  "videoNotSupportedByTv": "{device} {format} براہِ راست نہیں چلا سکتا",
+  "liveStreamUnsupported": "{device} یہ لائیو اسٹریم نہیں چلا سکتا اور لائیو اسٹریم تبدیل نہیں ہو سکتی"
 }

@@ -11,7 +11,6 @@ import '../../../core/widgets/state_views.dart';
 import '../../devices/presentation/widgets/connection_chip.dart';
 import '../../player/domain/cast_media.dart';
 import '../../player/presentation/player_controller.dart';
-import '../../monetization/presentation/click_count_interstitial_manager.dart';
 import '../domain/media_models.dart';
 import 'asset_thumbnail.dart';
 import 'media_permission_view.dart';
@@ -75,10 +74,6 @@ class VideosScreen extends ConsumerWidget {
                 return _VideoTile(
                   video: v,
                   onTap: () {
-                    ClickCountInterstitialManager.recordClick(
-                      context,
-                      contextTag: 'video_cast',
-                    );
                     castAndOpenRemote(context, ref, queue, index: i);
                   },
                 );

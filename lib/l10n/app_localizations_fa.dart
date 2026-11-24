@@ -1784,4 +1784,55 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'تکرار یکی';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'تلویزیون شما نمی‌تواند $from را مستقیم پخش کند، پس به $to تبدیل می‌شود.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'برنامه را باز نگه دارید. وقتی آماده شد خودش روی تلویزیون پخش می‌شود.';
+
+  @override
+  String get checkingTvFormats => 'در حال بررسی آنچه تلویزیون شما پخش می‌کند…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'حدود $time باقی مانده';
+  }
+
+  @override
+  String get howToMirror => 'نحوهٔ آینه‌کردن صفحه';
+
+  @override
+  String get mirrorStep1 => 'گوشی و تلویزیون باید به یک Wi-Fi وصل باشند';
+
+  @override
+  String get mirrorStep2 =>
+      'روی «شروع آینه‌کردن» بزنید و تلویزیون را از فهرست انتخاب کنید';
+
+  @override
+  String get mirrorStep3 =>
+      'روی ⋮ بزنید و «فعال‌سازی نمایشگر بی‌سیم» را روشن کنید';
+
+  @override
+  String get mirrorStep4 => 'برای ویدیوی تمام‌صفحه گوشی را افقی کنید';
+
+  @override
+  String get convertThis => 'این را تبدیل کنید';
+
+  @override
+  String get videoCannotBeCast =>
+      'این ویدیو از این صفحه قابل پخش روی تلویزیون نیست';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device نمی‌تواند $format را مستقیم پخش کند';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device نمی‌تواند این پخش زنده را اجرا کند و پخش زنده قابل تبدیل نیست';
+  }
 }

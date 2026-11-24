@@ -1796,4 +1796,55 @@ class AppLocalizationsFil extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Ulitin ang isa';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'Hindi direktang mapaplay ng TV mo ang $from, kaya kino-convert ito sa $to.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Panatilihing bukas ang app. Kusa itong magsisimula sa TV mo kapag handa na.';
+
+  @override
+  String get checkingTvFormats =>
+      'Sinusuri kung ano ang kayang i-play ng TV mo…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Mga $time na lang';
+  }
+
+  @override
+  String get howToMirror => 'Paano mag-mirror';
+
+  @override
+  String get mirrorStep1 => 'Dapat nasa iisang Wi-Fi ang phone at TV';
+
+  @override
+  String get mirrorStep2 =>
+      'I-tap ang Simulan ang mirroring, saka piliin ang TV mo sa listahan';
+
+  @override
+  String get mirrorStep3 => 'I-tap ang ⋮ at i-on ang Enable wireless display';
+
+  @override
+  String get mirrorStep4 => 'Ikiling ang phone para sa full-screen na video';
+
+  @override
+  String get convertThis => 'I-convert ito';
+
+  @override
+  String get videoCannotBeCast =>
+      'Hindi ma-cast ang video na ito mula sa page na ito';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return 'Hindi direktang mapaplay ng $device ang $format';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return 'Hindi mapaplay ng $device ang live stream na ito, at hindi ma-convert ang mga live stream';
+  }
 }

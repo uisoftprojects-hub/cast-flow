@@ -600,5 +600,18 @@
   "playModeOnce": "Odtwórz raz",
   "playModeAutoplay": "Autoodtwarzanie",
   "playModeRepeatAll": "Powtarzaj wszystko",
-  "playModeRepeatOne": "Powtarzaj jeden"
+  "playModeRepeatOne": "Powtarzaj jeden",
+  "convertingExplain": "Telewizor nie odtworzy {from} bezpośrednio, więc jest konwertowany do {to}.",
+  "convertingKeepOpen": "Zostaw aplikację otwartą. Odtwarzanie ruszy na telewizorze samo, gdy będzie gotowe.",
+  "checkingTvFormats": "Sprawdzanie, co potrafi odtworzyć telewizor…",
+  "convertingTimeLeft": "Zostało około {time}",
+  "howToMirror": "Jak odbić ekran",
+  "mirrorStep1": "Telefon i telewizor muszą być w tej samej sieci Wi-Fi",
+  "mirrorStep2": "Dotknij Rozpocznij odbicie, a potem wybierz telewizor z listy",
+  "mirrorStep3": "Dotknij ⋮ i włącz Włącz wyświetlacz bezprzewodowy",
+  "mirrorStep4": "Obróć telefon poziomo, aby oglądać wideo na pełnym ekranie",
+  "convertThis": "Konwertuj",
+  "videoCannotBeCast": "Tego filmu nie można przesłać z tej strony",
+  "videoNotSupportedByTv": "{device} nie odtworzy {format} bezpośrednio",
+  "liveStreamUnsupported": "{device} nie odtworzy tej transmisji na żywo, a transmisji nie można konwertować"
 }

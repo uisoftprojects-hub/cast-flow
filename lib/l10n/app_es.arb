@@ -600,5 +600,18 @@
   "playModeOnce": "Reproducir una vez",
   "playModeAutoplay": "Reproducción automática",
   "playModeRepeatAll": "Repetir todo",
-  "playModeRepeatOne": "Repetir uno"
+  "playModeRepeatOne": "Repetir uno",
+  "convertingExplain": "Tu TV no puede reproducir {from} directamente, así que se está convirtiendo a {to}.",
+  "convertingKeepOpen": "Mantén la app abierta. Empezará sola en tu TV cuando esté lista.",
+  "checkingTvFormats": "Comprobando qué puede reproducir tu TV…",
+  "convertingTimeLeft": "Quedan unos {time}",
+  "howToMirror": "Cómo duplicar la pantalla",
+  "mirrorStep1": "El teléfono y la TV deben estar en la misma red Wi-Fi",
+  "mirrorStep2": "Toca Iniciar duplicación y elige tu TV de la lista",
+  "mirrorStep3": "Toca ⋮ y activa Habilitar pantalla inalámbrica",
+  "mirrorStep4": "Gira el teléfono de lado para ver vídeo a pantalla completa",
+  "convertThis": "Convertir",
+  "videoCannotBeCast": "Este vídeo no se puede transmitir desde esta página",
+  "videoNotSupportedByTv": "{device} no puede reproducir {format} directamente",
+  "liveStreamUnsupported": "{device} no puede reproducir esta emisión en directo y no se puede convertir"
 }

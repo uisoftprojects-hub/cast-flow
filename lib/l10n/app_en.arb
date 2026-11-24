@@ -786,5 +786,40 @@
   "playModeOnce": "Play once",
   "playModeAutoplay": "Autoplay",
   "playModeRepeatAll": "Repeat all",
-  "playModeRepeatOne": "Repeat one"
+  "playModeRepeatOne": "Repeat one",
+  "convertingExplain": "Your TV can't play {from} directly, so it is being converted to {to}.",
+  "@convertingExplain": {
+    "placeholders": {
+      "from": {},
+      "to": {}
+    }
+  },
+  "convertingKeepOpen": "Keep the app open. It starts on your TV by itself when ready.",
+  "checkingTvFormats": "Checking what your TV can play…",
+  "convertingTimeLeft": "About {time} left",
+  "@convertingTimeLeft": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "howToMirror": "How to mirror",
+  "mirrorStep1": "Your phone and TV must be on the same Wi-Fi",
+  "mirrorStep2": "Tap Start mirroring, then choose your TV from the list",
+  "mirrorStep3": "Tap ⋮ and turn on Enable wireless display",
+  "mirrorStep4": "Turn the phone sideways for full-screen video",
+  "convertThis": "Convert this",
+  "videoCannotBeCast": "This video cannot be cast from this page",
+  "videoNotSupportedByTv": "{device} can't play {format} directly",
+  "@videoNotSupportedByTv": {
+    "placeholders": {
+      "device": {},
+      "format": {}
+    }
+  },
+  "liveStreamUnsupported": "{device} can't play this live stream, and live streams can't be converted",
+  "@liveStreamUnsupported": {
+    "placeholders": {
+      "device": {}
+    }
+  }
 }

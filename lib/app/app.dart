@@ -8,6 +8,10 @@ import '../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme/app_theme.dart';
+import '../core/widgets/any_tap_listener.dart';
+import '../features/app_flow/presentation/app_flow_controller.dart';
+import '../features/monetization/presentation/ad_manager.dart';
+import '../features/monetization/presentation/click_count_interstitial_manager.dart';
 import '../features/monetization/domain/ad_config.dart';
 import '../features/monetization/presentation/ad_lifecycle_host.dart';
 import '../features/pairing/presentation/pairing_sheet.dart';
@@ -26,6 +30,17 @@ class CastFlowApp extends ConsumerStatefulWidget {
 }
 
 class _CastFlowAppState extends ConsumerState<CastFlowApp> {
+  /// A tap anywhere. Not during the startup flow (splash, language, onboarding,
+  /// paywall) where an ad would cover a step the user has to take; the manager
+  /// itself skips Premium users and an ad that is already showing.
+  void _countClick() {
+    if (!ref.read(appFlowProvider).finished) return;
+    if (!ref.read(adRouteObserverProvider).topIsSafe) return;
+    ref
+        .read(clickCountInterstitialManagerProvider)
+        .onUserClick(isPremium: ref.read(isPremiumProvider), contextTag: 'tap');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -68,7 +83,11 @@ class _CastFlowAppState extends ConsumerState<CastFlowApp> {
         }
         return AnnotatedRegion<SystemUiOverlayStyle>(
           value: context.systemOverlayStyle(),
-          child: AdLifecycleHost(child: PairingSheetHost(child: child ?? const SizedBox.shrink())),
+          // Every tap counts toward the click interstitial (1st loads, 2nd shows).
+          child: AnyTapListener(
+            onTap: _countClick,
+            child: AdLifecycleHost(child: PairingSheetHost(child: child ?? const SizedBox.shrink())),
+          ),
         );
       },
     );

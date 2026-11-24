@@ -173,9 +173,17 @@ class MediaConvert(private val context: Context, private val channel: MethodChan
 
     // ----------------------------------------------------------------- cache
 
+    private fun isUrl(path: String) = path.startsWith("http://") || path.startsWith("https://")
+
     private fun cacheFile(path: String, ext: String): File {
-        val src = File(path)
-        val key = "${src.absolutePath}|${src.length()}|${src.lastModified()}|$ext"
+        // A web video comes from the phone's own proxy (a localhost URL); its token is
+        // fresh each time, so it is never reused. A file is keyed by size and date.
+        val key = if (isUrl(path)) {
+            "${path.substringBefore('?')}|${System.nanoTime()}|$ext"
+        } else {
+            val src = File(path)
+            "${src.absolutePath}|${src.length()}|${src.lastModified()}|$ext"
+        }
         val hash = MessageDigest.getInstance("SHA-1").digest(key.toByteArray())
             .joinToString("") { "%02x".format(it) }
         return File(dir, "$hash.$ext")
@@ -261,7 +269,7 @@ class MediaConvert(private val context: Context, private val channel: MethodChan
         val part = File(out.path + ".part")
         part.delete()
 
-        val height = if (audioOnly) 0 else try {
+        val height = if (audioOnly || isUrl(path)) 0 else try {
             MediaMetadataRetriever().run {
                 try {
                     setDataSource(path)
@@ -276,7 +284,8 @@ class MediaConvert(private val context: Context, private val channel: MethodChan
             0
         }
 
-        val item = EditedMediaItem.Builder(MediaItem.fromUri(Uri.fromFile(File(path))))
+        val source = if (isUrl(path)) Uri.parse(path) else Uri.fromFile(File(path))
+        val item = EditedMediaItem.Builder(MediaItem.fromUri(source))
             .setRemoveAudio(removeAudio)
             .setRemoveVideo(audioOnly)
             .apply {

@@ -84,21 +84,43 @@ void main() {
     expect(conversionLabel(conversion: Conversion.aac, mime: 'audio/flac'), 'FLAC → M4A · AAC');
   });
 
-  testWidgets('the conversion bar shows the format change and a moving percentage', (tester) async {
-    await tester.pumpWidget(
-      _wrap(const ConversionBar(progress: 0.0, detail: 'MKV · H.265 / DTS → MP4 · H.264 / AAC')),
-    );
+  testWidgets('while checking the TV, the preview says so (no codec jargon, no bar yet)', (tester) async {
+    await tester.pumpWidget(_wrap(const ConversionBar()));
+    expect(find.text('Checking what your TV can play…'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget, reason: 'an indeterminate ring');
+  });
+
+  testWidgets('while converting, the preview explains why, what, how far and that it starts by itself', (tester) async {
+    const detail = 'MKV · H.265 / DTS → MP4 · H.264 / AAC';
+    await tester.pumpWidget(_wrap(const ConversionBar(progress: 0.0, detail: detail)));
     expect(find.text("Converting to your TV's format"), findsOneWidget);
-    expect(find.text('MKV · H.265 / DTS → MP4 · H.264 / AAC'), findsOneWidget);
-    await tester.pumpWidget(
-      _wrap(const ConversionBar(progress: 0.5, detail: 'MKV · H.265 / DTS → MP4 · H.264 / AAC')),
-    );
+    expect(find.text("Your TV can't play MKV directly, so it is being converted to MP4."), findsOneWidget);
+    expect(find.text(detail), findsOneWidget);
+    expect(find.textContaining('Keep the app open'), findsOneWidget);
+
+    await tester.pumpWidget(_wrap(const ConversionBar(progress: 0.5, detail: detail)));
     await tester.pump(const Duration(milliseconds: 300));
     final midway = tester.widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator)).value!;
     expect(midway, inExclusiveRange(0.0, 0.5), reason: 'animates, does not jump');
     await tester.pump(const Duration(seconds: 1));
-    expect(find.text('50%'), findsOneWidget);
+    expect(find.text('50%'), findsOneWidget, reason: 'the ring shows the percentage');
     expect(tester.widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator)).value, closeTo(0.5, 0.01));
+  });
+
+  testWidgets('a photo conversion (no percentage yet) shows the explanation with a spinner and an endless bar', (tester) async {
+    await tester.pumpWidget(_wrap(const ConversionBar(detail: 'HEIC → JPEG')));
+    expect(find.text("Your TV can't play HEIC directly, so it is being converted to JPEG."), findsOneWidget);
+    expect(tester.widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator)).value, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('names for the sentence come from the conversion label', () {
+    expect(conversionNames('MKV · H.265 / DTS → MP4 · H.264 / AAC'), (from: 'MKV', to: 'MP4'));
+    expect(conversionNames('HEIC → JPEG'), (from: 'HEIC', to: 'JPEG'));
+    expect(conversionNames('FLAC → M4A · AAC'), (from: 'FLAC', to: 'M4A'));
+    expect(conversionNames(null), isNull);
+    expect(conversionNames('nothing here'), isNull);
   });
 
   testWidgets('a video with no gallery id still shows the themed placeholder, never blank', (tester) async {

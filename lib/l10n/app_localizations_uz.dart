@@ -1804,4 +1804,55 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Bittasini takrorlash';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'Televizoringiz $from ni to‘g‘ridan-to‘g‘ri ijro eta olmaydi, shuning uchun u $to ga o‘zgartirilmoqda.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Ilovani ochiq qoldiring. Tayyor bo‘lgach televizorda o‘zi boshlanadi.';
+
+  @override
+  String get checkingTvFormats =>
+      'Televizoringiz nimani ijro eta olishi tekshirilmoqda…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Taxminan $time qoldi';
+  }
+
+  @override
+  String get howToMirror => 'Ekranni qanday aks ettirish';
+
+  @override
+  String get mirrorStep1 =>
+      'Telefon va televizor bir xil Wi-Fi’da bo‘lishi kerak';
+
+  @override
+  String get mirrorStep2 =>
+      'Aks ettirishni boshlash ni bosing, so‘ng ro‘yxatdan televizorni tanlang';
+
+  @override
+  String get mirrorStep3 => '⋮ ni bosing va Simsiz displeyni yoqish ni yoqing';
+
+  @override
+  String get mirrorStep4 => 'To‘liq ekran video uchun telefonni yonlama qiling';
+
+  @override
+  String get convertThis => 'Aylantirish';
+
+  @override
+  String get videoCannotBeCast => 'Bu videoni ushbu sahifadan uzatib bo‘lmaydi';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device $format ni to‘g‘ridan-to‘g‘ri ijro eta olmaydi';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device bu jonli efirni ijro eta olmaydi va jonli efirni o‘zgartirib bo‘lmaydi';
+  }
 }

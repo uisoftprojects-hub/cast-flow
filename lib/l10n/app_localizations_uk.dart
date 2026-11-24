@@ -1798,4 +1798,58 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Повторювати один';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'Телевізор не може напряму відтворити $from, тому файл конвертується в $to.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Не закривайте застосунок. Відтворення розпочнеться на телевізорі саме, щойно все буде готово.';
+
+  @override
+  String get checkingTvFormats =>
+      'Перевіряємо, що вміє відтворювати телевізор…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Залишилось близько $time';
+  }
+
+  @override
+  String get howToMirror => 'Як дзеркалити екран';
+
+  @override
+  String get mirrorStep1 =>
+      'Телефон і телевізор мають бути в одній мережі Wi-Fi';
+
+  @override
+  String get mirrorStep2 =>
+      'Натисніть «Почати дзеркалення» й виберіть телевізор зі списку';
+
+  @override
+  String get mirrorStep3 =>
+      'Натисніть ⋮ та ввімкніть «Увімкнути бездротовий екран»';
+
+  @override
+  String get mirrorStep4 =>
+      'Поверніть телефон горизонтально для відео на весь екран';
+
+  @override
+  String get convertThis => 'Конвертувати';
+
+  @override
+  String get videoCannotBeCast =>
+      'Це відео не можна транслювати з цієї сторінки';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device не відтворює $format напряму';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device не відтворює цю трансляцію, а прямі трансляції не можна конвертувати';
+  }
 }

@@ -11,26 +11,19 @@ import '../../../core/utils/format.dart';
 import '../../../core/widgets/buttons.dart';
 import '../../../core/widgets/effects.dart';
 import '../../../core/widgets/soft_card.dart';
+import '../../devices/domain/cast_device.dart';
 import '../../devices/presentation/device_providers.dart';
 import '../../player/presentation/player_controller.dart';
+import '../domain/video_rules.dart';
 import '../domain/web_video.dart';
 
-/// Browser bottom navigation: back, forward, Cast (with count badge) and the
-/// start page.
+/// Browser bottom navigation: back, forward and the start page. Casting is the
+/// "Cast to TV" pill over the page ([CastToTvPill]), the one and only cast option.
 class BrowserBottomBar extends StatelessWidget {
-  const BrowserBottomBar({
-    super.key,
-    required this.count,
-    required this.onBack,
-    required this.onForward,
-    required this.onCast,
-    required this.onStartPage,
-  });
+  const BrowserBottomBar({super.key, required this.onBack, required this.onForward, required this.onStartPage});
 
-  final int count;
   final VoidCallback? onBack;
   final VoidCallback? onForward;
-  final VoidCallback onCast;
   final VoidCallback onStartPage;
 
   @override
@@ -54,7 +47,6 @@ class BrowserBottomBar extends StatelessWidget {
             children: [
               item(Iconsax.arrow_left_2_copy, l.browserBack, onBack),
               item(Iconsax.arrow_right_3_copy, l.browserForward, onForward),
-              CastNavButton(count: count, onTap: onCast),
               item(Iconsax.home_2_copy, l.browserStartPage, onStartPage),
             ],
           ),
@@ -64,92 +56,57 @@ class BrowserBottomBar extends StatelessWidget {
   }
 }
 
-/// Dimmed until a video is found; then active with a count badge and a
-/// subtle pulse.
-class CastNavButton extends StatelessWidget {
-  const CastNavButton({super.key, required this.count, required this.onTap});
+/// "Cast to TV (N)": a pill floating at the bottom of the page while videos are
+/// found, with the cast icon and the number of videos in a badge. Tap to cast
+/// (one video) or to pick (several).
+class CastToTvPill extends StatelessWidget {
+  const CastToTvPill({super.key, required this.count, required this.onTap});
 
   final int count;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
-    final active = count > 0;
-    final icon = AnimatedContainer(
-      duration: AppDurations.medium,
-      width: 52,
-      height: 40,
-      decoration: BoxDecoration(
-        gradient: active ? AppColors.mainGradient : null,
-        color: active ? null : p.primaryTint.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        boxShadow: active ? AppShadows.glow(AppColors.primary) : null,
-      ),
-      alignment: Alignment.center,
-      child: Icon(
-        Iconsax.screenmirroring_copy,
-        size: 22,
-        color: active ? Colors.white : p.textSecondary.withValues(alpha: 0.55),
-      ),
-    );
+    final l = context.l10n;
     return Semantics(
       button: true,
-      label: active ? context.l10n.castVideoCount(count) : context.l10n.castVideo,
-      child: Tooltip(
-        message: context.l10n.castVideo,
-        child: InkResponse(
+      label: '${l.castToTv}, ${l.castVideoCount(count)}',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppRadius.pill),
           onTap: onTap,
-          radius: 32,
-          child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: Stack(
-              clipBehavior: Clip.none,
+          child: Ink(
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 10, 10),
+            decoration: BoxDecoration(
+              gradient: AppColors.mainGradient,
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              boxShadow: AppShadows.glow(AppColors.primary),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (active)
-                  icon
-                      .animate(key: const ValueKey('pulse'), onPlay: (c) => context.loopMotion(c, reverse: true))
-                      .scale(
-                        begin: const Offset(1, 1),
-                        end: const Offset(1.07, 1.07),
-                        duration: 900.ms,
-                        curve: Curves.easeInOut,
-                      )
-                else
-                  icon,
-                if (active)
-                  PositionedDirectional(
-                    top: -6,
-                    end: -6,
-                    child: ExcludeSemantics(
-                      child: Container(
-                        constraints: const BoxConstraints(minWidth: 20),
-                        height: 20,
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: p.surface, width: 2),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          count > 9 ? '9+' : '$count',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            height: 1,
-                          ),
-                        ),
-                      ),
-                    ).animate(key: ValueKey(count)).scale(begin: const Offset(0.4, 0.4), curve: Curves.easeOutBack),
+                const Icon(Icons.cast_rounded, color: Colors.white, size: 22),
+                const SizedBox(width: 8),
+                Text(l.castToTv, style: context.text.titleSmall?.copyWith(color: Colors.white)),
+                const SizedBox(width: 10),
+                Container(
+                  constraints: const BoxConstraints(minWidth: 26),
+                  height: 26,
+                  padding: const EdgeInsets.symmetric(horizontal: 7),
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.28), shape: BoxShape.rectangle, borderRadius: BorderRadius.circular(13)),
+                  alignment: Alignment.center,
+                  child: Text(
+                    count > 99 ? '99+' : '$count',
+                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800, height: 1),
                   ),
+                ).animate(key: ValueKey(count)).scale(begin: const Offset(0.6, 0.6), curve: Curves.easeOutBack),
               ],
             ),
           ),
         ),
       ),
-    );
+    ).animate().fadeIn(duration: AppDurations.fast).slideY(begin: 0.4, end: 0, curve: Curves.easeOutBack);
   }
 }
 
@@ -196,9 +153,13 @@ class VideoFoundBanner extends StatelessWidget {
   }
 }
 
-/// "Videos found (N)" sheet. Pops with the picked video.
-Future<WebVideo?> showVideosSheet(BuildContext context, List<WebVideo> videos) {
-  return showModalBottomSheet<WebVideo>(
+/// What the user chose in the videos sheet: cast it as it is, or convert it first.
+typedef VideoPick = ({WebVideo video, bool convert});
+
+/// "Videos on this page" sheet. Pops with the picked video (and whether to
+/// convert it first). Each row says whether the connected TV can play it.
+Future<VideoPick?> showVideosSheet(BuildContext context, List<WebVideo> videos) {
+  return showModalBottomSheet<VideoPick>(
     useRootNavigator: true,
     context: context,
     useSafeArea: true,
@@ -209,14 +170,17 @@ Future<WebVideo?> showVideosSheet(BuildContext context, List<WebVideo> videos) {
   );
 }
 
-class _VideosSheet extends StatelessWidget {
+class _VideosSheet extends ConsumerWidget {
   const _VideosSheet({required this.videos});
   final List<WebVideo> videos;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final single = videos.length == 1;
+    final conn = ref.watch(connectionProvider);
+    final tv = conn.isConnected ? conn.device : null;
+    final first = single ? videoStatusFor(videos.first, tv) : null;
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.7),
       child: SingleChildScrollView(
@@ -230,16 +194,26 @@ class _VideosSheet extends StatelessWidget {
             for (final v in videos)
               Padding(
                 padding: const EdgeInsets.only(bottom: AppSpace.md),
-                child: _VideoRow(video: v, showButton: !single),
+                child: _VideoRow(video: v, tv: tv, showButton: !single),
               ),
             if (single) ...[
               const SizedBox(height: AppSpace.sm),
-              GradientButton(
-                label: l.castToTv,
-                icon: Iconsax.screenmirroring_copy,
-                expand: true,
-                onPressed: videos.first.protected ? null : () => Navigator.of(context).pop(videos.first),
-              ),
+              if (first == VideoStatus.convertible)
+                GradientButton(
+                  label: l.convertThis,
+                  icon: Iconsax.convert_copy,
+                  expand: true,
+                  onPressed: () => Navigator.of(context).pop((video: videos.first, convert: true)),
+                )
+              else
+                GradientButton(
+                  label: l.castToTv,
+                  icon: Icons.cast_rounded,
+                  expand: true,
+                  onPressed: first == VideoStatus.ok
+                      ? () => Navigator.of(context).pop((video: videos.first, convert: false))
+                      : null,
+                ),
             ],
           ],
         ),
@@ -249,58 +223,95 @@ class _VideosSheet extends StatelessWidget {
 }
 
 class _VideoRow extends StatelessWidget {
-  const _VideoRow({required this.video, required this.showButton});
+  const _VideoRow({required this.video, required this.tv, required this.showButton});
   final WebVideo video;
+  final CastDevice? tv;
   final bool showButton;
 
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
     final l = context.l10n;
+    final status = videoStatusFor(video, tv);
     final details = [
       video.type.label,
       ?video.quality,
       if (video.duration != null && video.duration! > Duration.zero) formatDuration(video.duration!),
     ].join(' · ');
+
+    // The line under the title, saying why a video can't just be cast.
+    (IconData, String)? note = switch (status) {
+      VideoStatus.protected => (Iconsax.lock_copy, l.videoCannotBeCast),
+      VideoStatus.live => (Iconsax.info_circle_copy, l.liveStreamUnsupported(tv?.name ?? l.tv)),
+      VideoStatus.convertible => (Iconsax.info_circle_copy, l.videoNotSupportedByTv(tv?.name ?? l.tv, video.type.label)),
+      VideoStatus.ok => null,
+    };
+    final blocked = status != VideoStatus.ok;
     return SoftCard(
       padding: const EdgeInsets.all(AppSpace.sm),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          VideoThumb(video: video, width: 104, height: 62),
-          const SizedBox(width: AppSpace.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  video.title ?? video.url,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.text.titleSmall,
-                ),
-                const SizedBox(height: 2),
-                Text(details, style: context.text.bodySmall),
-                if (video.protected)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Row(
-                      children: [
-                        Icon(Iconsax.lock_copy, size: 13, color: p.textSecondary),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            l.protectedVideo,
-                            style: context.text.labelSmall?.copyWith(color: p.textSecondary),
-                          ),
-                        ),
-                      ],
+          Row(
+            children: [
+              Opacity(opacity: status == VideoStatus.protected ? 0.6 : 1, child: VideoThumb(video: video, width: 104, height: 62)),
+              const SizedBox(width: AppSpace.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      video.title ?? video.url,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.text.titleSmall,
                     ),
-                  ),
-              ],
-            ),
+                    const SizedBox(height: 2),
+                    Text(details, style: context.text.bodySmall),
+                    if (note != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 1),
+                              child: Icon(note.$1, size: 13, color: p.textSecondary),
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                note.$2,
+                                style: context.text.labelSmall?.copyWith(color: p.textSecondary),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              if (showButton && !blocked)
+                GradientButton(
+                  label: l.castAction,
+                  compact: true,
+                  onPressed: () => Navigator.of(context).pop((video: video, convert: false)),
+                ),
+            ],
           ),
-          if (showButton && !video.protected)
-            GradientButton(label: l.castAction, compact: true, onPressed: () => Navigator.of(context).pop(video)),
+          // The TV can't play this format: offer to convert it.
+          if (showButton && status == VideoStatus.convertible) ...[
+            const SizedBox(height: AppSpace.sm),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: TintedButton(
+                label: l.convertThis,
+                icon: Iconsax.convert_copy,
+                compact: true,
+                onPressed: () => Navigator.of(context).pop((video: video, convert: true)),
+              ),
+            ),
+          ],
         ],
       ),
     );

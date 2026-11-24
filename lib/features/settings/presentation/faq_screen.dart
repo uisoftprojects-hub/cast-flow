@@ -94,6 +94,43 @@ class FaqScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(AppSpace.page, AppSpace.sm, AppSpace.page, AppSpace.xxxl),
         children: [
+          // "How to connect with Samsung / LG / ...": each opens that brand's illustrated steps.
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 4, bottom: AppSpace.sm, top: AppSpace.md),
+            child: Row(
+              children: [
+                Icon(Iconsax.monitor_copy, size: 18, color: context.palette.primary),
+                const SizedBox(width: AppSpace.sm),
+                Text(context.tr('Connect your TV'), style: context.text.titleSmall),
+              ],
+            ),
+          ),
+          SoftCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                for (final (i, brand) in TvBrand.values.indexed) ...[
+                  if (i > 0) const Divider(indent: 16, endIndent: 16),
+                  Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: 2),
+                      leading: Icon(brand.icon, color: context.palette.primary),
+                      title: Text(
+                        brand == TvBrand.all
+                            ? context.tr('How to connect any TV')
+                            : '${context.tr('How to connect with')} ${brand.label}',
+                        style: context.text.bodyLarge,
+                      ),
+                      subtitle: Text(context.tr(brand.models), style: context.text.bodySmall),
+                      trailing: Icon(Icons.chevron_right_rounded, color: context.palette.textSecondary),
+                      onTap: () => showConnectionGuide(context, brand: brand),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
           for (final (icon, title, items) in _sections) ...[
             Padding(
               padding: const EdgeInsetsDirectional.only(start: 4, bottom: AppSpace.sm, top: AppSpace.md),

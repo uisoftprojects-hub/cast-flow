@@ -1797,4 +1797,58 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Повторять один';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'Телевизор не может напрямую воспроизвести $from, поэтому файл конвертируется в $to.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Не закрывайте приложение. Воспроизведение начнётся на телевизоре само, когда всё будет готово.';
+
+  @override
+  String get checkingTvFormats =>
+      'Проверяем, что умеет воспроизводить телевизор…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Осталось около $time';
+  }
+
+  @override
+  String get howToMirror => 'Как включить трансляцию экрана';
+
+  @override
+  String get mirrorStep1 =>
+      'Телефон и телевизор должны быть в одной сети Wi-Fi';
+
+  @override
+  String get mirrorStep2 =>
+      'Нажмите «Начать трансляцию» и выберите телевизор в списке';
+
+  @override
+  String get mirrorStep3 =>
+      'Нажмите ⋮ и включите «Включить беспроводной дисплей»';
+
+  @override
+  String get mirrorStep4 =>
+      'Поверните телефон горизонтально для видео на весь экран';
+
+  @override
+  String get convertThis => 'Конвертировать';
+
+  @override
+  String get videoCannotBeCast =>
+      'Это видео нельзя транслировать с этой страницы';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device не воспроизводит $format напрямую';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device не воспроизводит эту трансляцию, а прямые трансляции нельзя конвертировать';
+  }
 }

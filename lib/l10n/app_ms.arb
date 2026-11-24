@@ -524,5 +524,18 @@
   "playModeOnce": "Main sekali",
   "playModeAutoplay": "Main automatik",
   "playModeRepeatAll": "Ulang semua",
-  "playModeRepeatOne": "Ulang satu"
+  "playModeRepeatOne": "Ulang satu",
+  "convertingExplain": "TV anda tidak dapat memainkan {from} secara terus, jadi ia ditukar kepada {to}.",
+  "convertingKeepOpen": "Biarkan aplikasi terbuka. Ia akan bermula sendiri pada TV anda apabila siap.",
+  "checkingTvFormats": "Menyemak apa yang boleh dimainkan oleh TV anda…",
+  "convertingTimeLeft": "Kira-kira {time} lagi",
+  "howToMirror": "Cara mencerminkan skrin",
+  "mirrorStep1": "Telefon dan TV mesti berada pada Wi-Fi yang sama",
+  "mirrorStep2": "Ketik Mula pencerminan, kemudian pilih TV anda daripada senarai",
+  "mirrorStep3": "Ketik ⋮ dan hidupkan Dayakan paparan wayarles",
+  "mirrorStep4": "Pusingkan telefon ke sisi untuk video skrin penuh",
+  "convertThis": "Tukar ini",
+  "videoCannotBeCast": "Video ini tidak boleh dihantar dari halaman ini",
+  "videoNotSupportedByTv": "{device} tidak dapat memainkan {format} secara terus",
+  "liveStreamUnsupported": "{device} tidak dapat memainkan strim langsung ini dan strim langsung tidak boleh ditukar"
 }

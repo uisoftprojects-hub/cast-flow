@@ -1782,4 +1782,54 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'Eén herhalen';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'Je tv kan $from niet rechtstreeks afspelen, daarom wordt het omgezet naar $to.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'Laat de app open. Het start vanzelf op je tv zodra het klaar is.';
+
+  @override
+  String get checkingTvFormats => 'Controleren wat je tv kan afspelen…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'Nog ongeveer $time';
+  }
+
+  @override
+  String get howToMirror => 'Zo spiegel je';
+
+  @override
+  String get mirrorStep1 => 'Je telefoon en tv moeten op hetzelfde wifi zitten';
+
+  @override
+  String get mirrorStep2 => 'Tik op Start spiegelen en kies je tv uit de lijst';
+
+  @override
+  String get mirrorStep3 => 'Tik op ⋮ en zet Draadloos scherm inschakelen aan';
+
+  @override
+  String get mirrorStep4 =>
+      'Draai je telefoon liggend voor video op volledig scherm';
+
+  @override
+  String get convertThis => 'Omzetten';
+
+  @override
+  String get videoCannotBeCast =>
+      'Deze video kan niet vanaf deze pagina worden gecast';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device kan $format niet rechtstreeks afspelen';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device kan deze livestream niet afspelen en livestreams kunnen niet worden omgezet';
+  }
 }

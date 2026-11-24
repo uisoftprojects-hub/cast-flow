@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:castflow/core/navigation.dart';
 import 'package:castflow/core/theme/app_theme.dart';
+import 'package:castflow/core/widgets/any_tap_listener.dart';
 import 'package:castflow/features/devices/domain/cast_device.dart';
 import 'package:castflow/features/devices/domain/network_status.dart';
 import 'package:castflow/features/devices/presentation/device_providers.dart';
@@ -257,7 +258,16 @@ void main() {
       adapter.interstitialLoads.last.complete(ad);
       await tester.pump();
 
-      await tester.pumpWidget(_app(c, const MirroringScreen()));
+      // As in the app: every tap counts toward the click interstitial (AnyTapListener).
+      await tester.pumpWidget(
+        _app(
+          c,
+          AnyTapListener(
+            onTap: () => manager.onUserClick(isPremium: false),
+            child: const MirroringScreen(),
+          ),
+        ),
+      );
       await tester.pump(const Duration(milliseconds: 400));
 
       await tester.tap(find.text('Start'));

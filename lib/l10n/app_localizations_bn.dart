@@ -1774,4 +1774,54 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'একটি পুনরাবৃত্তি';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'আপনার টিভি সরাসরি $from চালাতে পারে না, তাই এটি $to-এ রূপান্তর করা হচ্ছে।';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'অ্যাপ খোলা রাখুন। প্রস্তুত হলে এটি নিজে থেকেই টিভিতে চালু হবে।';
+
+  @override
+  String get checkingTvFormats => 'আপনার টিভি কী চালাতে পারে তা দেখা হচ্ছে…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'আর প্রায় $time';
+  }
+
+  @override
+  String get howToMirror => 'কীভাবে মিরর করবেন';
+
+  @override
+  String get mirrorStep1 => 'আপনার ফোন ও টিভি একই Wi-Fi-তে থাকতে হবে';
+
+  @override
+  String get mirrorStep2 =>
+      'মিররিং শুরু করুন-এ ট্যাপ করে তালিকা থেকে টিভি বেছে নিন';
+
+  @override
+  String get mirrorStep3 =>
+      '⋮-এ ট্যাপ করে “ওয়্যারলেস ডিসপ্লে চালু করুন” অন করুন';
+
+  @override
+  String get mirrorStep4 => 'পূর্ণ স্ক্রিন ভিডিওর জন্য ফোন পাশে ঘোরান';
+
+  @override
+  String get convertThis => 'এটি রূপান্তর করুন';
+
+  @override
+  String get videoCannotBeCast => 'এই পেজ থেকে এই ভিডিও কাস্ট করা যাবে না';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device সরাসরি $format চালাতে পারে না';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device এই লাইভ স্ট্রিম চালাতে পারে না, আর লাইভ স্ট্রিম রূপান্তর করা যায় না';
+  }
 }

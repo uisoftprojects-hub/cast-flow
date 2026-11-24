@@ -63,11 +63,12 @@ void _installErrorHandlers() {
     if (kDebugMode) {
       (framework ?? FlutterError.presentError)(details);
     } else {
-      dlog('Flutter error: ${details.exceptionAsString()}');
+      dlog('[ERROR] Flutter error: ${details.exceptionAsString()}\n${details.stack}');
     }
   };
   PlatformDispatcher.instance.onError = (error, stack) {
-    dlog('Unhandled error: $error');
+    // One searchable marker (and the stack) so a log can be grepped for [ERROR].
+    dlog('[ERROR] Unhandled error: $error\n$stack');
     return kReleaseMode; // debug: let the VM print it as before
   };
 }

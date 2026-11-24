@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
 
-import '../../features/monetization/domain/ad_suppression.dart';
+import '../../features/monetization/domain/ad_gate.dart';
 
 /// Keeps the app (and the media server the TV streams from) running while a
 /// cast plays with the screen off: a "mediaPlayback" foreground service on
@@ -93,7 +93,7 @@ abstract final class CastSessionChannel {
       // Denied once already, or blocked: don't nag.
       if (status.isGranted || status.isPermanentlyDenied || status.isRestricted)
         return;
-      await AdSuppression.around(() => ph.Permission.notification.request());
+      await AdGate.afterAds(() => ph.Permission.notification.request());
     } catch (_) {}
   }
 }

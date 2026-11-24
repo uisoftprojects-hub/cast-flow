@@ -1752,4 +1752,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => 'تكرار الحالي';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'لا يستطيع التلفاز تشغيل $from مباشرة، لذلك يتم تحويله إلى $to.';
+  }
+
+  @override
+  String get convertingKeepOpen =>
+      'أبقِ التطبيق مفتوحًا. سيبدأ على التلفاز تلقائيًا عند الانتهاء.';
+
+  @override
+  String get checkingTvFormats => 'جارٍ التحقق مما يستطيع تلفازك تشغيله…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return 'متبقٍ نحو $time';
+  }
+
+  @override
+  String get howToMirror => 'كيفية عرض الشاشة';
+
+  @override
+  String get mirrorStep1 => 'يجب أن يكون الهاتف والتلفاز على شبكة Wi-Fi نفسها';
+
+  @override
+  String get mirrorStep2 => 'اضغط «بدء العرض» ثم اختر التلفاز من القائمة';
+
+  @override
+  String get mirrorStep3 => 'اضغط ⋮ ثم فعّل «تمكين العرض اللاسلكي»';
+
+  @override
+  String get mirrorStep4 => 'أدِر الهاتف أفقيًا لعرض الفيديو بملء الشاشة';
+
+  @override
+  String get convertThis => 'حوّل هذا';
+
+  @override
+  String get videoCannotBeCast => 'لا يمكن بث هذا الفيديو من هذه الصفحة';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return 'لا يستطيع $device تشغيل $format مباشرة';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return 'لا يستطيع $device تشغيل هذا البث المباشر ولا يمكن تحويل البث المباشر';
+  }
 }

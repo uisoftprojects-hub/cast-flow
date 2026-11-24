@@ -524,5 +524,18 @@
   "playModeOnce": "Eén keer afspelen",
   "playModeAutoplay": "Automatisch afspelen",
   "playModeRepeatAll": "Alles herhalen",
-  "playModeRepeatOne": "Eén herhalen"
+  "playModeRepeatOne": "Eén herhalen",
+  "convertingExplain": "Je tv kan {from} niet rechtstreeks afspelen, daarom wordt het omgezet naar {to}.",
+  "convertingKeepOpen": "Laat de app open. Het start vanzelf op je tv zodra het klaar is.",
+  "checkingTvFormats": "Controleren wat je tv kan afspelen…",
+  "convertingTimeLeft": "Nog ongeveer {time}",
+  "howToMirror": "Zo spiegel je",
+  "mirrorStep1": "Je telefoon en tv moeten op hetzelfde wifi zitten",
+  "mirrorStep2": "Tik op Start spiegelen en kies je tv uit de lijst",
+  "mirrorStep3": "Tik op ⋮ en zet Draadloos scherm inschakelen aan",
+  "mirrorStep4": "Draai je telefoon liggend voor video op volledig scherm",
+  "convertThis": "Omzetten",
+  "videoCannotBeCast": "Deze video kan niet vanaf deze pagina worden gecast",
+  "videoNotSupportedByTv": "{device} kan {format} niet rechtstreeks afspelen",
+  "liveStreamUnsupported": "{device} kan deze livestream niet afspelen en livestreams kunnen niet worden omgezet"
 }

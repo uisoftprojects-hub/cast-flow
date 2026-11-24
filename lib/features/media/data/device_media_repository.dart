@@ -2,10 +2,12 @@ import 'dart:math' as math;
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:photo_manager/photo_manager.dart';
 
-import '../../monetization/domain/ad_suppression.dart';
+import '../../../core/utils/serial_runner.dart';
+import '../../monetization/domain/ad_gate.dart';
 import '../domain/media_models.dart';
 
 /// Thrown when the user hasn't allowed access to photos / videos / music.
@@ -23,7 +25,14 @@ class MediaPermissionDenied implements Exception {
 
 /// Real media from the phone's gallery and music library (MediaStore).
 class DeviceMediaRepository implements MediaRepository {
-  static const _maxItems = 600;
+  /// Upper bound on items loaded per list. High on purpose: lists are built
+  /// lazily, and a cap of a few hundred hid most of a real gallery.
+  static const _maxItems = 20000;
+
+  /// Permission prompts one at a time (the albums and the photo grid both ask
+  /// when Photos opens, and Android refuses a second request while the first
+  /// dialog is open).
+  static final _permissionQueue = SerialRunner();
 
   int? _sdk;
 
@@ -41,25 +50,38 @@ class DeviceMediaRepository implements MediaRepository {
   /// counts as access), READ_EXTERNAL_STORAGE up to 12.
   Future<List<ph.Permission>> _permissionsFor(RequestType type) async {
     if (await _sdkInt() <= 32) return [ph.Permission.storage];
+    // Photos and videos are one "photos and videos" prompt: ask for both
+    // together whichever screen asked, so allowing it from Videos also opens
+    // Photos (and the other way round), instead of leaving the other empty.
+    final visual = type.containsImage() || type.containsVideo();
     return [
-      if (type.containsImage()) ph.Permission.photos,
-      if (type.containsVideo()) ph.Permission.videos,
+      if (visual) ...[ph.Permission.photos, ph.Permission.videos],
       if (type.containsAudio()) ph.Permission.audio,
     ];
   }
 
   /// Asks for access when it can still be asked for, and tells a plain
   /// "denied" (ask again) apart from "permanently denied" (open Settings).
-  Future<void> _ensureAccess([RequestType type = RequestType.common]) async {
+  Future<void> _ensureAccess([RequestType type = RequestType.common]) =>
+      _permissionQueue.run(() => _ensureAccessNow(type));
+
+  Future<void> _ensureAccessNow(RequestType type) async {
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       final perms = await _permissionsFor(type);
       bool ok(ph.PermissionStatus s) => s.isGranted || s.isLimited;
       var statuses = [for (final p in perms) await p.status];
       if (!statuses.any(ok)) {
-        final result = await AdSuppression.around(() => perms.request());
-        statuses = [
-          for (final p in perms) result[p] ?? ph.PermissionStatus.denied,
-        ];
+        try {
+          final result = await AdGate.afterAds(() => perms.request());
+          statuses = [
+            for (final p in perms) result[p] ?? ph.PermissionStatus.denied,
+          ];
+        } on PlatformException {
+          // Another part of the app has a prompt open: wait a moment and read
+          // what the user answered instead of failing with a generic error.
+          await Future<void>.delayed(const Duration(milliseconds: 600));
+          statuses = [for (final p in perms) await p.status];
+        }
       }
       if (!statuses.any(ok)) {
         final permanent = statuses.every(
@@ -70,11 +92,12 @@ class DeviceMediaRepository implements MediaRepository {
     }
     // Already allowed above on Android, so this shows no prompt there; on iOS
     // it is the real request.
-    final state = await AdSuppression.around(
+    final state = await AdGate.afterAds(
       () => PhotoManager.requestPermissionExtend(
         requestOption: PermissionRequestOption(
           androidPermission: AndroidPermission(
-            type: type,
+            // Photos and videos share one grant (see _permissionsFor).
+            type: type.containsImage() || type.containsVideo() ? RequestType.common : type,
             mediaLocation: false,
           ),
         ),

@@ -1712,4 +1712,51 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get playModeRepeatOne => '1曲リピート';
+
+  @override
+  String convertingExplain(Object from, Object to) {
+    return 'お使いのテレビは$fromを直接再生できないため、$toに変換しています。';
+  }
+
+  @override
+  String get convertingKeepOpen => 'アプリを開いたままにしてください。準備ができるとテレビで自動的に始まります。';
+
+  @override
+  String get checkingTvFormats => 'テレビが再生できる形式を確認中…';
+
+  @override
+  String convertingTimeLeft(Object time) {
+    return '残り約$time';
+  }
+
+  @override
+  String get howToMirror => 'ミラーリングの手順';
+
+  @override
+  String get mirrorStep1 => 'スマホとテレビを同じWi-Fiに接続してください';
+
+  @override
+  String get mirrorStep2 => '「ミラーリング開始」をタップし、リストからテレビを選択';
+
+  @override
+  String get mirrorStep3 => '⋮をタップし「ワイヤレスディスプレイを有効にする」をオンに';
+
+  @override
+  String get mirrorStep4 => 'フルスクリーン動画はスマホを横向きにしてください';
+
+  @override
+  String get convertThis => '変換する';
+
+  @override
+  String get videoCannotBeCast => 'このページからこの動画はキャストできません';
+
+  @override
+  String videoNotSupportedByTv(Object device, Object format) {
+    return '$device は $format を直接再生できません';
+  }
+
+  @override
+  String liveStreamUnsupported(Object device) {
+    return '$device はこのライブ配信を再生できず、ライブ配信は変換できません';
+  }
 }

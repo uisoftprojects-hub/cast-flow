@@ -177,6 +177,8 @@ String conversionLabel({required Conversion conversion, required String mime, Me
     'video/x-msvideo' => 'AVI',
     'video/3gpp' => '3GP',
     'video/mp4' => 'MP4',
+    'application/vnd.apple.mpegurl' || 'application/x-mpegurl' => 'HLS',
+    'application/dash+xml' => 'DASH',
     'video/mp2t' => 'TS',
     'image/heic' || 'image/heif' => 'HEIC',
     'image/webp' => 'WebP',
@@ -222,6 +224,16 @@ String conversionLabel({required Conversion conversion, required String mime, Me
     case Conversion.none:
       return '';
   }
+}
+
+/// The plain names in a [conversionLabel], e.g. "MKV · H.265 / DTS → MP4 · H.264 / AAC"
+/// gives from "MKV" and to "MP4", for sentences like "your TV can't play MKV".
+({String from, String to})? conversionNames(String? detail) {
+  if (detail == null || !detail.contains('→')) return null;
+  final parts = detail.split('→');
+  String name(String s) => s.split('·').first.trim();
+  final from = name(parts.first), to = name(parts.last);
+  return from.isEmpty || to.isEmpty ? null : (from: from, to: to);
 }
 
 /// The conversion to retry with after the TV failed to play [kind].
